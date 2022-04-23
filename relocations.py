@@ -22,7 +22,6 @@ class Shellcode(object):
         data_rel_ro = self.elffile.get_section_by_name('.data.rel.ro')
         original_symbol_addresses = self.get_original_symbols_addresses()
         got_header = got.header
-        data_rel_ro_header = data_rel_ro.header
         assert got_header.sh_entsize == 4
         for got_sym_start in xrange(got_header.sh_offset, got_header.sh_offset + got_header.sh_size,
                                     got_header.sh_entsize):
@@ -35,21 +34,24 @@ class Shellcode(object):
             else:
                 shellcode_data = shellcode_data[:got_sym_start] + struct.pack(">I", new_offset) + shellcode_data[
                                                                                                   got_sym_end:]
+        if data_rel_ro:
+            data_rel_ro_header = data_rel_ro.header
 
-        for data_rel_sym_start in xrange(data_rel_ro_header.sh_offset,
-                                         data_rel_ro_header.sh_offset + data_rel_ro_header.sh_size,
-                                         data_rel_ro_header.sh_addralign):
-            data_rel_sym_end = data_rel_sym_start + 4
-            data_rel_sym_value = struct.unpack(">I", shellcode_data[data_rel_sym_start:data_rel_sym_end])[0]
-            if data_rel_sym_value not in original_symbol_addresses:
-                continue
-            new_offset = new_base_address + (data_rel_sym_value - self.linker_base_address)
+            for data_rel_sym_start in xrange(data_rel_ro_header.sh_offset,
+                                             data_rel_ro_header.sh_offset + data_rel_ro_header.sh_size,
+                                             data_rel_ro_header.sh_addralign):
+                data_rel_sym_end = data_rel_sym_start + 4
+                data_rel_sym_value = struct.unpack(">I", shellcode_data[data_rel_sym_start:data_rel_sym_end])[0]
+                if data_rel_sym_value not in original_symbol_addresses:
+                    continue
+                new_offset = new_base_address + (data_rel_sym_value - self.linker_base_address)
 
-            if new_offset > 0xffffffff:
-                pass
-            else:
-                shellcode_data = shellcode_data[:data_rel_sym_start] + struct.pack(">I", new_offset) + shellcode_data[
-                                                                                                       data_rel_sym_end:]
+                if new_offset > 0xffffffff:
+                    pass
+                else:
+                    shellcode_data = shellcode_data[:data_rel_sym_start] + struct.pack(">I",
+                                                                                       new_offset) + shellcode_data[
+                                                                                                     data_rel_sym_end:]
 
         return shellcode_data
 
