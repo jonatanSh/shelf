@@ -6,7 +6,10 @@ class Shellcode(object):
     def __init__(self, elffile, shellcode_data):
         self.elffile = elffile
         self.shellcode_data = shellcode_data
-        self.linker_base_address = 0x0400000
+        for segment in self.elffile.iter_segments():
+            if segment.header.p_type in ['PT_LOAD']:
+                self.linker_base_address = segment.header.p_vaddr
+                break
 
     def got_find_symbol_address_by_value(self, symbol_value):
         got = self.elffile.get_section_by_name(".got")
