@@ -40,8 +40,7 @@ found_table:
     sw $a1, 28($sp) # First entry in table
     lw $a1, 0($a0) # size of relocatable table
     # total shellcode header size is size of table + table + entry_point
-    addiu $a2, $a1, 8 
-    add $a2, $a2, $a0
+    addiu $a2, $a0, 8 
     sw $a2, 32($sp)
 
 
@@ -71,6 +70,7 @@ relocate:
     addiu $a1, $a1, -1 # number of entries in the table
     bgez $a1, relocate
 
+jump_to_main:
     lw $a0, 36($sp)
     # Here a2 is the offset of main
     add $a0, $a0, $a2

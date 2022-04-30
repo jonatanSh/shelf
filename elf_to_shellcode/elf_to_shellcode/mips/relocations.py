@@ -6,20 +6,28 @@ import struct
 class Shellcode(object):
     def __init__(self, elffile, shellcode_data, endian):
         self.elffile = elffile
+        self.shellcode_table_magic = 0xaabbccdd
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
         assert endian in ["big", "little"]
         if endian == "big":
             self.endian = ">"
-            self.loader = get_resource("mini_loader_mipsbe.shellcode.out")
+            self._loader = get_resource("mini_loader_mipsbe.shellcode.out")
         else:
-            self.loader = get_resource("mini_loader_mips.shellcode.out")
+            self._loader = get_resource("mini_loader_mips.shellcode.out")
             self.endian = "<"
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 self.linker_base_address = segment.header.p_vaddr
                 break
+
+    @property
+    def loader(self):
+        loader = self._loader
+        idx = struct.pack("{}I".format(self.endian), self.shellcode_table_magic)
+        idx = loader.find(idx) + 4
+        return loader[:idx]
 
     @property
     def relocation_table(self):
@@ -49,9 +57,12 @@ class Shellcode(object):
             got_sym_end = got_sym_start + 4
             got_sym_value = struct.unpack("{}I".format(self.endian), shellcode_data[got_sym_start:got_sym_end])[0]
             sym_offset = got_sym_value - self.linker_base_address
+            symbol_relative_offset = got_sym_start - got_header.sh_offset
+            virtual_offset = got_header.sh_addr - self.linker_base_address
+            virtual_offset += symbol_relative_offset
             if sym_offset < 0:
                 continue
-            self.addresses_to_patch[got_sym_start] = sym_offset
+            self.addresses_to_patch[virtual_offset] = sym_offset
         if data_rel_ro:
             data_rel_ro_header = data_rel_ro.header
 
@@ -66,8 +77,10 @@ class Shellcode(object):
                 sym_offset = data_rel_sym_value - self.linker_base_address
                 if sym_offset < 0:
                     continue
-
-                self.addresses_to_patch[data_rel_sym_start] = sym_offset
+                symbol_relative_offset = data_rel_sym_start - data_rel_ro_header.sh_offset
+                virtual_offset = data_rel_ro_header.sh_addr - self.linker_base_address + data_rel_sym_start
+                virtual_offset += symbol_relative_offset
+                self.addresses_to_patch[virtual_offset] = sym_offset
 
         return shellcode_data
 
