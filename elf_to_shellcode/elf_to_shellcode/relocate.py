@@ -1,4 +1,4 @@
-from elf_to_shellcode.mips.relocations import relocate as mips_relocate
+from elf_to_shellcode.elf_to_shellcode.mips.relocations import relocate as mips_relocate
 
 ENDIANS = ["big", "little"]
 

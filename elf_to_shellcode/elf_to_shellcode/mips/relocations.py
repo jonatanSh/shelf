@@ -1,5 +1,5 @@
 from elftools.elf.elffile import ELFFile
-from elf_to_shellcode.resources import get_resource
+from elf_to_shellcode.elf_to_shellcode.resources import get_resource
 import struct
 import sys
 
