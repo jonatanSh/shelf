@@ -21,5 +21,6 @@ setup(
     url='https://github.com/jonatanSh/elf_to_shellcode',
     author='Jonathan Shimon',
     author_email='jonatanshimon@gmail.com',
+    package_data={'': ['*.shellcode']}
 
 )
