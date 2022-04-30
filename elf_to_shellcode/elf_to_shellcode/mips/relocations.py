@@ -3,20 +3,35 @@ import struct
 
 
 class Shellcode(object):
-    def __init__(self, elffile, shellcode_data):
+    def __init__(self, elffile, shellcode_data, endian):
         self.elffile = elffile
+        # Key is the file offset, value is the offset to correct to
+        self.addresses_to_patch = {}
+        assert endian in ["big", "little"]
+        if endian == "big":
+            self.endian = ">"
+        else:
+            self.endian = "<"
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 self.linker_base_address = segment.header.p_vaddr
                 break
 
+    @property
+    def relocation_table(self):
+        size = len(self.addresses_to_patch)
+        table = "".join(struct.pack("{}I".format(self.endian), size))
+        for key, value in self.addresses_to_patch:
+            table += "".join(struct.pack("{}II".format(self.endian), key, value))
+        return table
+
     def got_find_symbol_address_by_value(self, symbol_value):
         got = self.elffile.get_section_by_name(".got")
         header = got.header
         assert header.sh_size % 4 == 0
         for i in xrange(header.sh_offset, header.sh_offset + header.sh_size, 4):
-            value = struct.unpack(">I", self.shellcode_data[i:i + 4])[0]
+            value = struct.unpack("{}I".format(self.endian), self.shellcode_data[i:i + 4])[0]
             if value == symbol_value:
                 return i
 
@@ -29,12 +44,14 @@ class Shellcode(object):
         for got_sym_start in xrange(got_header.sh_offset, got_header.sh_offset + got_header.sh_size,
                                     got_header.sh_entsize):
             got_sym_end = got_sym_start + 4
-            got_sym_value = struct.unpack(">I", shellcode_data[got_sym_start:got_sym_end])[0]
-            new_offset = new_base_address + (got_sym_value - self.linker_base_address)
+            got_sym_value = struct.unpack("{}I".format(self.endian), shellcode_data[got_sym_start:got_sym_end])[0]
+            sym_offset = got_sym_value - self.linker_base_address
+            new_offset = new_base_address + sym_offset
 
             if new_offset > 0xffffffff:
                 pass
             else:
+                self.addresses_to_patch[got_sym_start] = sym_offset
                 shellcode_data = shellcode_data[:got_sym_start] + struct.pack(">I", new_offset) + shellcode_data[
                                                                                                   got_sym_end:]
         if data_rel_ro:
@@ -44,14 +61,17 @@ class Shellcode(object):
                                              data_rel_ro_header.sh_offset + data_rel_ro_header.sh_size,
                                              data_rel_ro_header.sh_addralign):
                 data_rel_sym_end = data_rel_sym_start + 4
-                data_rel_sym_value = struct.unpack(">I", shellcode_data[data_rel_sym_start:data_rel_sym_end])[0]
+                data_rel_sym_value = \
+                    struct.unpack("{}I".format(self.endian), shellcode_data[data_rel_sym_start:data_rel_sym_end])[0]
                 if data_rel_sym_value not in original_symbol_addresses:
                     continue
-                new_offset = new_base_address + (data_rel_sym_value - self.linker_base_address)
+                sym_offset = data_rel_sym_value - self.linker_base_address
+                new_offset = new_base_address + sym_offset
 
                 if new_offset > 0xffffffff:
                     pass
                 else:
+                    self.addresses_to_patch[data_rel_sym_start] = sym_offset
                     shellcode_data = shellcode_data[:data_rel_sym_start] + struct.pack(">I",
                                                                                        new_offset) + shellcode_data[
                                                                                                      data_rel_sym_end:]
@@ -149,29 +169,32 @@ class Shellcode(object):
         shellcode_data = self.correct_symbols(shellcode_data, base_address_with_header)
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
-        shellcode_data = shellcode_header + shellcode_data
+        relocation_table = self.relocation_table
+
+        shellcode_data = relocation_table + shellcode_header + shellcode_data
         return shellcode_data
 
 
-def get_shellcode_class(elf_path, new_base_address):
+def get_shellcode_class(elf_path, new_base_address, endian):
     assert new_base_address % 4 == 0, "Error invalid base address"
     fd = open(elf_path, 'rb')
     elffile = ELFFile(fd)
     with open(elf_path, "rb") as fp:
         shellcode_data = fp.read()
-    shellcode = Shellcode(elffile=elffile, shellcode_data=shellcode_data)
+    shellcode = Shellcode(elffile=elffile, shellcode_data=shellcode_data, endian=endian)
     return shellcode, fd
 
 
-def relocate(elf_path, new_base_address):
-    shellcode, fd = get_shellcode_class(elf_path, new_base_address)
+def relocate(elf_path, new_base_address, endian):
+    shellcode, fd = get_shellcode_class(elf_path, new_base_address, endian)
     shellcode = shellcode.get_shellcode(new_base_address)
     fd.close()
     return shellcode
 
 
-def get_symbol_address(elf_path, symbol_name, base_address):
-    shellcode, fd = get_shellcode_class(elf_path, base_address)
+# Endian here doesn't really matter
+def get_symbol_address(elf_path, symbol_name, base_address, endian="big"):
+    shellcode, fd = get_shellcode_class(elf_path, base_address, endian=endian)
     sym = shellcode.get_symbol_address_after_relocation(symbol_name, base_address)
     fd.close()
     return sym
