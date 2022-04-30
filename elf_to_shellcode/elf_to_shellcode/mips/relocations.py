@@ -1,4 +1,5 @@
 from elftools.elf.elffile import ELFFile
+from elf_to_shellcode.resources import get_resource
 import struct
 
 
@@ -10,7 +11,9 @@ class Shellcode(object):
         assert endian in ["big", "little"]
         if endian == "big":
             self.endian = ">"
+            self.loader = get_resource("mini_loader_mipsbe.shellcode.out")
         else:
+            self.loader = get_resource("mini_loader_mips.shellcode.out")
             self.endian = "<"
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
@@ -114,44 +117,10 @@ class Shellcode(object):
         )))
 
     def get_shellcode_header(self, dummy=False):
-        return ""
         # Fixing elf entry point
         original_entry_point = self.elffile.header.e_entry
-        new_entry_point = (original_entry_point - self.linker_base_address) + new_base_address
-        header = ""
-        # Building jump opcode
-        nop = "\x00" * 4
-        """
-        Here the stub loads the address of main into t9, and create a call stub to the entry point
-        The entry point and main can be different
-        3C 19 12 34    lui $t9, 0x1234
-        37 39 56 78    ori $t9, $t9, 0x5678
-        3C 18 12 34    lui $t8, 0x1234
-        37 18 56 78    ori $t8, $t8, 0x5678
-        03 00 00 08 jr $t8
-        """
-
-        # This trick make sure we skip the header
-        main_function_address = self.get_new_symbol_address("main", new_base_address)
-        if not dummy:
-            dummy_header = self.get_shellcode_header(new_base_address, dummy=True)
-            new_entry_point += len(dummy_header)
-            main_function_address += len(dummy_header)
-
-        hi_entry = new_entry_point >> 16
-        lw_entry = new_entry_point & 0xffff
-        hi_main = main_function_address >> 16
-        lw_main = main_function_address & 0xffff
-
-        # use here endian from header
-        header += "\x3c\x19" + struct.pack(">H", hi_main)
-        header += "\x37\x39" + struct.pack(">H", lw_main)
-        header += "\x3c\x18" + struct.pack(">H", hi_entry)
-        header += "\x37\x18" + struct.pack(">H", lw_entry)
-        header += "\x03\x00\x00\x08"
-        header += nop
-
-        return header
+        new_entry_point = (original_entry_point - self.linker_base_address)
+        return struct.pack("{}I".format(self.endian), new_entry_point)
 
     def get_shellcode(self):
         shellcode_data = self.shellcode_data
@@ -161,7 +130,7 @@ class Shellcode(object):
         # This must be here !
         relocation_table = self.relocation_table
 
-        shellcode_data = relocation_table + shellcode_header + shellcode_data
+        shellcode_data = self.loader + relocation_table + shellcode_header + shellcode_data
         return shellcode_data
 
 

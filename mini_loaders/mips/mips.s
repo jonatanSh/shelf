@@ -1,6 +1,6 @@
 .globl _start
 _start:
-    addiu $sp, $sp, -32
+    addiu $sp, $sp, -36
     sw $ra, 0($sp)
     sw $a0, 4($sp)
     sw $a1, 8($sp)
@@ -13,6 +13,10 @@ _start:
     lw $a1, 4 # Current entry start from 4 because the first 4 bytes are the size
     sw $a1, 28($sp)
     lw $a1, 0($a0) # size of relocatable table
+    # total shellcode header size is size of table + table + entry_point
+    addiu $a2, $a1, 8 
+    add $a2, $a2, $a0
+    sw $a2, 32($sp)
 
 
 relocate:
@@ -24,8 +28,8 @@ relocate:
     addiu $a0, $a0, 4
     lw $a3, 0($a0) # This is the virtual offset
     
-    # Loading the shellcode
-    la $a0, relocatable_table
+    # Loading the base address
+    lw $a0, 32($sp)
     
     addu $a3, $a3, $a0 # This is the function offset (base_address+v_offset)
     # Ofsseting with f_offset
@@ -39,6 +43,15 @@ relocate:
     addiu $a1, $a1, -1 # number of entries in the table
     bgez $a1, relocate
 
+    la $a0, relocatable_table
+    # Here a2 is the offset of main
+    add $a0, $a0, $a2
+    # offset of main
+    lw $t9, 0($a0)
+    # base address
+    lw $a0, 32($sp)
+    add $t9, $t9, $a0
+    jalr $t9
 
     sw $ra, 0($sp)
     sw $a0, 4($sp)
@@ -47,7 +60,7 @@ relocate:
     sw $a3, 16($sp)
     sw $t8, 20($sp)
     sw $t9, 24($sp)
-    addiu $sp, $sp, 32
+    addiu $sp, $sp, 36
     jr $ra
 
 
