@@ -22,7 +22,7 @@ class Shellcode(object):
     def relocation_table(self):
         size = len(self.addresses_to_patch)
         table = "".join(struct.pack("{}I".format(self.endian), size))
-        for key, value in self.addresses_to_patch:
+        for key, value in self.addresses_to_patch.items():
             table += "".join(struct.pack("{}II".format(self.endian), key, value))
         return table
 
@@ -35,7 +35,7 @@ class Shellcode(object):
             if value == symbol_value:
                 return i
 
-    def correct_symbols(self, shellcode_data, new_base_address):
+    def correct_symbols(self, shellcode_data):
         got = self.elffile.get_section_by_name(".got")
         data_rel_ro = self.elffile.get_section_by_name('.data.rel.ro')
         original_symbol_addresses = self.get_original_symbols_addresses()
@@ -46,14 +46,9 @@ class Shellcode(object):
             got_sym_end = got_sym_start + 4
             got_sym_value = struct.unpack("{}I".format(self.endian), shellcode_data[got_sym_start:got_sym_end])[0]
             sym_offset = got_sym_value - self.linker_base_address
-            new_offset = new_base_address + sym_offset
-
-            if new_offset > 0xffffffff:
-                pass
-            else:
-                self.addresses_to_patch[got_sym_start] = sym_offset
-                shellcode_data = shellcode_data[:got_sym_start] + struct.pack(">I", new_offset) + shellcode_data[
-                                                                                                  got_sym_end:]
+            if sym_offset < 0:
+                continue
+            self.addresses_to_patch[got_sym_start] = sym_offset
         if data_rel_ro:
             data_rel_ro_header = data_rel_ro.header
 
@@ -66,15 +61,10 @@ class Shellcode(object):
                 if data_rel_sym_value not in original_symbol_addresses:
                     continue
                 sym_offset = data_rel_sym_value - self.linker_base_address
-                new_offset = new_base_address + sym_offset
+                if sym_offset < 0:
+                    continue
 
-                if new_offset > 0xffffffff:
-                    pass
-                else:
-                    self.addresses_to_patch[data_rel_sym_start] = sym_offset
-                    shellcode_data = shellcode_data[:data_rel_sym_start] + struct.pack(">I",
-                                                                                       new_offset) + shellcode_data[
-                                                                                                     data_rel_sym_end:]
+                self.addresses_to_patch[data_rel_sym_start] = sym_offset
 
         return shellcode_data
 
@@ -123,7 +113,8 @@ class Shellcode(object):
             base_address
         )))
 
-    def get_shellcode_header(self, new_base_address, dummy=False):
+    def get_shellcode_header(self, dummy=False):
+        return ""
         # Fixing elf entry point
         original_entry_point = self.elffile.header.e_entry
         new_entry_point = (original_entry_point - self.linker_base_address) + new_base_address
@@ -162,11 +153,10 @@ class Shellcode(object):
 
         return header
 
-    def get_shellcode(self, new_base_address):
+    def get_shellcode(self):
         shellcode_data = self.shellcode_data
-        shellcode_header = self.get_shellcode_header(new_base_address)
-        base_address_with_header = new_base_address + len(shellcode_header)
-        shellcode_data = self.correct_symbols(shellcode_data, base_address_with_header)
+        shellcode_header = self.get_shellcode_header()
+        shellcode_data = self.correct_symbols(shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table
@@ -175,8 +165,7 @@ class Shellcode(object):
         return shellcode_data
 
 
-def get_shellcode_class(elf_path, new_base_address, endian):
-    assert new_base_address % 4 == 0, "Error invalid base address"
+def get_shellcode_class(elf_path, endian):
     fd = open(elf_path, 'rb')
     elffile = ELFFile(fd)
     with open(elf_path, "rb") as fp:
@@ -185,16 +174,16 @@ def get_shellcode_class(elf_path, new_base_address, endian):
     return shellcode, fd
 
 
-def relocate(elf_path, new_base_address, endian):
-    shellcode, fd = get_shellcode_class(elf_path, new_base_address, endian)
-    shellcode = shellcode.get_shellcode(new_base_address)
+def relocate(elf_path, endian):
+    shellcode, fd = get_shellcode_class(elf_path, endian)
+    shellcode = shellcode.get_shellcode()
     fd.close()
     return shellcode
 
 
 # Endian here doesn't really matter
 def get_symbol_address(elf_path, symbol_name, base_address, endian="big"):
-    shellcode, fd = get_shellcode_class(elf_path, base_address, endian=endian)
+    shellcode, fd = get_shellcode_class(elf_path, endian=endian)
     sym = shellcode.get_symbol_address_after_relocation(symbol_name, base_address)
     fd.close()
     return sym
