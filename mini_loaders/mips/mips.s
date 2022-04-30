@@ -1,6 +1,11 @@
 .globl _start
+
+get_pc:
+    move $a0, $ra
+    jr $ra
+
 _start:
-    addiu $sp, $sp, -36
+    addiu $sp, $sp, -40
     sw $ra, 0($sp)
     sw $a0, 4($sp)
     sw $a1, 8($sp)
@@ -9,7 +14,25 @@ _start:
     sw $t8, 20($sp)
     sw $t9, 24($sp)
 
-    la $a0, relocatable_table
+    # The first thing we are going to do is to search for the relocatable table
+    b get_pc
+    la $a1, 0xffff # The depth for the search
+locate_table:
+    addiu $a0, $a0, 4 # Pointer to the code
+    lw $a2, 0($a0)
+    la $a3, 0xaabbccdd # Magic
+    beq $a2, $a3, found_table
+
+    addiu $a1, $a1, -4 # Each opcode in mips is 4 bytes
+    bgez $a1, locate_table
+
+table_not_found:    
+    b exit # Table not found
+
+found_table:
+    addiu $a0, $a0, 8 # Address of table without magic
+
+    sw $a0, 36($sp)
     lw $a1, 4 # Current entry start from 4 because the first 4 bytes are the size
     sw $a1, 28($sp)
     lw $a1, 0($a0) # size of relocatable table
@@ -19,8 +42,10 @@ _start:
     sw $a2, 32($sp)
 
 
+
+
 relocate:
-    la $a0, relocatable_table
+    lw $a0, 36($sp)
     lw $a2, 28($sp)
     add $a0, $a0, $a2
 
@@ -43,7 +68,7 @@ relocate:
     addiu $a1, $a1, -1 # number of entries in the table
     bgez $a1, relocate
 
-    la $a0, relocatable_table
+    lw $a0, 36($sp)
     # Here a2 is the offset of main
     add $a0, $a0, $a2
     # offset of main
@@ -53,6 +78,7 @@ relocate:
     add $t9, $t9, $a0
     jalr $t9
 
+exit:
     sw $ra, 0($sp)
     sw $a0, 4($sp)
     sw $a1, 8($sp)
@@ -60,9 +86,13 @@ relocate:
     sw $a3, 16($sp)
     sw $t8, 20($sp)
     sw $t9, 24($sp)
-    addiu $sp, $sp, 36
+    addiu $sp, $sp, 40
     jr $ra
 
 
 
 relocatable_table:
+    .WORD 0xaa
+    .WORD 0xbb
+    .WORD 0xcc
+    .WORD 0xdd
