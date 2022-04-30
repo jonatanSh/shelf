@@ -27,6 +27,9 @@ unsigned int write(int fd, char * buffer, unsigned int sz) {
     syscall5(SYS_write,fd, buffer, sz, 0, 0);
 }
 
+void exit(int exitcode) {
+    syscall5(SYS_exit, exitcode, 0, 0, 0, 0);
+}
 
 unsigned int strlen(const char *str)
 {
@@ -41,4 +44,5 @@ unsigned int strlen(const char *str)
 void main() {
     char * message = "Hello from shellcode !\n";
     write(1, message, strlen(message));
+    exit(1);
 }
