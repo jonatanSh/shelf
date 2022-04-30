@@ -1,10 +1,13 @@
 .globl _start
 
+_start:
+ b main
+
 get_pc:
     move $a0, $ra
     jr $ra
 
-_start:
+main:
     addiu $sp, $sp, -40
     sw $ra, 0($sp)
     sw $a0, 4($sp)
@@ -33,8 +36,8 @@ found_table:
     addiu $a0, $a0, 4 # Address of table without magic
 
     sw $a0, 36($sp)
-    lw $a1, 4 # Current entry start from 4 because the first 4 bytes are the size
-    sw $a1, 28($sp)
+    lw $a1, 4($a0) # Current entry start from 4 because the first 4 bytes are the size
+    sw $a1, 28($sp) # First entry in table
     lw $a1, 0($a0) # size of relocatable table
     # total shellcode header size is size of table + table + entry_point
     addiu $a2, $a1, 8 
