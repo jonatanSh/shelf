@@ -15,7 +15,7 @@ _start:
     sw $t9, 24($sp)
 
     # The first thing we are going to do is to search for the relocatable table
-    b get_pc
+    bal get_pc
     la $a1, 0xffff # The depth for the search
 locate_table:
     addiu $a0, $a0, 4 # Pointer to the code
@@ -30,7 +30,7 @@ table_not_found:
     b exit # Table not found
 
 found_table:
-    addiu $a0, $a0, 8 # Address of table without magic
+    addiu $a0, $a0, 4 # Address of table without magic
 
     sw $a0, 36($sp)
     lw $a1, 4 # Current entry start from 4 because the first 4 bytes are the size
@@ -92,7 +92,4 @@ exit:
 
 
 relocatable_table:
-    .WORD 0xaa
-    .WORD 0xbb
-    .WORD 0xcc
-    .WORD 0xdd
+    .WORD 0xaabbccdd
