@@ -1,5 +1,5 @@
 # the compiler: gcc for C program, define as g++ for C++
-CC?=mips-linux-gnu-gcc
+CC=mips-linux-gnu-gcc
 
 # compiler flags:
 CFLAGS=-g -Wall -static

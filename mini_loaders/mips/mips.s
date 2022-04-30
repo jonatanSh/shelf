@@ -36,32 +36,40 @@ found_table:
     addiu $a0, $a0, 4 # Address of table without magic
 
     sw $a0, 36($sp)
-    lw $a1, 4($a0) # Current entry start from 4 because the first 4 bytes are the size
+    addiu $a1, $a0, 4 # Current entry start from 4 because the first 4 bytes are the size
     sw $a1, 28($sp) # First entry in table
     lw $a1, 0($a0) # size of relocatable table
     # total shellcode header size is size of table + table + entry_point
-    addiu $a2, $a0, 8 
+    addiu $a2, $a0, 8
+
+    move $a3, $a1
+
+    # The table size is (num_of_ptr * 8) + 4 + 4 for size and for entry point
+    li $t8, 8
+    mult $a3, $t8
+    mflo $a3
+    addiu $a3, 8
+
+    add $a2, $a2, $a3
+
     sw $a2, 32($sp)
 
 
 
+    # Loading the base address
+    lw $t8, 32($sp) # T8 points to the base address
 
 relocate:
-    lw $a0, 36($sp)
-    lw $a2, 28($sp)
-    add $a0, $a0, $a2
+    lw $a0, 28($sp)
 
-    lw $a2, 0($a0) # This is the file offset
-    addiu $a0, $a0, 4
-    lw $a3, 0($a0) # This is the virtual offset
+    lw $a2, 0($a0) # This is the virtual address (f_offset)
+    lw $a3, 4($a0) # This is the virtual offset
     
-    # Loading the base address
-    lw $a0, 32($sp)
     
-    addu $a3, $a3, $a0 # This is the function offset (base_address+v_offset)
+    addu $a3, $a3, $t8 # This is the function offset (base_address+v_offset)
     # Ofsseting with f_offset
-    addu $a0, $a0, $a2
-    sw $a3, 0($a0) # Correcting the offset
+    addu $a2, $a2, $a0
+    sw $a3, 0($a2) # Correcting the offset
 
     # End of loop
     lw $a2, 28($sp)
@@ -73,12 +81,10 @@ relocate:
 jump_to_main:
     lw $a0, 36($sp)
     # Here a2 is the offset of main
-    add $a0, $a0, $a2
     # offset of main
-    lw $t9, 0($a0)
-    # base address
-    lw $a0, 32($sp)
-    add $t9, $t9, $a0
+    lw $t9, 0($a2)
+    # adding base address to offset
+    add $t9, $t9, $t8
     jalr $t9
 
 exit:

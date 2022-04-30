@@ -31,7 +31,7 @@ class Shellcode(object):
 
     @property
     def relocation_table(self):
-        size = len(self.addresses_to_patch)
+        size = len(self.addresses_to_patch) - 1 # Because we count from 0
         table = "".join(struct.pack("{}I".format(self.endian), size))
         for key, value in self.addresses_to_patch.items():
             table += "".join(struct.pack("{}II".format(self.endian), key, value))
