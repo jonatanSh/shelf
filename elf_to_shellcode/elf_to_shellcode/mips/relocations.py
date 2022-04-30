@@ -12,9 +12,9 @@ class Shellcode(object):
         assert endian in ["big", "little"]
         if endian == "big":
             self.endian = ">"
-            self._loader = get_resource("mini_loader_mipsbe.shellcode.out")
+            self._loader = get_resource("mini_loader_mipsbe.shellcode")
         else:
-            self._loader = get_resource("mini_loader_mips.shellcode.out")
+            self._loader = get_resource("mini_loader_mips.shellcode")
             self.endian = "<"
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
