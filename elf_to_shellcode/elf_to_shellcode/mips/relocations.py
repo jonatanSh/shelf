@@ -1,6 +1,10 @@
 from elftools.elf.elffile import ELFFile
 from elf_to_shellcode.resources import get_resource
 import struct
+import sys
+
+py_version = int(sys.version[0])
+assert py_version == 2, "Python3 is not supported for now :("
 
 
 class Shellcode(object):
@@ -31,17 +35,17 @@ class Shellcode(object):
 
     @property
     def relocation_table(self):
-        size = len(self.addresses_to_patch) - 1 # Because we count from 0
-        table = "".join(struct.pack("{}I".format(self.endian), size))
+        size = len(self.addresses_to_patch) - 1  # Because we count from 0
+        table = "".join([str(v) for v in struct.pack("{}I".format(self.endian), size)])
         for key, value in self.addresses_to_patch.items():
-            table += "".join(struct.pack("{}II".format(self.endian), key, value))
+            table += "".join([str(v) for v in struct.pack("{}II".format(self.endian), key, value)])
         return table
 
     def got_find_symbol_address_by_value(self, symbol_value):
         got = self.elffile.get_section_by_name(".got")
         header = got.header
         assert header.sh_size % 4 == 0
-        for i in xrange(header.sh_offset, header.sh_offset + header.sh_size, 4):
+        for i in range(header.sh_offset, header.sh_offset + header.sh_size, 4):
             value = struct.unpack("{}I".format(self.endian), self.shellcode_data[i:i + 4])[0]
             if value == symbol_value:
                 return i
@@ -52,8 +56,8 @@ class Shellcode(object):
         original_symbol_addresses = self.get_original_symbols_addresses()
         got_header = got.header
         assert got_header.sh_entsize == 4
-        for got_sym_start in xrange(got_header.sh_offset, got_header.sh_offset + got_header.sh_size,
-                                    got_header.sh_entsize):
+        for got_sym_start in range(got_header.sh_offset, got_header.sh_offset + got_header.sh_size,
+                                   got_header.sh_entsize):
             got_sym_end = got_sym_start + 4
             got_sym_value = struct.unpack("{}I".format(self.endian), shellcode_data[got_sym_start:got_sym_end])[0]
             sym_offset = got_sym_value - self.linker_base_address
@@ -66,9 +70,9 @@ class Shellcode(object):
         if data_rel_ro:
             data_rel_ro_header = data_rel_ro.header
 
-            for data_rel_sym_start in xrange(data_rel_ro_header.sh_offset,
-                                             data_rel_ro_header.sh_offset + data_rel_ro_header.sh_size,
-                                             data_rel_ro_header.sh_addralign):
+            for data_rel_sym_start in range(data_rel_ro_header.sh_offset,
+                                            data_rel_ro_header.sh_offset + data_rel_ro_header.sh_size,
+                                            data_rel_ro_header.sh_addralign):
                 data_rel_sym_end = data_rel_sym_start + 4
                 data_rel_sym_value = \
                     struct.unpack("{}I".format(self.endian), shellcode_data[data_rel_sym_start:data_rel_sym_end])[0]
@@ -112,7 +116,7 @@ class Shellcode(object):
 
                 # Now we rewrite the segment data
                 # We look at new binary as memory dump so we write using virtual addresses offsets
-                new_binary = new_binary[:start] + segment_data + new_binary[start + len(segment_data):]
+                new_binary = str(new_binary[:start]) + str(segment_data) + str(new_binary[start + len(segment_data):])
         return new_binary
 
     def get_new_symbol_address(self, symbol_name, new_base_address):
@@ -143,7 +147,7 @@ class Shellcode(object):
         # This must be here !
         relocation_table = self.relocation_table
 
-        shellcode_data = self.loader + relocation_table + shellcode_header + shellcode_data
+        shellcode_data = str(self.loader) + str(relocation_table) + str(shellcode_header) + str(shellcode_data)
         return shellcode_data
 
 

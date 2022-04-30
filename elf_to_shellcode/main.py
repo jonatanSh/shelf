@@ -16,4 +16,4 @@ else:
 with open(output_file, "wb") as fp:
     fp.write(make_shellcode(input_file, arch=arch, endian=endian))
 
-print "Created: {}".format(output_file)
+print("Created: {}".format(output_file))
