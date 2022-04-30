@@ -68,7 +68,7 @@ relocate:
     
     addu $a3, $a3, $t8 # This is the function offset (base_address+v_offset)
     # Ofsseting with f_offset
-    addu $a2, $a2, $a0
+    addu $a2, $a2, $t8
     sw $a3, 0($a2) # Correcting the offset
 
     # End of loop
@@ -84,7 +84,7 @@ jump_to_main:
     # offset of main
     lw $t9, 0($a2)
     # adding base address to offset
-    add $t9, $t9, $t8
+    addu $t9, $t9, $t8
     jalr $t9
 
 exit:

@@ -1,6 +1,6 @@
 TARGETS=mips mips_shellcode
 MIPS_CC=mips-linux-gnu-gcc
-CFLAGS=-fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main
+CFLAGS=-fno-stack-protector -fPIE -fpic -static -nostartfiles -nolibc --entry=main
 all: $(TARGETS)
 
 mips:
