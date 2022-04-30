@@ -1,6 +1,6 @@
 TARGETS=mips
 
-.PHONY: all
+.PHONY: all $(TARGETS)
 all: $(TARGETS)
 
 mips:
