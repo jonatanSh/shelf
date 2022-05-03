@@ -94,13 +94,13 @@ jump_to_main:
     addiu $sp, 0x20
 
 exit:
-    sw $ra, 0($sp)
-    sw $a0, 4($sp)
-    sw $a1, 8($sp)
-    sw $a2, 12($sp)
-    sw $a3, 16($sp)
-    sw $t8, 20($sp)
-    sw $t9, 24($sp)
+    lw $ra, 0($sp)
+    lw $a0, 4($sp)
+    lw $a1, 8($sp)
+    lw $a2, 12($sp)
+    lw $a3, 16($sp)
+    lw $t8, 20($sp)
+    lw $t9, 24($sp)
     addiu $sp, $sp, 40
     jr $ra
 
