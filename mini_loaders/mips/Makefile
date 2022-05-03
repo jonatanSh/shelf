@@ -1,6 +1,6 @@
 CC=mips-linux-gnu-gcc
 OBJCOPY=mips-linux-gnu-objcopy
-CFLAGS=-static -fpie --entry=_start -nolibc -nostartfiles
+CFLAGS=-static -fpie -s --entry=_start -nolibc -nostartfiles
 TARGETS=mips mipsbe
 all: $(TARGETS)
 
