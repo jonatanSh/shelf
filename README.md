@@ -13,6 +13,11 @@ mini loaders
 #### Supported architectures
 * mips
 
+#### Installation:
+```bash
+# Unfortunately only python2 is supported for now
+python2 -m pip install elf_to_shellcode
+```
 
 ## Creating a shellcode
 
