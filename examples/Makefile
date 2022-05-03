@@ -7,4 +7,4 @@ mips:
 	$(MIPS_CC) $(CFLAGS) -BE main.c -o ../outputs/example_mipsbe.out
 
 mips_shellcode:
-	python ../elf_to_shellcode/main.py ../outputs/example_mipsbe.out mips big ../outputs/example_mipsbe.out.shellcode
+	python -m elf_to_shellcode ../outputs/example_mipsbe.out mips big ../outputs/example_mipsbe.out.shellcode
