@@ -85,7 +85,13 @@ jump_to_main:
     lw $t9, 0($a2)
     # adding base address to offset
     addu $t9, $t9, $t8
+    addiu $sp, -0x20 # Stack frame for possible libc start.s
+    sw $zero, 0($sp) # argc
+    addiu $s3, $sp, 4 # argv
+    sw $s3, 4($sp) # argv
     jalr $t9
+    nop
+    addiu $sp, 0x20
 
 exit:
     sw $ra, 0($sp)
