@@ -1,9 +1,11 @@
-from elf_to_shellcode.elf_to_shellcode.mips.mips import make_shellcode as mips_make_shellcode
+from elf_to_shellcode.elf_to_shellcode.mips.mips import mips_make_shellcode
+from elf_to_shellcode.elf_to_shellcode.intel.x32 import intel_x32_make_shellcode
 
 ENDIANS = ["big", "little"]
 
 shellcode_handlers = {
-    "mips": mips_make_shellcode
+    "mips": mips_make_shellcode,
+    "intel_x32": intel_x32_make_shellcode
 }
 
 

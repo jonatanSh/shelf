@@ -1,9 +1,5 @@
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 import struct
-import sys
-
-py_version = int(sys.version[0])
-assert py_version == 2, "Python3 is not supported for now :("
 
 
 class MipsShellcode(Shellcode):
@@ -57,4 +53,4 @@ class MipsShellcode(Shellcode):
         return shellcode_data
 
 
-make_shellcode = create_make_shellcode(MipsShellcode)
+mips_make_shellcode = create_make_shellcode(MipsShellcode)

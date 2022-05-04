@@ -1,5 +1,4 @@
 # the compiler: gcc for C program, define as g++ for C++
-CC=mips-linux-gnu-gcc
 
 # compiler flags:
 CFLAGS=-g -Wall -static
@@ -11,7 +10,7 @@ TARGET = main
 all: $(TARGET)
 
 $(TARGET): $(TARGET).c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o ../outputs/shellcode_loader.out $(TARGET).c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ../outputs/shellcode_loader_$(ARCH).out $(TARGET).c
 
 clean:
 	$(RM) $(TARGET)
