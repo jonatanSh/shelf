@@ -12,6 +12,7 @@ mini loaders
 
 #### Supported architectures
 * mips
+* x32
 
 #### Installation:
 ```bash

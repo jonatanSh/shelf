@@ -141,3 +141,10 @@ def create_make_shellcode(shellcode_cls):
         return make_shellcode(elf_path, shellcode_cls, endian)
 
     return wrapper
+
+
+def not_supported_yet():
+    def wrapper(elf_path, endian):
+        raise Exception("Arch not supported yet")
+
+    return wrapper
