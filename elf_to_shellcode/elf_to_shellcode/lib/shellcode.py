@@ -21,9 +21,11 @@ class Shellcode(object):
         if endian == "big":
             self.endian = ">"
             self._loader = get_resource(mini_loader_big_endian)
-        else:
+        elif mini_loader_little_endian:
             self._loader = get_resource(mini_loader_little_endian)
             self.endian = "<"
+        else:
+            self._loader = None  # No loader is required
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
@@ -33,6 +35,8 @@ class Shellcode(object):
 
     @property
     def loader(self):
+        if not self._loader:
+            return ""
         loader = self._loader
         idx = struct.pack("{}I".format(self.endian), self.shellcode_table_magic)
         idx = loader.find(idx) + 4
