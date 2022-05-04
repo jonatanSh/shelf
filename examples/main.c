@@ -19,8 +19,8 @@ void say_hello() {
 typedef void (*function_t)();
 
 static const void * funcs[] = {
-    &say_hi,
-    &say_hello
+    say_hi,
+    say_hello
 };
 
 void test_jump_table(int random) {
@@ -49,7 +49,9 @@ void main(int random) {
     write_out("Hello from shellcode!\n");
     write_out("Testing jump tables\n");
     test_jump_table(random);
+    /*
     write_out("Testing global ptr arrays\n");
     test_global_ptr_arrays(random);
+    */
 }
 
