@@ -35,6 +35,18 @@ class Shellcode(object):
                 break
         self.ptr_fmt = ptr_fmt
 
+    def pack(self, fmt, n):
+        return struct.pack("{}{}".format(self.endian, fmt), n)
+
+    def pack_pointer(self, n):
+        return self.pack(self.ptr_fmt, n)
+
+    @property
+    def ptr_size(self):
+        if self.ptr_fmt == "I":
+            return 4
+        raise Exception("Unknown ptr size")
+
     @property
     def loader(self):
         if not self._loader:
@@ -47,7 +59,7 @@ class Shellcode(object):
     @property
     def relocation_table(self):
         size = len(self.addresses_to_patch) - 1  # Because we count from 0
-        if size == -1: # No relocation table
+        if size == -1:  # No relocation table
             return ""
         table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                    self.ptr_fmt), size)])
