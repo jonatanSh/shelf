@@ -18,14 +18,16 @@ class Shellcode(object):
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
         assert endian in ["big", "little"]
+        self._loader = None  # Default No loader is required
+
         if endian == "big":
             self.endian = ">"
-            self._loader = get_resource(mini_loader_big_endian)
-        elif mini_loader_little_endian:
-            self._loader = get_resource(mini_loader_little_endian)
-            self.endian = "<"
+            if mini_loader_big_endian:
+                self._loader = get_resource(mini_loader_big_endian)
         else:
-            self._loader = None  # No loader is required
+            if mini_loader_little_endian:
+                self._loader = get_resource(mini_loader_little_endian)
+            self.endian = "<"
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
@@ -45,6 +47,8 @@ class Shellcode(object):
     @property
     def relocation_table(self):
         size = len(self.addresses_to_patch) - 1  # Because we count from 0
+        if size == -1: # No relocation table
+            return ""
         table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                    self.ptr_fmt), size)])
         for key, value in self.addresses_to_patch.items():
