@@ -1,9 +1,9 @@
-from elf_to_shellcode.elf_to_shellcode.mips.relocations import relocate as mips_relocate
+from elf_to_shellcode.elf_to_shellcode.mips.mips import make_shellcode as mips_make_shellcode
 
 ENDIANS = ["big", "little"]
 
 shellcode_handlers = {
-    "mips": mips_relocate
+    "mips": mips_make_shellcode
 }
 
 
