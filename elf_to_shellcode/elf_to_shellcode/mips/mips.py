@@ -1,5 +1,3 @@
-from elftools.elf.elffile import ELFFile
-from elf_to_shellcode.elf_to_shellcode.resources import get_resource
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 import struct
 import sys
