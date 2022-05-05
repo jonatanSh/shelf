@@ -1,6 +1,6 @@
 MIPS_CC=mips-linux-gnu-gcc
 X32_CC=i686-linux-gnu-gcc
-X64_CC=gcc -m64
+X64_CC=i686-linux-gnu-gcc -m64
 CFLAGS=-fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main
 TARGETS=mips mips_shellcode intel_x32 intel_x32_shellcode intel_x64 intel_x64_shellcode
 
