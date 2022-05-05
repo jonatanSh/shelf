@@ -34,8 +34,6 @@ void test_jump_table(int random) {
 }
 
 void test_global_ptr_arrays(int random) {
-	__asm__ volatile("int $0x03");
-
     if(random == 3) {
         ((function_t)funcs[0])();
     }

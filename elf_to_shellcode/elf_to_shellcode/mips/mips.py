@@ -12,13 +12,12 @@ class MipsShellcode(Shellcode):
             mini_loader_big_endian="mini_loader_mipsbe.shellcode",
             shellcode_table_magic=0xaabbccdd,
             ptr_fmt="I",
-            sections_to_relocate=[
-                '.data.rel.ro',
-                '.got'
-            ]
+            sections_to_relocate={
+                '.got': {'align_by': 'sh_entsize', 'relocate_all': True},
+                '.data.rel.ro': {'align_by': 'sh_addralign'},
+
+            }
         )
-
-
 
 
 mips_make_shellcode = create_make_shellcode(MipsShellcode)
