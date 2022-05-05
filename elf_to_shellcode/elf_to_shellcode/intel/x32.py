@@ -11,9 +11,9 @@ class IntelX32Shellcode(Shellcode):
             mini_loader_big_endian=None,
             shellcode_table_magic=None,
             ptr_fmt="I",
-            sections_to_relocate=[
-                '.data.rel.ro',
-            ]
+            sections_to_relocate={
+                '.got': {'align_by': 'sh_entsize', 'relocate_all': True},
+            }
         )
 
     @property
