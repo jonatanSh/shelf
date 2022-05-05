@@ -57,7 +57,7 @@ relocate:
     mov esi, [eax]
     mov edi, [eax+4]
     add edi, edx ; fix the offset
-    mov edi, [esi + edx] ; fix the offset
+    mov [esi + edx], edi ; fix the offset
     add eax, 8
     sub ecx, 8
     cmp ecx, 1

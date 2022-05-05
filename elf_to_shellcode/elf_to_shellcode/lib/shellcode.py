@@ -88,9 +88,10 @@ class Shellcode(object):
         original_symbol_addresses = self.get_original_symbols_addresses()
         if data_section:
             data_section_header = data_section.header
+
             for data_section_start in range(data_section_header.sh_offset,
                                             data_section_header.sh_offset + data_section_header.sh_size,
-                                            getattr(data_section_header, align_attr)):
+                                            self.ptr_size):
                 data_section_end = data_section_start + 4
                 data_section_value = \
                     struct.unpack("{}I".format(self.endian), shellcode_data[data_section_start:data_section_end])[0]
