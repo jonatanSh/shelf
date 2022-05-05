@@ -41,16 +41,7 @@ found_table:
     lw $a1, 0($a0) # size of relocatable table
     # total shellcode header size is size of table + table + entry_point
     addiu $a2, $a0, 8
-
-    move $a3, $a1
-
-    # The table size is (num_of_ptr * 8) + 4 + 4 for size and for entry point
-    li $t8, 8
-    mult $a3, $t8
-    mflo $a3
-    addiu $a3, 8
-
-    add $a2, $a2, $a3
+    add $a2, $a2, $a1
 
     sw $a2, 32($sp)
 
@@ -75,8 +66,8 @@ relocate:
     lw $a2, 28($sp)
     addu $a2, $a2, 8 # Adavance table pointer by 8 (f_offset, v_offset)
     sw $a2, 28($sp)
-    addiu $a1, $a1, -1 # number of entries in the table
-    bgez $a1, relocate
+    addiu $a1, $a1, -8 # number of entries in the table
+    bge $a1,1, relocate
 
 jump_to_main:
     lw $a0, 36($sp)

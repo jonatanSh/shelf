@@ -60,9 +60,11 @@ class Shellcode(object):
 
     @property
     def relocation_table(self):
-        size = len(self.addresses_to_patch) - 1  # Because we count from 0
-        if size == -1:  # No relocation table
+        size = len(self.addresses_to_patch)  # we count from 0
+        if size <= 0:  # No relocation table
             return ""
+        # here we send the size of all the entries
+        size *= (self.ptr_size * 2)  # each value has 2 ptrs
         table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                    self.ptr_fmt), size)])
         for key, value in self.addresses_to_patch.items():

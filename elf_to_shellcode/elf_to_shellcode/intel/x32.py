@@ -9,7 +9,7 @@ class IntelX32Shellcode(Shellcode):
             endian=endian,
             mini_loader_little_endian="mini_loader_x32.shellcode",
             mini_loader_big_endian=None,
-            shellcode_table_magic=None,
+            shellcode_table_magic=0xaabbccdd,
             ptr_fmt="I",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
