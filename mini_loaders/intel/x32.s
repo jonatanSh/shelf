@@ -14,9 +14,6 @@ main:
     push esi
     push edi
 
-    mov ebp, esp
-    sub esp, 4
-
     ; First thing to do is to find the relocation table
     call get_pc
     ; eax has the address of pc now, we are going to perform
@@ -42,7 +39,6 @@ exit_search:
 found_table:
     ; table address is in eax
     add eax, 4 ; we write double word for magic, and we skip it
-    mov [esp], eax ; we save the address of the table    
     mov ebx, eax ; this point to the table
     add ebx, 4 ; we skip the table size and thats the first entry of the table
     
@@ -71,7 +67,6 @@ jump_to_main:
     call edi
 
 exit:
-    mov esp, ebp
     pop eax
     pop ebx
     pop ecx
