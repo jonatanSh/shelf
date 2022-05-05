@@ -1,9 +1,8 @@
-CC=i686-linux-gnu-gcc
+CC=nasm
 OBJCOPY=i686-linux-gnu-objcopy
-CFLAGS=-masm=intel -static -fpie -s --entry=_start -nolibc -nostartfiles
 TARGETS=x32
 all: $(TARGETS)
 
 x32:
-	$(CC) $(CFLAGS) x32.s -o ../../outputs/mini_loader_x32.out
+	$(CC) -f elf -o ../../outputs/mini_loader_x32.out x32.s
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_x32.out ../../elf_to_shellcode/elf_to_shellcode/resources/mini_loader_x32.shellcode

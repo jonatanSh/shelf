@@ -7,12 +7,12 @@ class IntelX32Shellcode(Shellcode):
             elffile=elffile,
             shellcode_data=shellcode_data,
             endian=endian,
-            mini_loader_little_endian=None,
+            mini_loader_little_endian="mini_loader_x32.shellcode",
             mini_loader_big_endian=None,
             shellcode_table_magic=None,
             ptr_fmt="I",
             sections_to_relocate={
-                '.got': {'align_by': 'sh_entsize', 'relocate_all': True},
+                '.data.rel.ro': {'align_by': 'sh_addralign'},
             }
         )
 

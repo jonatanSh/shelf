@@ -1,7 +1,14 @@
-.globl _start
-
 _start:
  jmp main
 
+get_pc:
+    mov eax, [esp]
+    ret
+
 main:
-    xor %eax, %eax
+    push ebp
+    mov ebp, esp
+    sub esp, 8
+
+    leave
+    retn
