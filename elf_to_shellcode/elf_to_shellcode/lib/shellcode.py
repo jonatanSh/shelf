@@ -12,13 +12,15 @@ class Shellcode(object):
                  mini_loader_big_endian,
                  mini_loader_little_endian,
                  shellcode_table_magic,
-                 ptr_fmt):
+                 ptr_fmt,
+                 sections_to_relocate=[]):
         self.elffile = elffile
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
         assert endian in ["big", "little"]
         self._loader = None  # Default No loader is required
+        self.sections_to_relocate = []
 
         if endian == "big":
             self.endian = ">"
@@ -70,7 +72,12 @@ class Shellcode(object):
         return table
 
     def correct_symbols(self, shellcode_data):
-        raise NotImplemented()
+        for section in self.sections_to_relocate:
+            shellcode_data = self.section_build_relocations_table(
+                section_name=section,
+                shellcode_data=shellcode_data
+            )
+        return shellcode_data
 
     def do_objdump(self, data):
         new_binary = ""
@@ -117,6 +124,30 @@ class Shellcode(object):
         relocation_table = self.relocation_table
 
         shellcode_data = str(self.loader) + str(relocation_table) + str(shellcode_header) + str(shellcode_data)
+        return shellcode_data
+
+    def section_build_relocations_table(self, section_name, shellcode_data):
+        data_section = self.elffile.get_section_by_name(section_name)
+        original_symbol_addresses = self.get_original_symbols_addresses()
+        if data_section:
+            data_section_header = data_section.header
+
+            for data_rel_sym_start in range(data_section_header.sh_offset,
+                                            data_section_header.sh_offset + data_section_header.sh_size,
+                                            data_section_header.sh_addralign):
+                data_rel_sym_end = data_rel_sym_start + 4
+                data_rel_sym_value = \
+                    struct.unpack("{}I".format(self.endian), shellcode_data[data_rel_sym_start:data_rel_sym_end])[0]
+                if data_rel_sym_value not in original_symbol_addresses:
+                    continue
+                sym_offset = data_rel_sym_value - self.linker_base_address
+                if sym_offset < 0:
+                    continue
+                symbol_relative_offset = data_rel_sym_start - data_section_header.sh_offset
+                virtual_offset = data_section_header.sh_addr - self.linker_base_address + data_rel_sym_start
+                virtual_offset += symbol_relative_offset
+                self.addresses_to_patch[virtual_offset] = sym_offset
+
         return shellcode_data
 
 

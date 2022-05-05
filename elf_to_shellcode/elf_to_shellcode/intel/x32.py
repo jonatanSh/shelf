@@ -10,11 +10,11 @@ class IntelX32Shellcode(Shellcode):
             mini_loader_little_endian=None,
             mini_loader_big_endian=None,
             shellcode_table_magic=None,
-            ptr_fmt="I"
+            ptr_fmt="I",
+            sections_to_relocate=[
+                '.data.rel.ro',
+            ]
         )
-
-    def correct_symbols(self, shellcode_data):
-        return shellcode_data
 
     @property
     def loader(self):
