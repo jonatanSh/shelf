@@ -16,14 +16,5 @@ class IntelX32Shellcode(Shellcode):
             }
         )
 
-    @property
-    def loader(self):
-        original_entry_point = self.elffile.header.e_entry
-        relative_entry_point = (original_entry_point - self.linker_base_address)
-
-        opcodes = "" + chr(0xe9)
-        opcodes += self.pack_pointer(relative_entry_point + self.ptr_size)
-        return opcodes
-
 
 intel_x32_make_shellcode = create_make_shellcode(IntelX32Shellcode)

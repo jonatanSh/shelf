@@ -67,7 +67,7 @@ relocate:
     addu $a2, $a2, 8 # Adavance table pointer by 8 (f_offset, v_offset)
     sw $a2, 28($sp)
     addiu $a1, $a1, -8 # number of entries in the table
-    bge $a1,1, relocate
+    bge $a1, 1, relocate
 
 jump_to_main:
     lw $a0, 36($sp)
