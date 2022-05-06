@@ -47,6 +47,8 @@ class Shellcode(object):
     def ptr_size(self):
         if self.ptr_fmt == "I":
             return 4
+        if self.ptr_fmt == "Q":
+            return 8
         raise Exception("Unknown ptr size")
 
     @property
@@ -55,14 +57,12 @@ class Shellcode(object):
             return ""
         loader = self._loader
         idx = struct.pack("{}{}".format(self.endian, self.ptr_fmt), self.shellcode_table_magic)
-        idx = loader.find(idx) + 4
+        idx = loader.find(idx) + self.ptr_size
         return loader[:idx]
 
     @property
     def relocation_table(self):
         size = len(self.addresses_to_patch)  # we count from 0
-        if size <= 0:  # No relocation table
-            return ""
         # here we send the size of all the entries
         size *= (self.ptr_size * 2)  # each value has 2 ptrs
         table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,

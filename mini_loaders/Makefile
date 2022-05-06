@@ -1,4 +1,4 @@
-TARGETS=mips x32
+TARGETS=mips x32 x64
 
 .PHONY: all $(TARGETS)
 all: $(TARGETS)
@@ -8,3 +8,6 @@ mips:
 
 x32:
 	cd intel && make x32
+
+x64:
+	cd intel && make x64
