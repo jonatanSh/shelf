@@ -54,7 +54,7 @@ class Shellcode(object):
         if not self._loader:
             return ""
         loader = self._loader
-        idx = struct.pack("{}I".format(self.endian), self.shellcode_table_magic)
+        idx = struct.pack("{}{}".format(self.endian, self.ptr_fmt), self.shellcode_table_magic)
         idx = loader.find(idx) + 4
         return loader[:idx]
 
