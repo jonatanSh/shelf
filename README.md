@@ -9,10 +9,14 @@ will load the relocatable format and execute it.
 There are no special requirements, the library contain the compiled
 mini loaders
 
+#### Project links
+[Github](https://github.com/jonatanSh/elf_to_shellcode)
+
+[Pypi](https://pypi.org/project/elf-to-shellcode/)
 
 #### Supported architectures
 * mips
-* x32
+* i386 (32bit)
 
 #### Installation:
 ```bash
