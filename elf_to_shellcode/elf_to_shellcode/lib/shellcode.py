@@ -12,13 +12,15 @@ class Shellcode(object):
                  mini_loader_big_endian,
                  mini_loader_little_endian,
                  shellcode_table_magic,
-                 ptr_fmt):
+                 ptr_fmt,
+                 sections_to_relocate={}):
         self.elffile = elffile
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
         assert endian in ["big", "little"]
         self._loader = None  # Default No loader is required
+        self.sections_to_relocate = sections_to_relocate
 
         if endian == "big":
             self.endian = ">"
@@ -58,9 +60,11 @@ class Shellcode(object):
 
     @property
     def relocation_table(self):
-        size = len(self.addresses_to_patch) - 1  # Because we count from 0
-        if size == -1:  # No relocation table
+        size = len(self.addresses_to_patch)  # we count from 0
+        if size <= 0:  # No relocation table
             return ""
+        # here we send the size of all the entries
+        size *= (self.ptr_size * 2)  # each value has 2 ptrs
         table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                    self.ptr_fmt), size)])
         for key, value in self.addresses_to_patch.items():
@@ -70,7 +74,38 @@ class Shellcode(object):
         return table
 
     def correct_symbols(self, shellcode_data):
-        raise NotImplemented()
+        for section, attributes in self.sections_to_relocate.items():
+            self.section_build_relocations_table(
+                section_name=section,
+                align_attr=attributes['align_by'],
+                relocate_all=attributes.get("relocate_all", False),
+                shellcode_data=shellcode_data
+            )
+        return shellcode_data
+
+    def section_build_relocations_table(self, section_name, align_attr, relocate_all, shellcode_data):
+        data_section = self.elffile.get_section_by_name(section_name)
+        original_symbol_addresses = self.get_original_symbols_addresses()
+        if data_section:
+            data_section_header = data_section.header
+
+            for data_section_start in range(data_section_header.sh_offset,
+                                            data_section_header.sh_offset + data_section_header.sh_size,
+                                            self.ptr_size):
+                data_section_end = data_section_start + 4
+                data_section_value = \
+                    struct.unpack("{}I".format(self.endian), shellcode_data[data_section_start:data_section_end])[0]
+                if data_section_value not in original_symbol_addresses and not relocate_all:
+                    continue
+                sym_offset = data_section_value - self.linker_base_address
+                if sym_offset < 0:
+                    continue
+                symbol_relative_offset = data_section_start - data_section_header.sh_offset
+                virtual_offset = data_section_header.sh_addr - self.linker_base_address
+                virtual_offset += symbol_relative_offset
+                self.addresses_to_patch[virtual_offset] = sym_offset
+
+        return shellcode_data
 
     def do_objdump(self, data):
         new_binary = ""
@@ -117,6 +152,7 @@ class Shellcode(object):
         relocation_table = self.relocation_table
 
         shellcode_data = str(self.loader) + str(relocation_table) + str(shellcode_header) + str(shellcode_data)
+
         return shellcode_data
 
 

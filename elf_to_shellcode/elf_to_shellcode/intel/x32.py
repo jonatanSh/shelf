@@ -7,23 +7,15 @@ class IntelX32Shellcode(Shellcode):
             elffile=elffile,
             shellcode_data=shellcode_data,
             endian=endian,
-            mini_loader_little_endian=None,
+            mini_loader_little_endian="mini_loader_x32.shellcode",
             mini_loader_big_endian=None,
-            shellcode_table_magic=None,
-            ptr_fmt="I"
+            shellcode_table_magic=0xaabbccdd,
+            ptr_fmt="I",
+            sections_to_relocate={
+                '.data.rel.ro': {'align_by': 'sh_addralign'},
+                '.got.plt': {'align_by': 'sh_entsize', 'relocate_all': True},
+            }
         )
-
-    def correct_symbols(self, shellcode_data):
-        return shellcode_data
-
-    @property
-    def loader(self):
-        original_entry_point = self.elffile.header.e_entry
-        relative_entry_point = (original_entry_point - self.linker_base_address)
-
-        opcodes = "" + chr(0xe9)
-        opcodes += self.pack_pointer(relative_entry_point + self.ptr_size)
-        return opcodes
 
 
 intel_x32_make_shellcode = create_make_shellcode(IntelX32Shellcode)

@@ -18,9 +18,9 @@ void say_hello() {
 
 typedef void (*function_t)();
 
-static const void * funcs[] = {
-    say_hi,
-    say_hello
+static const function_t funcs[] = {
+    &say_hi,
+    &say_hello
 };
 
 void test_jump_table(int random) {
@@ -33,13 +33,12 @@ void test_jump_table(int random) {
     }
 }
 
-void test_global_ptr_arrays(int random) {
-    if(random == 3) {
-        ((function_t)funcs[0])();
-    }
-    else {
-        ((function_t)funcs[1])();
-    }
+void test_global_ptr_arrays() {
+
+	for(int i = 0; i < sizeof(funcs) / sizeof(void *); i++) {
+		function_t func = funcs[i];
+		func();
+	}
 }
 
 
@@ -49,9 +48,7 @@ void main(int random) {
     write_out("Hello from shellcode!\n");
     write_out("Testing jump tables\n");
     test_jump_table(random);
-    /*
     write_out("Testing global ptr arrays\n");
-    test_global_ptr_arrays(random);
-    */
+    test_global_ptr_arrays();
 }
 
