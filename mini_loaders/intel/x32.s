@@ -13,7 +13,7 @@ main:
     push edx
     push esi
     push edi
-
+    mov ebp, esp
     ; First thing to do is to find the relocation table
     call get_pc
     ; eax has the address of pc now, we are going to perform
@@ -64,15 +64,22 @@ jump_to_main:
     mov edi, [eax]
     add edi, edx
     ; now eax point to shellcode main
+    sub esp, 20
+    xor eax, eax
+    mov [esp], eax ; argc count
+    lea eax, [esp+4]
+    mov [esp+4], eax ; argv ptr  
     call edi
+    add esp, 20
 
 exit:
-    pop eax
-    pop ebx
-    pop ecx
-    pop edx
+    pop edi 
     pop esi
-    pop edi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    pop ebp
     ret
 
 relocatable_table:
