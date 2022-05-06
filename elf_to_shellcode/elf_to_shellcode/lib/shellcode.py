@@ -92,9 +92,9 @@ class Shellcode(object):
             for data_section_start in range(data_section_header.sh_offset,
                                             data_section_header.sh_offset + data_section_header.sh_size,
                                             self.ptr_size):
-                data_section_end = data_section_start + 4
+                data_section_end = data_section_start + self.ptr_size
                 data_section_value = \
-                    struct.unpack("{}I".format(self.endian), shellcode_data[data_section_start:data_section_end])[0]
+                    struct.unpack("{}{}".format(self.endian, self.ptr_fmt), shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     continue
                 sym_offset = data_section_value - self.linker_base_address
