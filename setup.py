@@ -16,7 +16,7 @@ setup(
     include_package_data=True,
     install_requires=['pyelftools'],
     license='MIT License',
-    description='Python package to create shellcdoes from elfs supported arch (mips, [i386 32bit], [i386 64bit])',
+    description='Python package to create shellcdoes from elfs supported arch (mips, i386 32bit, i386 64bit)',
     long_description=README,
     url='https://github.com/jonatanSh/elf_to_shellcode',
     author='Jonathan Shimon',
