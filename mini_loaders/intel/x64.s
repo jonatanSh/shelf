@@ -14,6 +14,7 @@ main:
     push rsi
     push rdi
     mov rbp, rsp
+    sub rsp, 0x8
     ; First thing to do is to find the relocation table
     call get_pc
     ; rax has the address of pc now, we are going to perform
@@ -44,16 +45,34 @@ found_table:
     lea rdx, [rax] ; loading the address of the table to rdx
     add rdx, rcx ; adding the size of the table, now rdx point to shellcode start
     add rdx, 16 ; table is [size][table][entry] we add size + entry
+    mov [rsp], rdx
     add rax, 8 ; point to the first table entry (skip table size)
 ; rax = current table entry
 ; rcx = table size 
 relocate:
-    mov rsi, [rax]
-    mov rdi, [rax+8]
+    mov rbx, [rax] 
+    mov rsi, [rax + 8]
+    mov rdi, [rax + 16]
+    cmp rbx, 24 ; normal relocation size
+    jg handle_relocation_attributte
+    jmp do_relocation
+
+; Currently only one attribute is supported
+; Therefore we dont really do something with the relocation size
+; We only handle the attribute
+handle_relocation_attributte:
+    mov rdx, [rax + 24]
+    cmp rdx, 1 ; relocation type, call to resovle
+    jne exit ; die because we don't know other relocation for know
+
+    mov rdx, [rsp]
+    
+
+do_relocation:
     add rdi, rdx ; fix the offset
     mov [rsi + rdx], rdi ; fix the offset
-    add rax, 16 ; size of 2 qds
-    sub rcx, 16
+    add rax, rbx 
+    sub rcx, rbx
     cmp rcx, 1
     jg relocate
 
@@ -71,6 +90,7 @@ jump_to_main:
     add rsp, 32
 
 exit:
+    add rsp, 0x8
     pop rdi 
     pop rsi
     pop rdx

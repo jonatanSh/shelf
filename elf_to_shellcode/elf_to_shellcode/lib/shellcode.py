@@ -7,6 +7,10 @@ py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
 
 
+class RelocationAttributes(object):
+    call_to_resolve = 1
+
+
 class Shellcode(object):
     def __init__(self, elffile, shellcode_data, endian,
                  mini_loader_big_endian,
@@ -47,6 +51,12 @@ class Shellcode(object):
     def pack_pointer(self, n):
         return self.pack(self.ptr_fmt, n)
 
+    def pack_list_of_pointers(self, lst):
+        packed = ""
+        for item in lst:
+            packed += self.pack_pointer(item)
+        return packed
+
     @property
     def ptr_size(self):
         if self.ptr_fmt == "I":
@@ -69,9 +79,15 @@ class Shellcode(object):
         table = ""
 
         for key, value in self.addresses_to_patch.items():
-            relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}{1}".format(self.endian,
-                                                                                       self.ptr_fmt,
-                                                                                       self.ptr_fmt), key, value)])
+            if type(value) is not list:
+                value = [value]
+
+            value_packed = self.pack_list_of_pointers(value)
+
+            relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}".format(self.endian,
+                                                                                    self.ptr_fmt), key)])
+            relocation_entry += value_packed
+
             relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)
             relocation_entry = relocation_size + relocation_entry
             table += relocation_entry

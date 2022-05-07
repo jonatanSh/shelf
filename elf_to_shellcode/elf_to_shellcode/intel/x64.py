@@ -1,4 +1,4 @@
-from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, RelocationAttributes, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_x64
 
 
@@ -37,7 +37,8 @@ class IntelX64Shellcode(Shellcode):
 
             virtual_offset = relocation.entry.r_offset - self.linker_base_address
             function_offset = relocation.entry.r_addend - self.linker_base_address
-            self.addresses_to_patch[virtual_offset] = function_offset
+            self.addresses_to_patch[virtual_offset] = [function_offset,
+                                                       RelocationAttributes.call_to_resolve]
         return shellcode_data
 
 
