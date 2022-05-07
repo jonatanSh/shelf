@@ -17,6 +17,7 @@ mini loaders
 #### Supported architectures
 * mips
 * i386 (32bit)
+* i386 (64bit)
 
 #### Installation:
 ```bash

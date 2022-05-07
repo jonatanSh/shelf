@@ -7,6 +7,10 @@ py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
 
 
+class RelocationAttributes(object):
+    call_to_resolve = 1
+
+
 class Shellcode(object):
     def __init__(self, elffile, shellcode_data, endian,
                  mini_loader_big_endian,
@@ -36,6 +40,10 @@ class Shellcode(object):
                 self.linker_base_address = segment.header.p_vaddr
                 break
         self.ptr_fmt = ptr_fmt
+        self.relocation_handlers = []
+
+    def add_relocation_handler(self, func):
+        self.relocation_handlers.append(func)
 
     def pack(self, fmt, n):
         return struct.pack("{}{}".format(self.endian, fmt), n)
@@ -43,10 +51,18 @@ class Shellcode(object):
     def pack_pointer(self, n):
         return self.pack(self.ptr_fmt, n)
 
+    def pack_list_of_pointers(self, lst):
+        packed = ""
+        for item in lst:
+            packed += self.pack_pointer(item)
+        return packed
+
     @property
     def ptr_size(self):
         if self.ptr_fmt == "I":
             return 4
+        if self.ptr_fmt == "Q":
+            return 8
         raise Exception("Unknown ptr size")
 
     @property
@@ -54,24 +70,31 @@ class Shellcode(object):
         if not self._loader:
             return ""
         loader = self._loader
-        idx = struct.pack("{}I".format(self.endian), self.shellcode_table_magic)
-        idx = loader.find(idx) + 4
+        idx = struct.pack("{}{}".format(self.endian, self.ptr_fmt), self.shellcode_table_magic)
+        idx = loader.find(idx) + self.ptr_size
         return loader[:idx]
 
     @property
     def relocation_table(self):
-        size = len(self.addresses_to_patch)  # we count from 0
-        if size <= 0:  # No relocation table
-            return ""
-        # here we send the size of all the entries
-        size *= (self.ptr_size * 2)  # each value has 2 ptrs
-        table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
-                                                                   self.ptr_fmt), size)])
+        table = ""
+
         for key, value in self.addresses_to_patch.items():
-            table += "".join([str(v) for v in struct.pack("{0}{1}{1}".format(self.endian,
-                                                                             self.ptr_fmt,
-                                                                             self.ptr_fmt), key, value)])
-        return table
+            if type(value) is not list:
+                value = [value]
+
+            value_packed = self.pack_list_of_pointers(value)
+
+            relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}".format(self.endian,
+                                                                                    self.ptr_fmt), key)])
+            relocation_entry += value_packed
+
+            relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)
+            relocation_entry = relocation_size + relocation_entry
+            table += relocation_entry
+
+        size_encoded = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
+                                                                          self.ptr_fmt), len(table))])
+        return size_encoded + table
 
     def correct_symbols(self, shellcode_data):
         for section, attributes in self.sections_to_relocate.items():
@@ -92,9 +115,10 @@ class Shellcode(object):
             for data_section_start in range(data_section_header.sh_offset,
                                             data_section_header.sh_offset + data_section_header.sh_size,
                                             self.ptr_size):
-                data_section_end = data_section_start + 4
+                data_section_end = data_section_start + self.ptr_size
                 data_section_value = \
-                    struct.unpack("{}I".format(self.endian), shellcode_data[data_section_start:data_section_end])[0]
+                    struct.unpack("{}{}".format(self.endian, self.ptr_fmt),
+                                  shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     continue
                 sym_offset = data_section_value - self.linker_base_address
@@ -103,6 +127,7 @@ class Shellcode(object):
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
+
                 self.addresses_to_patch[virtual_offset] = sym_offset
 
         return shellcode_data
@@ -138,6 +163,16 @@ class Shellcode(object):
 
         return addresses
 
+    def get_symbol_name_from_address(self, address):
+
+        symtab = self.elffile.get_section_by_name(".symtab")
+        for sym in symtab.iter_symbols():
+            sym_address = sym.entry.st_value
+            if sym_address == address:
+                return sym.name
+
+        return None
+
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
         new_entry_point = (original_entry_point - self.linker_base_address)
@@ -147,6 +182,8 @@ class Shellcode(object):
         shellcode_data = self.shellcode_data
         shellcode_header = self.get_shellcode_header()
         shellcode_data = self.correct_symbols(shellcode_data)
+        for handler in self.relocation_handlers:
+            shellcode_data = handler(shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table

@@ -39,8 +39,6 @@ exit_search:
 found_table:
     ; table address is in eax
     add eax, 4 ; we write double word for magic, and we skip it
-    mov ebx, eax ; this point to the table
-    add ebx, 4 ; we skip the table size and thats the first entry of the table
     
     mov ecx, [eax] ; this is the table size (first entry)
     lea edx, [eax] ; loading the address of the table to edx
@@ -50,12 +48,13 @@ found_table:
 ; eax = current table entry
 ; ecx = table size 
 relocate:
-    mov esi, [eax]
-    mov edi, [eax+4]
+    mov ebx, [eax] ; size
+    mov esi, [eax + 4] ; offset in mem
+    mov edi, [eax + 8] ; offset to relocate
     add edi, edx ; fix the offset
     mov [esi + edx], edi ; fix the offset
-    add eax, 8
-    sub ecx, 8
+    add eax, ebx
+    sub ecx, ebx
     cmp ecx, 1
     jg relocate
 
