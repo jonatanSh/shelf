@@ -53,8 +53,9 @@ found_table:
 relocate:
     lw $a0, 28($sp)
 
-    lw $a2, 0($a0) # This is the virtual address (f_offset)
-    lw $a3, 4($a0) # This is the virtual offset
+    lw $t9, 0($a0)
+    lw $a2, 4($a0) # This is the virtual address (f_offset)
+    lw $a3, 8($a0) # This is the virtual offset
     
     
     addu $a3, $a3, $t8 # This is the function offset (base_address+v_offset)
@@ -64,9 +65,9 @@ relocate:
 
     # End of loop
     lw $a2, 28($sp)
-    addu $a2, $a2, 8 # Adavance table pointer by 8 (f_offset, v_offset)
+    add $a2, $t9 # Adavance table pointer by 8 (f_offset, v_offset)
     sw $a2, 28($sp)
-    addiu $a1, $a1, -8 # number of entries in the table
+    sub $a1, $t9 # number of entries in the table
     bge $a1, 1, relocate
 
 jump_to_main:

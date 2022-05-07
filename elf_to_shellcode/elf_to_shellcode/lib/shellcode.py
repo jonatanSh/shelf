@@ -66,16 +66,19 @@ class Shellcode(object):
 
     @property
     def relocation_table(self):
-        size = len(self.addresses_to_patch)  # we count from 0
-        # here we send the size of all the entries
-        size *= (self.ptr_size * 2)  # each value has 2 ptrs
-        table = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
-                                                                   self.ptr_fmt), size)])
+        table = ""
+
         for key, value in self.addresses_to_patch.items():
-            table += "".join([str(v) for v in struct.pack("{0}{1}{1}".format(self.endian,
-                                                                             self.ptr_fmt,
-                                                                             self.ptr_fmt), key, value)])
-        return table
+            relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}{1}".format(self.endian,
+                                                                                       self.ptr_fmt,
+                                                                                       self.ptr_fmt), key, value)])
+            relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)
+            relocation_entry = relocation_size + relocation_entry
+            table += relocation_entry
+
+        size_encoded = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
+                                                                          self.ptr_fmt), len(table))])
+        return size_encoded + table
 
     def correct_symbols(self, shellcode_data):
         for section, attributes in self.sections_to_relocate.items():
