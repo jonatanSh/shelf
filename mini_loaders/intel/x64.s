@@ -39,8 +39,6 @@ exit_search:
 found_table:
     ; table address is in rax
     add rax, 8 ; we write quadric word for magic, and we skip it
-    mov rbx, rax ; this point to the table
-    add rbx, 8 ; we skip the table size and thats the first entry of the table
     
     mov rcx, [rax] ; this is the table size (first entry)
     lea rdx, [rax] ; loading the address of the table to rdx
@@ -54,8 +52,8 @@ relocate:
     mov rdi, [rax+8]
     add rdi, rdx ; fix the offset
     mov [rsi + rdx], rdi ; fix the offset
-    add rax, 8
-    sub rcx, 8
+    add rax, 16 ; size of 2 qds
+    sub rcx, 16
     cmp rcx, 1
     jg relocate
 

@@ -36,6 +36,10 @@ class Shellcode(object):
                 self.linker_base_address = segment.header.p_vaddr
                 break
         self.ptr_fmt = ptr_fmt
+        self.relocation_handlers = []
+
+    def add_relocation_handler(self, func):
+        self.relocation_handlers.append(func)
 
     def pack(self, fmt, n):
         return struct.pack("{}{}".format(self.endian, fmt), n)
@@ -94,7 +98,8 @@ class Shellcode(object):
                                             self.ptr_size):
                 data_section_end = data_section_start + self.ptr_size
                 data_section_value = \
-                    struct.unpack("{}{}".format(self.endian, self.ptr_fmt), shellcode_data[data_section_start:data_section_end])[0]
+                    struct.unpack("{}{}".format(self.endian, self.ptr_fmt),
+                                  shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     continue
                 sym_offset = data_section_value - self.linker_base_address
@@ -103,6 +108,7 @@ class Shellcode(object):
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
+
                 self.addresses_to_patch[virtual_offset] = sym_offset
 
         return shellcode_data
@@ -138,6 +144,16 @@ class Shellcode(object):
 
         return addresses
 
+    def get_symbol_name_from_address(self, address):
+
+        symtab = self.elffile.get_section_by_name(".symtab")
+        for sym in symtab.iter_symbols():
+            sym_address = sym.entry.st_value
+            if sym_address == address:
+                return sym.name
+
+        return None
+
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
         new_entry_point = (original_entry_point - self.linker_base_address)
@@ -147,6 +163,8 @@ class Shellcode(object):
         shellcode_data = self.shellcode_data
         shellcode_header = self.get_shellcode_header()
         shellcode_data = self.correct_symbols(shellcode_data)
+        for handler in self.relocation_handlers:
+            shellcode_data = handler(shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table
