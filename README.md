@@ -17,6 +17,7 @@ mini loaders
 #### Supported architectures
 * mips
 * i386 (32bit)
+* i386 (64bit)
 
 #### Installation:
 ```bash
@@ -33,6 +34,7 @@ You must compile the binary with -fPIE and -static take a look at the provided e
 shellcode is a stripped binary with no symbols and no elf information only opcodes, in order 
 to make the shellcode this library require a binary with elf information.
 so make sure you are not stripping the binary before using this library
+
 #### Examples:
 
 [Makefile](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/Makefile)
@@ -86,6 +88,7 @@ Hello from shellcode !
 
 # Optimizations
 some Compiler optimization (like -o3) may produce un-shellcodeable output.
+
 #### Example of compiler optimization (intel x32):
 
 ```c
