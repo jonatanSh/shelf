@@ -53,6 +53,7 @@ relocate:
     mov rbx, [rax] 
     mov rsi, [rax + 8]
     mov rdi, [rax + 16]
+    add rdi, rdx ; fix the offset
     cmp rbx, 24 ; normal relocation size
     jg handle_relocation_attributte
     jmp do_relocation
@@ -64,12 +65,31 @@ handle_relocation_attributte:
     mov rdx, [rax + 24]
     cmp rdx, 1 ; relocation type, call to resovle
     jne exit ; die because we don't know other relocation for know
+    ; if we got here then the value of this relocation (rdi)
+    ; should be resolved by calling the function in rdi
+    ; this is a .plt.got relocation
+
+    ; save calle regs
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+
+    call rdi ; calling the relocation attribute
+    mov rdi, rax ; setting rdi as that attribute
+    
+    ; Pop calle regs
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
 
     mov rdx, [rsp]
     
 
 do_relocation:
-    add rdi, rdx ; fix the offset
     mov [rsi + rdx], rdi ; fix the offset
     add rax, rbx 
     sub rcx, rbx
