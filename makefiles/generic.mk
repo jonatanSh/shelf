@@ -1,15 +1,12 @@
 CFLAGS+=-fno-stack-protector -fPIE -fpic -static
-TARGETS+=mips intel_x32 intel_x64
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 include $(SELF_DIR)/compilers.mk
 
-all: $(TARGETS)
+mips_%:
+	$(MIPS_CC) $(CFLAGS) -BE $(subst mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out
 
-mips:
-	$(MIPS_CC) $(CFLAGS) -BE main.c -o ../outputs/$(OUTPUT_FORMAT)_mipsbe.out
+intel_x32_%:
+	$(X32_CC) $(CFLAGS) $(subst intel_x32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out
 
-intel_x32:
-	$(X32_CC) $(CFLAGS) main.c -o ../outputs/$(OUTPUT_FORMAT)_intel_x32.out
-
-intel_x64:
-	$(X64_CC) $(CFLAGS) main.c -o ../outputs/$(OUTPUT_FORMAT)_intel_x64.out
+intel_x64_%:
+	$(X64_CC) $(CFLAGS) $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
