@@ -1,9 +1,7 @@
-MIPS_CC=mips-linux-gnu-gcc
-X32_CC=i686-linux-gnu-gcc
-X64_CC=i686-linux-gnu-gcc -m64
 CFLAGS+=-fno-stack-protector -fPIE -fpic -static
 TARGETS+=mips intel_x32 intel_x64
-
+SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+include $(SELF_DIR)/compilers.mk
 
 all: $(TARGETS)
 
