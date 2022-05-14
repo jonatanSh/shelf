@@ -5,4 +5,4 @@ qemu-i386-static ./outputs/shellcode_loader_intel_x32.out ./outputs/example_inte
 echo Running intel x64 shellcode
 qemu-x86_64-static ./outputs/shellcode_loader_intel_x64.out ./outputs/example_intel_x64.out.shellcode | grep -i "hello from shellcode"
 echo Running arm 32 bit shellcode
-qemu-arm-static ./outputs/shellcode_loader_arm.out ./outputs/example_arm.out.shellcode | grep -i "hello from shellcode"
+qemu-arm-static ./outputs/shellcode_loader_arm_32.out ./outputs/example_arm_32.out.shellcode | grep -i "hello from shellcode"

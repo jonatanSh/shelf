@@ -14,6 +14,7 @@ typedef unsigned int size_t;
         "lsl r1, r1, #8\n"     \
         "add r0, r1\n"          \
         "add r0, #0xdd\n"       \
+        "mov %0, r0\n"          \
         : "=r"(magic) :         \
     );                          \
 }                               \
@@ -29,9 +30,13 @@ typedef unsigned int size_t;
 #define call_main(main_ptr) {                           \
    register size_t r0 asm("r0") = (size_t)(main_ptr); \
    asm(                                                 \
+        "add sp,sp, #-4\n"                              \
+        "str lr, [sp]\n"                                \
         "blx r0\n"                                     \
-       :  :                                             \
-       "r"(r0)                                         \
+        "ldr lr, [sp]\n"                                \
+        "add sp, sp, #4\n"                              \
+        :  :                                            \
+        "r"(r0)                                         \
    );                                                   \
 }                                                       \
 

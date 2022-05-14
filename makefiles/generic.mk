@@ -13,6 +13,6 @@ intel_x64_%:
 	$(X64_CC) $(CFLAGS) $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
 	python -m elf_to_shellcode ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out intel_x64 little ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out.shellcode
 
-arm_%:
-	$(ARM_CC) $(CFLAGS) $(subst arm_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out
-	python -m elf_to_shellcode ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out arm_x32 little ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out.shellcode
+arm_32_%:
+	$(ARM_CC) $(CFLAGS) $(subst arm_32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst arm_32_,,$@)_arm_32.out
+	python -m elf_to_shellcode ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_32_,,$@)_arm_32.out arm_32 little ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_32_,,$@)_arm_32.out.shellcode

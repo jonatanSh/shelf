@@ -9,7 +9,7 @@ shellcode_handlers = {
     "mips": mips_make_shellcode,
     "intel_x32": intel_x32_make_shellcode,
     "intel_x64": intel_x64_make_shellcode,
-    "arm_x32": arm_x32_make_shellcode
+    "arm_32": arm_x32_make_shellcode
 }
 
 
