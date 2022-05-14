@@ -56,11 +56,10 @@ therefor you can't use printf in the shellcode, but you can implement it using s
 ### Converting the elf to shellcode:
 
 ```python
-from elf_to_shellcode.relocate import make_shellcode
-
+from elf_to_shellcode.relocate import make_shellcode, Arches
 shellcode = make_shellcode(
     binary_path="/tmp/binary.out",
-    arch="mips",
+    arch=Arches.MIPS_32,
     endian="big"
 )
 
