@@ -14,8 +14,8 @@ typedef unsigned long long size_t;
 #define get_pc() {      \
     asm(                            \
         "call get_pc_internal\n"    \
-        "get_pc_internal:\n"        \
         "jmp next\n"                \
+        "get_pc_internal:\n"        \
         "mov rax, [rsp]\n"          \
         "ret\n"                     \
         "next:\n"                   \
