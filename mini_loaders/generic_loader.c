@@ -28,6 +28,9 @@ void loader_main() {
     }
     // If we got here then we found the table
     table = (struct relocation_table *)pc;
+    if(table->magic != magic) {
+        goto error;
+    }
     // Size of table header + entries + entry point
     base_address = (size_t)(table);
     base_address += sizeof(struct relocation_table) + table->total_size + sizeof(size_t);
