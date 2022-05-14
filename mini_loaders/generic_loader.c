@@ -47,11 +47,9 @@ void loader_main() {
         if(entry->size > sizeof(size_t) * 3) {
             // We have relocation attributes
             // Can't use jump tables in loader :(
-            #ifdef SUPPORT_IRELATIVE
-                if(attributes->attribute_1 == IRELATIVE) {
-                    RESOLVE_IRELATIVE(v_offset);
-                }
-            #endif
+            if(attributes->attribute_1 == IRELATIVE) {
+                v_offset = ((IRELATIVE_T)(v_offset))();
+            }
         }
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;
