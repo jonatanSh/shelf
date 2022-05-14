@@ -13,4 +13,4 @@ x64:
 	cd intel && make x64
 
 arm32:
-	cd arm && make arm32
+	cd arm && make arm32 arm32be

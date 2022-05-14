@@ -11,12 +11,13 @@ except (ImportError, OSError) as e:
 
 setup(
     name='elf_to_shellcode',
-    version='1.6',
+    version='1.7',
     packages=find_packages(),
     include_package_data=True,
     install_requires=['pyelftools'],
     license='MIT License',
-    description='Python package to create shellcdoes from elfs supported arch (mips, i386 32bit, i386 64bit)',
+    description='Python package to create shellcdoes from elfs supported arch '
+                '(mips, arm (32bit), i386 32bit, i386 64bit)',
     long_description=README,
     url='https://github.com/jonatanSh/elf_to_shellcode',
     author='Jonathan Shimon',

@@ -18,6 +18,7 @@ mini loaders
 * mips
 * i386 (32bit)
 * i386 (64bit)
+* arm (32bit)
 
 #### Installation:
 ```bash
@@ -38,7 +39,7 @@ so make sure you are not stripping the binary before using this library
 
 [Makefile](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/Makefile)
 
-[Main.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/main.c)
+[Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
 
 #### Compiling with libc
 Libc has destructors and constructors this project doesn't fully support libc.

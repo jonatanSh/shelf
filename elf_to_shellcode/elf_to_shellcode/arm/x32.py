@@ -8,7 +8,7 @@ class ArmX32Shellcode(Shellcode):
             shellcode_data=shellcode_data,
             endian=endian,
             mini_loader_little_endian="mini_loader_arm_x32.shellcode",
-            mini_loader_big_endian=None,
+            mini_loader_big_endian="mini_loader_arm_x32be.shellcode",
             shellcode_table_magic=0xaabbccdd,
             ptr_fmt="I",
             sections_to_relocate={

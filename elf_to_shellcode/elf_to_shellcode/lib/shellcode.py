@@ -68,7 +68,7 @@ class Shellcode(object):
     @property
     def loader(self):
         if not self._loader:
-            return ""
+            raise Exception("No loader for arch+endianes")
         assert self.pack_pointer(self.shellcode_table_magic) not in self._loader
         return self._loader
 
