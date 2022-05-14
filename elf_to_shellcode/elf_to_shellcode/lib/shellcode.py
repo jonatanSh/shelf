@@ -69,10 +69,8 @@ class Shellcode(object):
     def loader(self):
         if not self._loader:
             return ""
-        loader = self._loader
-        idx = struct.pack("{}{}".format(self.endian, self.ptr_fmt), self.shellcode_table_magic)
-        idx = loader.find(idx) + self.ptr_size
-        return loader[:idx]
+        assert self.pack_pointer(self.shellcode_table_magic) not in self._loader
+        return self._loader
 
     @property
     def relocation_table(self):
@@ -94,7 +92,7 @@ class Shellcode(object):
 
         size_encoded = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                           self.ptr_fmt), len(table))])
-        return size_encoded + table
+        return self.pack_pointer(self.shellcode_table_magic) + size_encoded + table
 
     def correct_symbols(self, shellcode_data):
         for section, attributes in self.sections_to_relocate.items():
