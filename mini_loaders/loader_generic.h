@@ -11,7 +11,7 @@
 #elif defined(__arm__)
     #include "./arm/arm32.h"
 #elif defined(__aarch64__) || defined(_M_ARM64)
-    #error Not Supported
+    #include "./arm/aarch64.h"
 #elif defined(mips) || defined(__mips__) || defined(__mips)
     #include "./mips/mips.h"
 #elif defined(__sh__)

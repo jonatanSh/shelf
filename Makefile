@@ -8,7 +8,7 @@ shellcode_loader:
 	cd shellcode_loader && $(MAKE) CC=$(X32_CC) ARCH=intel_x32
 	cd shellcode_loader && $(MAKE) CC="$(X64_CC)" ARCH=intel_x64
 	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm_32
-
+	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch_64
 mini_loaders:
 	cd mini_loaders && $(MAKE)
 
