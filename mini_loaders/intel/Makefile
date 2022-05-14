@@ -2,7 +2,7 @@ OBJCOPY=i686-linux-gnu-objcopy
 TARGETS=x32 x64
 X32_CC=i686-linux-gnu-gcc
 X64_CC=i686-linux-gnu-gcc -m64
-CFLAGS=-static -nolibc -nostartfiles -g -Wno-stack-protector -masm=intel -fno-plt -fno-pic
+CFLAGS=-static -nolibc -nostartfiles -g -Wno-stack-protector -masm=intel -fno-plt -fno-pic --entry=loader_main 
 
 all: $(TARGETS)
 

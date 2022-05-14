@@ -1,7 +1,7 @@
 CFLAGS=-nostartfiles --entry=main
 include ../makefiles/generic.mk
 OUTPUT_DIRECTORY=../outputs/
-TESTS=mips_elf_features intel_x32_elf_features intel_x64_elf_features
+TESTS=mips_elf_features intel_x32_elf_features intel_x64_elf_features arm_32_elf_features
 TESTS+=no_libc_intel_x32_no_relocations
 all: $(TESTS)
 
