@@ -8,28 +8,8 @@
     #include "./intel/x64.h"
 #elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
     #include "./intel/x32.h"
-#elif defined(__ARM_ARCH_2__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_3__) || defined(__ARM_ARCH_3M__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_4T__) || defined(__TARGET_ARM_4T)
-    #error Not Supported
-#elif defined(__ARM_ARCH_5_) || defined(__ARM_ARCH_5E_)
-    #error Not Supported
-#elif defined(__ARM_ARCH_6T2_) || defined(__ARM_ARCH_6T2_)
-    #error Not Supported
-#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_7M__)
-    #error Not Supported
-#elif defined(__ARM_ARCH_7S__)
-    #error Not Supported
+#elif defined(__arm__)
+    #include "./arm/arm32.h"
 #elif defined(__aarch64__) || defined(_M_ARM64)
     #error Not Supported
 #elif defined(mips) || defined(__mips__) || defined(__mips)

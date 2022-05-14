@@ -22,9 +22,6 @@ void loader_main() {
         if(*((size_t*)pc) == magic) {
             break;
         }
-        if(i==MAX_SEARCH_DEPTH-1) {
-            goto error;
-        }
     }
     // If we got here then we found the table
     table = (struct relocation_table *)pc;

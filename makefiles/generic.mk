@@ -15,4 +15,4 @@ intel_x64_%:
 
 arm_%:
 	$(ARM_CC) $(CFLAGS) $(subst arm_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out
-	python -m elf_to_shellcode ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out arm little ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out.shellcode
+	python -m elf_to_shellcode ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out arm_x32 little ../outputs/$(OUTPUT_DIRECTORY)$(subst arm_,,$@)_arm.out.shellcode
