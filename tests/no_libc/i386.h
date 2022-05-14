@@ -1,5 +1,6 @@
 #ifndef I386_SYSCALLS
 #define I386_SYSCALLS
+
 #define my_syscall5(num, arg1, arg2, arg3, arg4, arg5)                        \
 ({                                                                            \
     long _ret;                                                            \
