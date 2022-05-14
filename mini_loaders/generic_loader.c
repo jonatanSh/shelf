@@ -6,11 +6,20 @@ void loader_main() {
     size_t table_size = 0;
     struct relocation_table * table;
     size_t base_address;
+    size_t magic;
     get_pc();
+    #ifndef TABLE_MAGIC
+        #ifndef GET_TABLE_MAGIC
+            #error Table magic unknown
+        #endif
+        GET_TABLE_MAGIC();
+    #else
+        magic = TABLE_MAGIC;
+    #endif
 
     for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {
         pc += ARCH_OPCODE_SIZE;
-        if(*((size_t*)pc) == TABLE_MAGIC) {
+        if(*((size_t*)pc) == magic) {
             break;
         }
         if(i==MAX_SEARCH_DEPTH-1) {

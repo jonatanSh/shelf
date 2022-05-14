@@ -6,7 +6,6 @@ typedef unsigned int size_t;
 #define TABLE_MAGIC 0xaabbccdd
 
 #define get_pc() {      \
-    size_t out;                     \
     asm(                            \
         "addiu $sp, $sp, -4\n"      \
         "sw $ra, 0($sp)\n"          \
@@ -18,10 +17,9 @@ typedef unsigned int size_t;
         "move $v0, $ra\n"           \
         "jr $ra\n"                  \
         "next:"                     \
-        : "=r"(out) :               \
+        : "=r"(pc) :               \
                                     \
     );                              \
-    pc = out;                       \
 }                                   \
 
 #define call_main(main_ptr) {                           \

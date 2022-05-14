@@ -5,9 +5,9 @@
 
 
 #if defined(__x86_64__) || defined(_M_X64)
-    #error Not Supported
+    #include "./intel/x64.h"
 #elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
-    #error Not Supported
+    #include "./intel/x32.h"
 #elif defined(__ARM_ARCH_2__)
     #error Not Supported
 #elif defined(__ARM_ARCH_3__) || defined(__ARM_ARCH_3M__)
