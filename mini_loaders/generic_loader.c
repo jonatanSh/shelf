@@ -36,9 +36,20 @@ void loader_main() {
     size_t parsed_entries_size = 0;
     while(parsed_entries_size < table->total_size) {
         struct table_entry * entry = (struct table_entry *)entry_ptr;
+        struct entry_attributes * attributes = (struct entry_attributes*)((void*)entry+sizeof(size_t)*3);
         // Now parsing the entry
         size_t f_offset = entry->f_offset + base_address;
         size_t v_offset = entry->v_offset + base_address; 
+        
+        if(entry->size > sizeof(size_t) * 3) {
+            // We have relocation attributes
+            // Can't use jump tables in loader :(
+            #ifdef SUPPORT_IRELATIVE
+                if(attributes->attribute_1 == IRELATIVE) {
+                    RESOLVE_IRELATIVE(v_offset);
+                }
+            #endif
+        }
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;
 

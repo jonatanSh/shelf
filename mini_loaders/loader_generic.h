@@ -60,4 +60,17 @@ struct relocation_table {
     size_t total_size;
 };
 
+struct entry_attributes {
+    size_t attribute_1;
+};
+
+enum RELOCATION_ATTRIBUTES {
+    IRELATIVE = 1
+};
+
+// Not all arches should handle IRELATIVE
+#if !defined(RESOLVE_IRELATIVE) && defined(SUPPORT_IRELATIVE)
+    #error RESOLVE_IRELATIVE not defined but SUPPORT_IRELATIVE defined
+#endif
+
 #endif

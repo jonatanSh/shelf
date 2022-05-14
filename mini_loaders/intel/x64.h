@@ -1,12 +1,12 @@
 #ifndef LOADER_INTEL_X64
 #define LOADER_INTEL_X64
 typedef unsigned long long size_t;
-
-#define ARCH_OPCODE_SIZE 4
+#define SUPPORT_IRELATIVE
+#define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \
     asm(                        \
-        "mov rax, 0xaabbcc00\n" \
-        "add rax, 0xdd\n"       \
+        "mov rax, 0x8899aabbccddee00\n" \
+        "add rax, 0xff\n"       \
         : "=r"(magic) :         \
     );                          \
 }                               \
@@ -33,5 +33,20 @@ typedef unsigned long long size_t;
    );                                                   \
 }                                                       \
 
+#define RESOLVE_IRELATIVE(irelative_address) {      \
+    asm(                                            \
+        "push rbx\n"                                \
+        "push rcx\n"                                \
+        "push rdx\n"                                \
+        "push rsi\n"                                \
+        "call rax\n"                                \
+        "pop rsi\n"                                 \
+        "pop rdx\n"                                 \
+        "pop rcx\n"                                 \
+        "pop rbx\n"                                 \
+        : "=r"(irelative_address) :                 \
+        "r"(irelative_address)                      \
+    );                                              \
+}                                                   \
 
 #endif
