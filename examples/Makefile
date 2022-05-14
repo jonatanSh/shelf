@@ -1,5 +1,5 @@
 CFLAGS=-nostartfiles --entry=main
-TARGETS=mips_example intel_x32_example intel_x64_example
+TARGETS=mips_example intel_x32_example intel_x64_example arm_example
 OUTPUT_DIRECTORY=../outputs/
 include ../makefiles/generic.mk
 all: $(TARGETS)
