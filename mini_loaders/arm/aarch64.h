@@ -14,6 +14,7 @@ typedef unsigned long long size_t;
         "b next\n"                  \
         "get_pc_internal:\n"        \
         "mov %0, lr\n"              \
+        "ret\n"                     \
         "next:\n"                   \
         : "=r"(pc) :               \
                                     \
