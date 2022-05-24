@@ -6,11 +6,7 @@ typedef unsigned long long size_t;
 #define TABLE_MAGIC 0x8899aabbccddeeff
 #define get_pc() {      \
     asm(                            \
-        "add sp, sp, #-8\n"         \
-        "str lr, [sp]\n"            \
         "bl get_pc_internal\n"      \
-        "ldr lr, [sp]\n"            \
-        "add sp, sp, #8\n"          \
         "b next\n"                  \
         "get_pc_internal:\n"        \
         "mov %0, lr\n"              \
