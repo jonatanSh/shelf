@@ -6,7 +6,9 @@ echo Running intel x64 shellcode
 qemu-x86_64-static ../outputs/shellcode_loader_intel_x64.out ../outputs/elf_features_intel_x64.out.shellcode
 echo Running arm 32 tests
 qemu-arm-static ../outputs/shellcode_loader_arm_32.out ../outputs/no_relocations_arm_32.out.shellcode 
+echo Running aarch64 tests
+qemu-aarch64-static ../outputs/shellcode_loader_aarch64.out ../outputs/no_relocations_aarch64.out.shellcode 
 echo Running no relocation tests
 qemu-i386-static ../outputs/shellcode_loader_intel_x32.out ../outputs/no_relocations_intel_x32.out.shellcode 
 echo Running no relocation tests
-qemu-aarch64-static ../outputs/shellcode_loader_aarch_64.out ../outputs/no_relocations_aarch64.out.shellcode 
+qemu-aarch64-static ../outputs/shellcode_loader_aarch64.out ../outputs/no_relocations_aarch64.out.shellcode 

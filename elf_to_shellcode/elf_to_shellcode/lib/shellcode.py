@@ -151,6 +151,7 @@ class Shellcode(object):
                 new_binary = str(new_binary[:start]) + str(segment_data) + str(new_binary[start + len(segment_data):])
         return new_binary
 
+
     def get_original_symbols_addresses(self):
         symtab = self.elffile.get_section_by_name(".symtab")
         addresses = []
@@ -176,6 +177,9 @@ class Shellcode(object):
         new_entry_point = (original_entry_point - self.linker_base_address)
         return struct.pack("{}{}".format(self.endian, self.ptr_fmt), new_entry_point)
 
+    def build_shellcode_from_header_and_code(self, header, code):
+        return header + code
+
     def get_shellcode(self):
         shellcode_data = self.shellcode_data
         shellcode_header = self.get_shellcode_header()
@@ -186,9 +190,28 @@ class Shellcode(object):
         # This must be here !
         relocation_table = self.relocation_table
 
-        shellcode_data = str(self.loader) + str(relocation_table) + str(shellcode_header) + str(shellcode_data)
+        full_header = str(self.loader) + str(relocation_table) + str(shellcode_header)
 
-        return shellcode_data
+        return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
+
+    def unpack_ptr(self, stream):
+        return struct.unpack("{}{}".format(self.endian,
+                                           self.ptr_fmt), stream)[0]
+
+    def get_loader_base_address(self, shellcode):
+        loader_size = len(self.loader)
+        table_length = len(self.relocation_table)
+        offset = loader_size + table_length
+        return self.unpack_ptr(shellcode[offset:offset+self.ptr_size])
+
+    def set_loader_base_address(self, shellcode, new_base_address):
+        loader_size = len(self.loader)
+        table_length = len(self.relocation_table)
+        offset = loader_size + table_length
+        shellcode = shellcode[:offset] + self.pack_pointer(new_base_address) + shellcode[offset+self.ptr_size:]
+        return shellcode
+
+
 
 
 def get_shellcode_class(elf_path, shellcode_cls, endian):
