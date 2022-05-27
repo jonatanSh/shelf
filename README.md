@@ -51,7 +51,7 @@ gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=mai
 python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
 ```
 
-#### Examples:
+### Examples:
 
 [Makefile](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/Makefile)
 
@@ -101,7 +101,8 @@ Jumping to shellcode, address = 0x7f7ee000
 Hello from shellcode !
 ```
 
-# Specific architecture limitations
+## Specific architecture limitations
+
 ### AARCH64
 
 arm in 64 bit mode generate adrl instruction.
