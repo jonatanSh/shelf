@@ -3,6 +3,8 @@ from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
 from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 
 
+# Refernce: https://static1.squarespace.com/static/59c4375b8a02c798d1cce06f/t/59d55a7bf5e2319471bb94a4/1507154557709/ELF+for+ARM64.pdf
+
 class ArmX64Shellcode(Shellcode):
     def __init__(self, elffile, shellcode_data, endian):
         super(ArmX64Shellcode, self).__init__(
