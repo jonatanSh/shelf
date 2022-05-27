@@ -7,17 +7,14 @@ py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
 
 
-class RelocationAttributes(object):
-    call_to_resolve = 1
-
-
 class Shellcode(object):
     def __init__(self, elffile, shellcode_data, endian,
                  mini_loader_big_endian,
                  mini_loader_little_endian,
                  shellcode_table_magic,
                  ptr_fmt,
-                 sections_to_relocate={}):
+                 sections_to_relocate={},
+                 ext_bindings=[]):
         self.elffile = elffile
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
@@ -41,6 +38,10 @@ class Shellcode(object):
                 break
         self.ptr_fmt = ptr_fmt
         self.relocation_handlers = []
+
+        for binding in ext_bindings:
+            get_binding, arguments = binding[0], binding[1]
+            self.add_relocation_handler(get_binding(*arguments))
 
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
@@ -176,19 +177,83 @@ class Shellcode(object):
         new_entry_point = (original_entry_point - self.linker_base_address)
         return struct.pack("{}{}".format(self.endian, self.ptr_fmt), new_entry_point)
 
+    def build_shellcode_from_header_and_code(self, header, code):
+        return header + code
+
     def get_shellcode(self):
         shellcode_data = self.shellcode_data
         shellcode_header = self.get_shellcode_header()
         shellcode_data = self.correct_symbols(shellcode_data)
         for handler in self.relocation_handlers:
-            shellcode_data = handler(shellcode_data=shellcode_data)
+            shellcode_data = handler(shellcode=self,
+                                     shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table
 
-        shellcode_data = str(self.loader) + str(relocation_table) + str(shellcode_header) + str(shellcode_data)
+        full_header = str(self.loader) + str(relocation_table) + str(shellcode_header)
 
-        return shellcode_data
+        return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
+
+    def unpack_ptr(self, stream):
+        return struct.unpack("{}{}".format(self.endian,
+                                           self.ptr_fmt), stream)[0]
+
+    def stream_unpack_pointers(self, stream, num_of_ptrs):
+        return struct.unpack("{}{}".format(self.endian,
+                                           self.ptr_fmt * num_of_ptrs), stream[:self.ptr_size * num_of_ptrs])
+
+    def get_loader_base_address(self, shellcode):
+        loader_size = len(self.loader)
+        table_length = len(self.relocation_table)
+        offset = loader_size + table_length
+        return self.unpack_ptr(shellcode[offset:offset + self.ptr_size])
+
+    def set_loader_base_address(self, shellcode, new_base_address):
+        loader_size = len(self.loader)
+        table_length = len(self.relocation_table)
+        offset = loader_size + table_length
+        shellcode = shellcode[:offset] + self.pack_pointer(new_base_address) + shellcode[offset + self.ptr_size:]
+        return shellcode
+
+    def move_header_by_offset(self, header, offset):
+        """
+        This function move the shellcode header by offset.
+        It actually parse the shellcode just like the loader and correct the offsets
+        :param shellcode_data:
+        :param offset:
+        :return:
+        """
+        current_offset = 0
+        loader_size = len(self.loader)
+        # Skipping the loader
+        current_offset += loader_size
+        magic = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
+        assert magic == self.shellcode_table_magic, 'Error reading magic'
+        current_offset += self.ptr_size  # skipping magic
+        table_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
+        current_offset += self.ptr_size  # skip ptr size
+
+        handled_size = 0
+        while handled_size < table_size:
+            size, voff1, voff2 = self.stream_unpack_pointers(
+                header[current_offset:],
+                3
+            )
+            voff1 += offset
+            voff2 += offset
+            voff1 = self.pack_pointer(voff1)
+            voff2 = self.pack_pointer(voff2)
+            header_next = header[current_offset + self.ptr_size * 3:]
+            header = header[:current_offset + self.ptr_size] + voff1 + voff2 + header_next
+
+            current_offset += size
+            handled_size += size
+        entry_point = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
+        entry_point += offset
+        entry_point = self.pack_pointer(entry_point)
+        header = header[:current_offset] + entry_point + header[current_offset + self.ptr_size:]
+        return header
 
 
 def get_shellcode_class(elf_path, shellcode_cls, endian):

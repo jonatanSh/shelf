@@ -1,5 +1,4 @@
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
-import struct
 
 
 class MipsShellcode(Shellcode):

@@ -1,4 +1,4 @@
-TARGETS=mips x32 x64 arm32
+TARGETS=mips x32 x64 arm32 aarch64
 
 .PHONY: all $(TARGETS)
 all: $(TARGETS)
@@ -14,3 +14,5 @@ x64:
 
 arm32:
 	cd arm && make arm32 arm32be
+aarch64:
+	cd arm && make arm64

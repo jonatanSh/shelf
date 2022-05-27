@@ -7,11 +7,7 @@ typedef unsigned int size_t;
 
 #define get_pc() {      \
     asm(                            \
-        "addiu $sp, $sp, -4\n"      \
-        "sw $ra, 0($sp)\n"          \
         "bal get_pc_internal\n"     \
-        "lw $ra, 0($sp)\n"          \
-        "addiu $sp,4\n"             \
         "b next\n"                  \
         "get_pc_internal:\n"        \
         "move $v0, $ra\n"           \

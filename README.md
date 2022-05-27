@@ -7,7 +7,14 @@ The python library parses the elf and create a simple relocatable file format
 Then the mini loader is inserted as the entry point of the elf the mini loader
 will load the relocatable format and execute it.
 There are no special requirements, the library contain the compiled
-mini loaders
+mini loaders.
+
+This project is intended to convert elf to os independent shellcodes.
+Therefor the loader never allocate memory and the shellcode format is not packed.
+You can just execute it, eg ...
+```c
+((void (*)()) shellcode)();
+```
 
 #### Project links
 [Github](https://github.com/jonatanSh/elf_to_shellcode)
@@ -19,6 +26,7 @@ mini loaders
 * i386 (32bit)
 * i386 (64bit)
 * arm (32bit)
+* aarch64 (arm 64 bit)
 
 #### Installation:
 ```bash
@@ -43,7 +51,7 @@ gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=mai
 python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
 ```
 
-#### Examples:
+### Examples:
 
 [Makefile](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/Makefile)
 
@@ -64,11 +72,10 @@ therefor you can't use printf in the shellcode, but you can implement it using s
 ### Converting the elf to shellcode:
 
 ```python
-from elf_to_shellcode.relocate import make_shellcode
-
+from elf_to_shellcode.relocate import make_shellcode, Arches
 shellcode = make_shellcode(
     binary_path="/tmp/binary.out",
-    arch="mips",
+    arch=Arches.MIPS_32,
     endian="big"
 )
 
@@ -93,6 +100,14 @@ Mapping new memory, size = 69632
 Jumping to shellcode, address = 0x7f7ee000
 Hello from shellcode !
 ```
+
+## Specific architecture limitations
+
+### AARCH64
+
+arm in 64 bit mode generate adrl instruction.
+These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
+page aligned to overcome this limitation the shellcode is padded
 
 # Optimizations
 some Compiler optimization (like -o3) may produce un-shellcodeable output.
