@@ -1,4 +1,5 @@
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
 
 
 class ArmX64Shellcode(Shellcode):
@@ -13,9 +14,26 @@ class ArmX64Shellcode(Shellcode):
             ptr_fmt="Q",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
-                '.got.plt': {'align_by': 'sh_entsize', 'relocate_all': True},
             }
         )
+        self.add_relocation_handler(self.relocation_for_rela_plt_got_plt)
+
+    def relocation_for_rela_plt_got_plt(self, shellcode_data):
+        """
+        Specific handler for the .rela.plt and .got.plt relocations
+        :return:
+        """
+        rela_plt = self.elffile.get_section_by_name('.rela.plt')
+        got_plt = self.elffile.get_section_by_name(".got.plt")
+        if not rela_plt:
+            return shellcode_data
+        if rela_plt and not got_plt:
+            raise Exception("Relocation not supported yet")
+
+        for relocation in rela_plt.iter_relocations():
+            if relocation.entry.r_info != 1:
+                raise Exception("Relocation not supported yet: {}".format(relocation.entry.r_info))
+        return shellcode_data
 
     def build_shellcode_from_header_and_code(self, header, code):
         # Now we are going to align our shellcode
