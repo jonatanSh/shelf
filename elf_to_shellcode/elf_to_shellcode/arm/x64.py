@@ -20,8 +20,6 @@ class ArmX64Shellcode(Shellcode):
     def build_shellcode_from_header_and_code(self, header, code):
         # Now we are going to align our shellcode
         aarch64_alignment = (2 << 12)
-        constructed_without_padding = header + code
-        loader_base = self.get_loader_base_address(constructed_without_padding)
         nop_opcode = '\x1f\x20\x03\xd5'
         if len(header) > aarch64_alignment:
             alignment = len(header) % aarch64_alignment
@@ -30,9 +28,11 @@ class ArmX64Shellcode(Shellcode):
         assert alignment % len(nop_opcode) == 0, "Alignment error"
         alignment /= len(nop_opcode)
         padding = nop_opcode * alignment
-        constructed = header + padding + code
-        return self.set_loader_base_address(constructed,
-                                            loader_base + len(padding))
+        header_moved = self.move_header_by_offset(header,
+                                              offset=len(padding))
+
+        constructed = header_moved + padding + code
+        return constructed
 
 
 arm_x64_make_shellcode = create_make_shellcode(ArmX64Shellcode)
