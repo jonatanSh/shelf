@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <errno.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char **envp) {
     struct stat stat_buffer;
     int shellcode_fd;
     char *shellcode_buffer = NULL;
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     memcpy(start_address, shellcode_buffer, buff_size);
 
     printf("Jumping to shellcode, address = %p \n", start_address);
-    ((void (*)()) start_address)();
+    ((void (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
 
     goto cleanups;
 

@@ -1,12 +1,13 @@
 #include "./loader_generic.h"
 
-void loader_main() {
+void loader_main(int argc, char ** argv, char ** envp) {
     size_t pc;
     size_t table_start;
     size_t table_size = 0;
     struct relocation_table * table;
     size_t base_address;
     size_t magic;
+    size_t total_argv_envp_size = 0;
     get_pc();
     #ifndef TABLE_MAGIC
         #ifndef GET_TABLE_MAGIC
@@ -55,7 +56,34 @@ void loader_main() {
         entry_ptr += entry->size;
     }
     void * entry_point = (*(size_t*)(entry_ptr) + base_address);
-    call_main(entry_point);
+
+#ifdef SUPPORT_START_FILES
+        int looking_at_argv = 0;
+        int index = 0;
+        while(1) {
+            if(looking_at_argv == 0) {
+                if(argv[index] != 0) {
+                    index+=1;
+                    total_argv_envp_size+=1;
+                }
+                else {
+                    index = 0;
+                    looking_at_argv = 1;
+                }
+            }
+            else {
+                if(envp[index] != 0) {
+                    total_argv_envp_size+=1;
+                    index+=1;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        total_argv_envp_size += 2; // for null terminators
+#endif
+    call_main(entry_point, argc, argv, total_argv_envp_size);
 
 error:
 exit:

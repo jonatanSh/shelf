@@ -23,7 +23,7 @@ typedef unsigned long long size_t;
     );                              \
 }                                   \
 
-#define call_main(main_ptr) {                           \
+#define call_main(main_ptr, argc, argv, envp) {                           \
    register size_t rax asm("rax") = (size_t)(main_ptr); \
    asm(                                                 \
         "call rax\n"                                    \
