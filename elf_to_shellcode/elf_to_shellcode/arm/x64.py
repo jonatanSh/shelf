@@ -19,7 +19,7 @@ class ArmX64Shellcode(Shellcode):
 
     def build_shellcode_from_header_and_code(self, header, code):
         # Now we are going to align our shellcode
-        aarch64_alignment = (2 << 11)
+        aarch64_alignment = (2 << 12)
         constructed_without_padding = header + code
         loader_base = self.get_loader_base_address(constructed_without_padding)
         nop_opcode = '\x1f\x20\x03\xd5'

@@ -7,7 +7,14 @@ The python library parses the elf and create a simple relocatable file format
 Then the mini loader is inserted as the entry point of the elf the mini loader
 will load the relocatable format and execute it.
 There are no special requirements, the library contain the compiled
-mini loaders
+mini loaders.
+
+This project is intended to convert elf to os independent shellcodes.
+Therefor the loader never allocate memory and the shellcode format is not packed.
+You can just execute it, eg ...
+```c
+((void (*)()) shellcode)();
+```
 
 #### Project links
 [Github](https://github.com/jonatanSh/elf_to_shellcode)
@@ -19,6 +26,7 @@ mini loaders
 * i386 (32bit)
 * i386 (64bit)
 * arm (32bit)
+* aarch64 (arm 64 bit)
 
 #### Installation:
 ```bash
@@ -90,7 +98,7 @@ Hello from shellcode !
 
 arm in 64 bit mode generate adrl instruction.
 These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
-page aligned
+page aligned to overcome this limitation the shellcode is padded
 
 # Optimizations
 some Compiler optimization (like -o3) may produce un-shellcodeable output.
