@@ -7,17 +7,14 @@ py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
 
 
-class RelocationAttributes(object):
-    call_to_resolve = 1
-
-
 class Shellcode(object):
     def __init__(self, elffile, shellcode_data, endian,
                  mini_loader_big_endian,
                  mini_loader_little_endian,
                  shellcode_table_magic,
                  ptr_fmt,
-                 sections_to_relocate={}):
+                 sections_to_relocate={},
+                 ext_bindings=[]):
         self.elffile = elffile
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
@@ -41,6 +38,10 @@ class Shellcode(object):
                 break
         self.ptr_fmt = ptr_fmt
         self.relocation_handlers = []
+
+        for binding in ext_bindings:
+            get_binding, arguments = binding[0], binding[1]
+            self.add_relocation_handler(get_binding(*arguments))
 
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
@@ -184,7 +185,8 @@ class Shellcode(object):
         shellcode_header = self.get_shellcode_header()
         shellcode_data = self.correct_symbols(shellcode_data)
         for handler in self.relocation_handlers:
-            shellcode_data = handler(shellcode_data=shellcode_data)
+            shellcode_data = handler(shellcode=self,
+                                     shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table
