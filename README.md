@@ -41,6 +41,12 @@ so make sure you are not stripping the binary before using this library
 
 [Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
 
+simplified make command
+
+```c
+gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
+```
+
 #### Compiling with libc
 Libc has destructors and constructors this project doesn't fully support libc.
 take a look at the provided example (which uses libc) and note that some function won't work properly.
