@@ -35,17 +35,19 @@ You must compile the binary with -fPIE and -static take a look at the provided e
 shellcode is a stripped binary with no symbols and no elf information only opcodes, in order 
 to make the shellcode this library require a binary with elf information.
 so make sure you are not stripping the binary before using this library
+
+simplified make command for mips big endian
+
+```c
+gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
+python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
+```
+
 #### Examples:
 
 [Makefile](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/Makefile)
 
 [Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
-
-simplified make command
-
-```c
-gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
-```
 
 #### Compiling with libc
 Libc has destructors and constructors this project doesn't fully support libc.
