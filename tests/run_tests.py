@@ -22,7 +22,7 @@ def translate_to_binary_name(arch):
         return "mipsbe"
 
 
-def run_arch_tests(arch, case):
+def run_arch_tests(arch, case, debug, *args):
     qemu = QEMUS[arch]
     loader = "../outputs/shellcode_loader_{}.out".format(arch)
     tests = [case]
@@ -34,26 +34,52 @@ def run_arch_tests(arch, case):
             if arch not in supported_arches:
                 continue
         test = case.format(translate_to_binary_name(arch))
-        command = "{} {} {}".format(qemu, loader, test)
+        db_arg = "-g 1234" if (debug == "debug") else ""
+        command = "{} {} {} {}".format(qemu, db_arg, loader, test)
+        print("-" * 30)
+        if debug == "debug":
+            print("Waiting for debugger at: {}".format(1234))
+            print(command)
         stdout, stderr = subprocess.Popen(command, shell=True, stdout=PIPE, stderr=PIPE).communicate()
         if success in stdout:
             print("test: {} for: {} ... Success".format(test_case, arch))
         else:
             print("test: {} for: {} ... Failure, output:".format(test_case, arch))
             print stdout, stderr
+        print("-" * 30)
+        print("\n")
 
 
 def main(arch, case, *args):
     if arch == "all":
         for key in QEMUS.keys():
-            run_arch_tests(key, case)
+            run_arch_tests(key, case, *args)
     else:
-        run_arch_tests(arch, case)
+        run_arch_tests(arch, case, *args)
+
+
+usage_printed = False
+
+
+def print_usage():
+    global usage_printed
+    if usage_printed:
+        return
+    usage_printed = True
+    print("run_tests.py - run all tests")
+    print("more complex usage")
+    print("run_tests.py aarch64 elf_features debug")
+    print("\n" * 2)
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
+        print_usage()
         sys.argv.append("all")
     if len(sys.argv) < 3:
+        print_usage()
         sys.argv.append("all")
+    if len(sys.argv) < 4:
+        print_usage()
+        sys.argv.append("no")
     main(*sys.argv[1:])
