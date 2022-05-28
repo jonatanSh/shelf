@@ -46,7 +46,7 @@ void loader_main(int argc, char ** argv, char ** envp) {
             // We have relocation attributes
             // Can't use jump tables in loader :(
             if(attributes->attribute_1 == IRELATIVE) {
-                v_offset = ((IRELATIVE_T)(v_offset))();
+                v_offset = (size_t)((IRELATIVE_T)(v_offset))();
             }
         }
         // Fixing the entry
@@ -55,7 +55,7 @@ void loader_main(int argc, char ** argv, char ** envp) {
         parsed_entries_size += entry->size;
         entry_ptr += entry->size;
     }
-    void * entry_point = (*(size_t*)(entry_ptr) + base_address);
+    void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
 
 #ifdef SUPPORT_START_FILES
         int looking_at_argv = 0;

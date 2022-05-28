@@ -2,19 +2,29 @@ from elftools.elf.elffile import ELFFile
 from elf_to_shellcode.elf_to_shellcode.resources import get_resource
 import struct
 import sys
+from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
+from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
+PTR_SIZES = {
+    4: "I",
+    8: "Q"
+}
 
 
 class Shellcode(object):
-    def __init__(self, elffile, shellcode_data, endian,
+    def __init__(self, elffile,
+                 shellcode_data,
+                 endian,
+                 start_file_method,
                  mini_loader_big_endian,
                  mini_loader_little_endian,
                  shellcode_table_magic,
                  ptr_fmt,
                  sections_to_relocate={},
-                 ext_bindings=[]):
+                 ext_bindings=[],
+                 supported_start_methods=[]):
         self.elffile = elffile
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
@@ -23,14 +33,6 @@ class Shellcode(object):
         self._loader = None  # Default No loader is required
         self.sections_to_relocate = sections_to_relocate
 
-        if endian == "big":
-            self.endian = ">"
-            if mini_loader_big_endian:
-                self._loader = get_resource(mini_loader_big_endian)
-        else:
-            if mini_loader_little_endian:
-                self._loader = get_resource(mini_loader_little_endian)
-            self.endian = "<"
         self.shellcode_data = shellcode_data
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
@@ -42,6 +44,36 @@ class Shellcode(object):
         for binding in ext_bindings:
             get_binding, arguments = binding[0], binding[1]
             self.add_relocation_handler(get_binding(*arguments))
+        self.supported_start_methods = supported_start_methods
+        if StartFiles.no_start_files not in self.supported_start_methods:
+            self.supported_start_methods.append(
+                StartFiles.no_start_files
+            )
+        self.start_file_method = start_file_method
+        assert self.start_file_method in self.supported_start_methods, "Error, start method: {} not supported for arch, supported methods: {}".format(
+            self.start_file_method,
+            self.supported_start_methods
+        )
+        self.address_utils = AddressUtils(unpack_size=self.unpack_size)
+
+        if endian == "big":
+            self.endian = ">"
+            if mini_loader_big_endian:
+                self._loader = get_resource(self.format_loader(mini_loader_big_endian))
+        else:
+            if mini_loader_little_endian:
+                self._loader = get_resource(self.format_loader(mini_loader_little_endian))
+            self.endian = "<"
+
+    def format_loader(self, ld):
+        if StartFiles.no_start_files == self.start_file_method:
+            return ld.format("")
+        elif StartFiles.glibc in ld:
+            return ld.format("_glibc")
+        else:
+            raise Exception("Unknown start method: {}".format(
+                self.start_file_method
+            ))
 
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
@@ -57,6 +89,13 @@ class Shellcode(object):
         for item in lst:
             packed += self.pack_pointer(item)
         return packed
+
+    def unpack_size(self, data, size):
+        ptr_size = PTR_SIZES[size]
+        return struct.unpack("{}{}".format(
+            self.endian,
+            ptr_size
+        ), data)[0]
 
     @property
     def ptr_size(self):
@@ -256,25 +295,32 @@ class Shellcode(object):
         return header
 
 
-def get_shellcode_class(elf_path, shellcode_cls, endian):
+def get_shellcode_class(elf_path, shellcode_cls, endian,
+                        start_file_method):
     fd = open(elf_path, 'rb')
     elffile = ELFFile(fd)
     with open(elf_path, "rb") as fp:
         shellcode_data = fp.read()
-    shellcode = shellcode_cls(elffile=elffile, shellcode_data=shellcode_data, endian=endian)
+    shellcode = shellcode_cls(elffile=elffile,
+                              shellcode_data=shellcode_data,
+                              endian=endian,
+                              start_file_method=start_file_method)
     return shellcode, fd
 
 
-def make_shellcode(elf_path, shellcode_cls, endian):
-    shellcode, fd = get_shellcode_class(elf_path, shellcode_cls, endian)
+def make_shellcode(elf_path, shellcode_cls, endian,
+                   start_file_method):
+    shellcode, fd = get_shellcode_class(elf_path, shellcode_cls, endian,
+                                        start_file_method=start_file_method)
     shellcode = shellcode.get_shellcode()
     fd.close()
     return shellcode
 
 
 def create_make_shellcode(shellcode_cls):
-    def wrapper(elf_path, endian):
-        return make_shellcode(elf_path, shellcode_cls, endian)
+    def wrapper(elf_path, endian, start_file_method):
+        return make_shellcode(elf_path, shellcode_cls, endian,
+                              start_file_method=start_file_method)
 
     return wrapper
 

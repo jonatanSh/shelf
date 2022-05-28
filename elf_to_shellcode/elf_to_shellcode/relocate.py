@@ -3,7 +3,7 @@ from elf_to_shellcode.elf_to_shellcode.intel.x32 import intel_x32_make_shellcode
 from elf_to_shellcode.elf_to_shellcode.intel.x64 import intel_x64_make_shellcode
 from elf_to_shellcode.elf_to_shellcode.arm.x32 import arm_x32_make_shellcode
 from elf_to_shellcode.elf_to_shellcode.arm.x64 import arm_x64_make_shellcode
-
+from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 
 class Arches(object):
     MIPS_32 = "mips"
@@ -11,6 +11,8 @@ class Arches(object):
     INTEL_X64 = "intel_x64"
     ARM_32 = "arm_32"
     ARM_64 = "aarch64"
+
+
 
 
 ENDIANS = ["big", "little"]
@@ -24,9 +26,11 @@ shellcode_handlers = {
 }
 
 
-def make_shellcode(binary_path, arch, endian):
+def make_shellcode(binary_path, arch, endian, start_file_method):
     assert endian in ENDIANS, 'Chose endain from: {}'.format(ENDIANS)
     assert arch in shellcode_handlers, 'Chose arch from: {}'.format(
         shellcode_handlers.keys()
     )
-    return shellcode_handlers[arch](binary_path, endian=endian)
+    assert start_file_method in StartFiles.__all__
+    return shellcode_handlers[arch](binary_path, endian=endian,
+                                    start_file_method=start_file_method)

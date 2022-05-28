@@ -72,16 +72,18 @@ therefor you can't use printf in the shellcode, but you can implement it using s
 ### Converting the elf to shellcode:
 
 ```python
-from elf_to_shellcode.relocate import make_shellcode, Arches
+from elf_to_shellcode.relocate import make_shellcode, Arches, Startfiles
 shellcode = make_shellcode(
     binary_path="/tmp/binary.out",
     arch=Arches.MIPS_32,
-    endian="big"
+    endian="big",
+    start_file_method=Startfiles.no_start_files, # Some arches support glibc start files
 )
 
 with open("myshellcode.out", 'wb') as fp:
     fp.write(shellcode)
 ```
+
 
 ### Testing your shellcode
 You can use the provided shellcode

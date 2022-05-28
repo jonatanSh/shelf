@@ -6,18 +6,19 @@ from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import Irel
 # Refernce: https://static1.squarespace.com/static/59c4375b8a02c798d1cce06f/t/59d55a7bf5e2319471bb94a4/1507154557709/ELF+for+ARM64.pdf
 
 class ArmX64Shellcode(Shellcode):
-    def __init__(self, elffile, shellcode_data, endian):
+    def __init__(self, elffile, shellcode_data, endian, **kwargs):
         super(ArmX64Shellcode, self).__init__(
             elffile=elffile,
             shellcode_data=shellcode_data,
             endian=endian,
-            mini_loader_little_endian="mini_loader_arm_x64.shellcode",
+            mini_loader_little_endian="mini_loader_arm_x64{}.shellcode",
             mini_loader_big_endian=None,
             shellcode_table_magic=0x8899aabbccddeeff,
             ptr_fmt="Q",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
-            }
+            },
+            **kwargs
         )
         self.irelative = IrelativeRelocs(ENUM_RELOC_TYPE_AARCH64['R_AARCH64_TLS_DTPMOD32'])
         self.add_relocation_handler(self.irelative.relocation_for_rela_plt_got_plt)
