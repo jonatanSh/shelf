@@ -1,6 +1,8 @@
 import sys
 from elf_to_shellcode.relocate import make_shellcode
+import logging
 
+logging.basicConfig(level=logging.INFO)
 if len(sys.argv) < 4:
     print("Usage <input> <arch> <endian> <glibc|no_startfiles> <output|optional>")
     sys.exit(1)

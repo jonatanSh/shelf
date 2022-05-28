@@ -2,6 +2,8 @@ from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_ma
 from elftools.elf.enums import ENUM_RELOC_TYPE_i386
 from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
+import logging
+logger = logging.getLogger("[INTEL-X32-SHELLCODE]")
 
 
 def get_glibc_instructions_filter(address):
@@ -36,7 +38,8 @@ class IntelX32Shellcode(Shellcode):
         )
         self.irelative = IrelativeRelocs(
             irelative_type=ENUM_RELOC_TYPE_i386['R_386_IRELATIVE'],
-            jmp_slot_type=ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT']
+            jmp_slot_type=ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT'],
+            get_glibc_instructions_filter=get_glibc_instructions_filter
         )
         self.add_relocation_handler(self.irelative.relocation_for_rel_plt_got_plt)
 
@@ -74,6 +77,10 @@ class IntelX32Shellcode(Shellcode):
             )
 
             for address in addresses:
+                logger.info("![GLIBC] require instruction patches, "
+                             "instruction at relative: {} patched".format(
+                    hex(address)
+                ))
                 shellcode.addresses_to_patch[address] = self.make_relative(entry_address)
         return shellcode_data
 
