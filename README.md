@@ -48,7 +48,9 @@ simplified make command for mips big endian
 
 ```c
 gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
-python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
+#                       [Architectures] [ENDIAN] [Libc full support]
+python -m elf_to_shellcode binary.out mips big no
+                                         
 ```
 
 ### Examples:
@@ -58,8 +60,8 @@ python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
 [Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
 
 #### Compiling with libc
-Libc has destructors and constructors this project doesn't fully support libc.
-take a look at the provided example (which uses libc) and note that some function won't work properly.
+Libc has destructors and constructors some only architectures fully support libc.
+take a look at the provided example (which uses libc) and note that some function won't work properly in some architectures.
 
 eg...
 
@@ -68,6 +70,10 @@ printf is using fwrite which uses the FILE * struct for stdout.
 this file is opened post libc initialization (in one of the libc constructors).
 __start is responsible for calling libc constructors and we don't use __start (for other reasons).
 therefor you can't use printf in the shellcode, but you can implement it using snprintf and write
+
+### Architectures that fully support libc:
+
+* intel_x32
 
 ### Converting the elf to shellcode:
 
