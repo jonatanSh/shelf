@@ -234,6 +234,9 @@ class Shellcode(object):
 
         return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
+    def make_relative(self, address):
+        return address - self.linker_base_address
+
     def unpack_ptr(self, stream):
         return struct.unpack("{}{}".format(self.endian,
                                            self.ptr_fmt), stream)[0]

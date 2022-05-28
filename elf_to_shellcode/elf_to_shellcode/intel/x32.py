@@ -16,6 +16,7 @@ class IntelX32Shellcode(Shellcode):
             ptr_fmt="I",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
+
             },
             supported_start_methods=[
                 StartFiles.no_start_files,

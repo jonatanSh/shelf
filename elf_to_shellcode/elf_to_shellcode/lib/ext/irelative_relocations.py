@@ -21,8 +21,8 @@ class IrelativeRelocs(object):
             if relocation.entry.r_info != self.irelative_type:
                 raise Exception("Relocation not supported yet")
 
-            virtual_offset = relocation.entry.r_offset - shellcode.linker_base_address
-            function_offset = relocation.entry.r_addend - shellcode.linker_base_address
+            virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
+            function_offset = shellcode.make_relative(relocation.entry.r_addend)
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
         return shellcode_data
@@ -43,12 +43,13 @@ class IrelativeRelocs(object):
             if relocation.entry.r_info != self.irelative_type:
                 raise Exception("Relocation not supported yet")
 
-            virtual_offset = relocation.entry.r_offset - shellcode.linker_base_address
+            virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
             function_offset = shellcode.address_utils.section_get_ptr_at_address(
                 section=got_plt,
                 address=relocation.entry.r_offset,
                 alignment=got_plt.header.sh_entsize
             )
+            function_offset = shellcode.make_relative(function_offset)
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
         return shellcode_data
