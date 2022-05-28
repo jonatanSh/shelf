@@ -7,6 +7,7 @@ class ArmX32Shellcode(Shellcode):
             elffile=elffile,
             shellcode_data=shellcode_data,
             endian=endian,
+            arch="arm32",
             mini_loader_little_endian="mini_loader_arm_x32{}.shellcode",
             mini_loader_big_endian="mini_loader_arm_x32be{}.shellcode",
             shellcode_table_magic=0xaabbccdd,

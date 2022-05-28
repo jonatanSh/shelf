@@ -4,6 +4,7 @@ import struct
 import sys
 from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
 
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
@@ -17,6 +18,7 @@ class Shellcode(object):
     def __init__(self, elffile,
                  shellcode_data,
                  endian,
+                 arch,
                  start_file_method,
                  mini_loader_big_endian,
                  mini_loader_little_endian,
@@ -64,11 +66,14 @@ class Shellcode(object):
             if mini_loader_little_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_little_endian))
             self.endian = "<"
+        self.arch = arch
+
+        self.disassembler = Disassembler(self)
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
             return ld.format("")
-        elif StartFiles.glibc in ld:
+        elif StartFiles.glibc == self.start_file_method:
             return ld.format("_glibc")
         else:
             raise Exception("Unknown start method: {}".format(
@@ -189,7 +194,18 @@ class Shellcode(object):
                 # Now we rewrite the segment data
                 # We look at new binary as memory dump so we write using virtual addresses offsets
                 new_binary = str(new_binary[:start]) + str(segment_data) + str(new_binary[start + len(segment_data):])
-        return new_binary
+        return new_binary # TODO check if the elf header is really required
+
+    @property
+    def instruction_offset_after_objdump(self):
+        # This function just skip the first loadable segment
+        # Due to it containg the elf header
+        for segment in self.elffile.iter_segments():
+            if segment.header.p_type in ['PT_LOAD']:
+                header = segment.header
+                if header.p_offset == 0:
+                    return header.p_memsz
+        return 0
 
     def get_original_symbols_addresses(self):
         symtab = self.elffile.get_section_by_name(".symtab")

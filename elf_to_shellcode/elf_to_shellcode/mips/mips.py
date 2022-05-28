@@ -7,6 +7,7 @@ class MipsShellcode(Shellcode):
             elffile=elffile,
             shellcode_data=shellcode_data,
             endian=endian,
+            arch="mips",
             mini_loader_little_endian="mini_loader_mips{}.shellcode",
             mini_loader_big_endian="mini_loader_mipsbe{}.shellcode",
             shellcode_table_magic=0xaabbccdd,

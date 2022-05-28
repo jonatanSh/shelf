@@ -11,6 +11,7 @@ class ArmX64Shellcode(Shellcode):
             elffile=elffile,
             shellcode_data=shellcode_data,
             endian=endian,
+            arch="arm64",
             mini_loader_little_endian="mini_loader_arm_x64{}.shellcode",
             mini_loader_big_endian=None,
             shellcode_table_magic=0x8899aabbccddeeff,
