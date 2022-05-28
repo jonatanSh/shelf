@@ -1,7 +1,7 @@
 from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes, StartFiles
 import logging
-logger = logging.getLogger("[IRELATIVE-HELPER]")
 
+logger = logging.getLogger("[IRELATIVE-HELPER]")
 
 
 class IrelativeRelocs(object):
@@ -94,7 +94,7 @@ class IrelativeRelocs(object):
 
             for address in addresses:
                 logger.info("![GLIBC] require instruction patches, "
-                             "instruction at relative: {} patched".format(
+                            "instruction at relative: {} patched".format(
                     hex(address)
                 ))
                 shellcode.addresses_to_patch[address] = shellcode.make_relative(entry)

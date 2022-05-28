@@ -1,20 +1,6 @@
 # Elf to shellcode
 Convert standard elf files to standalone shellcodes.
-Please read the following documentation view the examples for this project to work
-
-## How does this work ?
-The python library parses the elf and create a simple relocatable file format
-Then the mini loader is inserted as the entry point of the elf the mini loader
-will load the relocatable format and execute it.
-There are no special requirements, the library contain the compiled
-mini loaders.
-
-This project is intended to convert elf to os independent shellcodes.
-Therefor the loader never allocate memory and the shellcode format is not packed.
-You can just execute it, eg ...
-```c
-((void (*)()) shellcode)();
-```
+Please read the following documentation and view the examples for this project to work properly
 
 #### Project links
 [Github](https://github.com/jonatanSh/elf_to_shellcode)
@@ -33,6 +19,23 @@ You can just execute it, eg ...
 # Unfortunately only python2 is supported for now
 python2 -m pip install elf_to_shellcode
 ```
+
+## How does this work ?
+The python library parses the elf and create a simple relocatable file format
+Then the mini loader is inserted as the entry point of the elf the mini loader
+will load the relocatable format and execute it.
+There are no special requirements, the library contain the compiled
+mini loaders.
+
+This project is intended to convert elf to os independent shellcodes.
+Therefor the loader never allocate memory and the shellcode format is not packed.
+You can just execute it, eg ...
+```c
+((void (*)()) shellcode)();
+```
+note that __libc_start_main perform syscalls
+therefor if you want your shellcode to be fully os independent you must compile with -nostartfiles
+follow the examples below
 
 ## Creating a shellcode
 
@@ -60,20 +63,19 @@ python -m elf_to_shellcode binary.out mips big no
 [Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
 
 #### Compiling with libc
-Libc has destructors and constructors some only architectures fully support libc.
+Libc has destructors and constructors only some architectures fully support libc.
 take a look at the provided example (which uses libc) and note that some function won't work properly in some architectures.
 
 eg...
 
-
 printf is using fwrite which uses the FILE * struct for stdout.
 this file is opened post libc initialization (in one of the libc constructors).
-__start is responsible for calling libc constructors and we don't use __start (for other reasons).
+__libc_start_main is responsible for calling libc constructors and we don't support __start in all architecutres (for other reasons).
 therefor you can't use printf in the shellcode, but you can implement it using snprintf and write
 
 ### Architectures that fully support libc:
 
-* intel_x32
+* i386 (32bit)
 
 ### Converting the elf to shellcode:
 
@@ -83,7 +85,8 @@ shellcode = make_shellcode(
     binary_path="/tmp/binary.out",
     arch=Arches.MIPS_32,
     endian="big",
-    start_file_method=Startfiles.no_start_files, # Some arches support glibc start files
+    # Some arches support glibc ... eg i386 (32bit) start files
+    start_file_method=Startfiles.no_start_files, 
 )
 
 with open("myshellcode.out", 'wb') as fp:
