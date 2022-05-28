@@ -74,9 +74,6 @@ class IntelX32Shellcode(Shellcode):
             )
 
             for address in addresses:
-                print(hex(shellcode.unpack_ptr(
-                    shellcode_data[address:address+4]
-                )))
                 shellcode.addresses_to_patch[address] = self.make_relative(entry_address)
         return shellcode_data
 
