@@ -90,11 +90,8 @@ class IrelativeRelocs(object):
             addresses = shellcode.disassembler.get_instruction_addresses(
                 instruction_filter=self.get_glibc_instructions_filter(entry)
             )
-            print(hex(entry))
-
             for address in addresses:
-                logger.info("![GLIBC] require instruction patches, "
-                            "instruction at relative: {}, absolute: {} patched".format(
+                logger.info("[!GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
                     hex(address),
                     hex(shellcode.make_absolute(address))
                 ))

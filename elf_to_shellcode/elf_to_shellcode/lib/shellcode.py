@@ -7,7 +7,7 @@ from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
 import logging
 
-logger = logging.getLogger("[IRELATIVE-HELPER]")
+logger = logging.getLogger("[GENERIC]")
 
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
@@ -176,7 +176,7 @@ class Shellcode(object):
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
-                logger.info("[Shellcode Generic] |{}| Relative(*{}={}), Absolute(*{}={})".format(
+                logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
                     section_name,
                     hex(virtual_offset),
                     hex(sym_offset),

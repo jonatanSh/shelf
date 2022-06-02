@@ -77,9 +77,9 @@ class IntelX32Shellcode(Shellcode):
             )
 
             for address in addresses:
-                logger.info("![GLIBC] require instruction patches, "
-                             "instruction at relative: {} patched".format(
-                    hex(address)
+                logger.info("![GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
+                    hex(address),
+                    hex(shellcode.make_absolute(address))
                 ))
                 shellcode.addresses_to_patch[address] = self.make_relative(entry_address)
         return shellcode_data
