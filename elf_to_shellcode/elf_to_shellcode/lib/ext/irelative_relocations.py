@@ -94,8 +94,9 @@ class IrelativeRelocs(object):
 
             for address in addresses:
                 logger.info("![GLIBC] require instruction patches, "
-                            "instruction at relative: {} patched".format(
-                    hex(address)
+                            "instruction at relative: {}, absolute: {} patched".format(
+                    hex(address),
+                    hex(shellcode.make_absolute(address))
                 ))
                 shellcode.addresses_to_patch[address] = shellcode.make_relative(entry)
 

@@ -5,6 +5,9 @@ import sys
 from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
+import logging
+
+logger = logging.getLogger("[IRELATIVE-HELPER]")
 
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
@@ -79,6 +82,9 @@ class Shellcode(object):
             raise Exception("Unknown start method: {}".format(
                 self.start_file_method
             ))
+
+    def make_absolute(self, address):
+        return address + self.linker_base_address
 
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
@@ -170,7 +176,13 @@ class Shellcode(object):
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
-
+                logger.info("[Shellcode Generic] |{}| Relative(*{}={}), Absolute(*{}={})".format(
+                    section_name,
+                    hex(virtual_offset),
+                    hex(sym_offset),
+                    hex(self.make_absolute(virtual_offset)),
+                    hex(self.make_absolute(sym_offset)),
+                ))
                 self.addresses_to_patch[virtual_offset] = sym_offset
 
         return shellcode_data
@@ -194,7 +206,7 @@ class Shellcode(object):
                 # Now we rewrite the segment data
                 # We look at new binary as memory dump so we write using virtual addresses offsets
                 new_binary = str(new_binary[:start]) + str(segment_data) + str(new_binary[start + len(segment_data):])
-        return new_binary # TODO check if the elf header is really required
+        return new_binary  # TODO check if the elf header is really required
 
     @property
     def instruction_offset_after_objdump(self):
