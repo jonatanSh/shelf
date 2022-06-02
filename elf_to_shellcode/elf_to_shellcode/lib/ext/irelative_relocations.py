@@ -34,6 +34,12 @@ class IrelativeRelocs(object):
 
             virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
             function_offset = shellcode.make_relative(relocation.entry.r_addend)
+            logger.info("| IRELATIVE | Relative(*{}={}()) Absolute(*{}={}())".format(
+                hex(virtual_offset),
+                hex(function_offset),
+                hex(shellcode.make_absolute(virtual_offset)),
+                hex(shellcode.make_absolute(function_offset))
+            ))
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
         return shellcode_data
@@ -79,7 +85,7 @@ class IrelativeRelocs(object):
         assert self.glibc_irelative_first_reference != 2 ** 32
         assert self.glibc_last_reference != 0
 
-        """ here we should search for the opcode containg first reference, last reference
+        """ here we should search for the opcode containing first reference, last reference
              and fix thoose opcodes
              ...eg :
              .text:0804A480 C7 C3 B4 81 04 08                       mov     ebx, offset off_80481B4
@@ -104,10 +110,25 @@ class IrelativeRelocs(object):
             address=relocation.entry.r_offset,
             alignment=got_plt.header.sh_entsize
         )
+        relocation_entry_relative = shellcode.make_relative(relocation.entry.r_offset)
         function_offset = shellcode.make_relative(function_offset_rl)
-        shellcode.addresses_to_patch[virtual_offset] = [function_offset,
-                                                        RelocationAttributes.call_to_resolve]
 
+        hdr = "GLIBC_R"
+
+        if shellcode.start_file_method != StartFiles.glibc:
+            hdr = "IRELATIVE"
+            shellcode.addresses_to_patch[virtual_offset] = [function_offset,
+                                                            RelocationAttributes.call_to_resolve]
+        else:
+            shellcode.addresses_to_patch[virtual_offset] = function_offset
+
+        logger.info("| {} | Relative(*{}={}()) Absolute(*{}={}())".format(
+            hdr,
+            hex(virtual_offset),
+            hex(function_offset),
+            hex(shellcode.make_absolute(virtual_offset)),
+            hex(shellcode.make_absolute(function_offset))
+        ))
         if shellcode.start_file_method == StartFiles.glibc:
             """
                 If so the elf header contain references to those function, 
@@ -120,7 +141,13 @@ class IrelativeRelocs(object):
                     shellcode.shellcode_data[index: index + shellcode.ptr_size])
                 # Here we try to locate this reference.
                 if entry == relocation.entry.r_offset:
-                    shellcode.addresses_to_patch[index] = function_offset
+                    logger.info("| HEADER | Relative(*{}={}()) Absolute(*{}={}())".format(
+                        hex(index),
+                        hex(relocation_entry_relative),
+                        hex(shellcode.make_absolute(index)),
+                        hex(shellcode.make_absolute(relocation_entry_relative))
+                    ))
+                    shellcode.addresses_to_patch[index] = relocation_entry_relative
                     address_not_relative = shellcode.linker_base_address + index
 
                     self.glibc_irelative_first_reference = min(self.glibc_irelative_first_reference,
