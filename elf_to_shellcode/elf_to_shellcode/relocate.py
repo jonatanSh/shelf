@@ -9,7 +9,7 @@ class Arches(object):
     MIPS_32 = "mips"
     INTEL_X32 = "intel_x32"
     INTEL_X64 = "intel_x64"
-    ARM_32 = "arm_32"
+    ARM_32 = "arm32"
     ARM_64 = "aarch64"
     __all__ = [
         MIPS_32,

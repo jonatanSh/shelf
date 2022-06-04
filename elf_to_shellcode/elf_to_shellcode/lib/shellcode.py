@@ -327,6 +327,7 @@ class Shellcode(object):
         current_offset += self.ptr_size  # skipping magic
         table_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
         current_offset += self.ptr_size  # skip ptr size
+        current_offset += self.ptr_size  # skip elf size entry
 
         handled_size = 0
         while handled_size < table_size:

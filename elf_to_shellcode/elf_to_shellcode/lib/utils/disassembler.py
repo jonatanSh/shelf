@@ -5,7 +5,7 @@ ARCHES = {
     "x32": capstone.CS_ARCH_X86,
     "x64": capstone.CS_ARCH_X86,
     "arm64": capstone.CS_ARCH_ARM64,
-    "arm": capstone.CS_ARCH_ARM
+    "arm32": capstone.CS_ARCH_ARM
 }
 
 ENDIAN = {
@@ -17,8 +17,10 @@ ENDIAN = {
 class Disassembler(object):
     def __init__(self, shellcode):
         mode = capstone.CS_MODE_32
-        if shellcode.arch in ['arm64', 'x64']:
+        if shellcode.arch in ['x64']:
             mode = capstone.CS_MODE_64
+        if shellcode.arch in ["arm32",'arm64']:
+            mode = capstone.CS_MODE_ARM
         self.cs = capstone.Cs(
             ARCHES[shellcode.arch],
             ENDIAN[shellcode.endian] | mode
