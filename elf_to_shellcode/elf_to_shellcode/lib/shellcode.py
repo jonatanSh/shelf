@@ -6,7 +6,7 @@ from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUti
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
 import logging
-
+from elftools.elf.constants import P_FLAGS
 logger = logging.getLogger("[GENERIC]")
 
 py_version = int(sys.version[0])
@@ -143,7 +143,15 @@ class Shellcode(object):
 
         size_encoded = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                           self.ptr_fmt), len(table))])
-        return self.pack_pointer(self.shellcode_table_magic) + size_encoded + table
+        return self.pack_pointer(self.shellcode_table_magic) + size_encoded+self.pre_table_header + table
+
+    @property
+    def pre_table_header(self):
+        header = ""
+        header += self.pack_pointer(
+            self.elffile.header.e_ehsize
+        )
+        return header
 
     def correct_symbols(self, shellcode_data):
         for section, attributes in self.sections_to_relocate.items():
@@ -197,8 +205,10 @@ class Shellcode(object):
                 end = start + segment_size
                 f_start = header.p_offset
                 f_end = f_start + header.p_filesz
-
-                assert f_end <= len(data), "Error p_offset + p_filesz > len(data)"
+                assert f_end <= len(data), "Error segment offset outside of data: {} {}".format(
+                    hex(f_end),
+                    hex(len(data))
+                )
                 # first we make sure this part is already filled
                 new_binary = new_binary.ljust(end, '\x00')
                 segment_data = data[f_start:f_end]
@@ -210,14 +220,16 @@ class Shellcode(object):
 
     @property
     def instruction_offset_after_objdump(self):
-        # This function just skip the first loadable segment
-        # Due to it containg the elf header
+        # This function return the offset for the first executable section
+        min_s = 2 ** 32
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
-                if header.p_offset == 0:
-                    return header.p_memsz
-        return 0
+
+                if header.p_flags & P_FLAGS.PF_X:
+                    min_s = min(min_s, header.p_offset)
+        assert min_s != 2 ** 32
+        return min_s
 
     def get_original_symbols_addresses(self):
         symtab = self.elffile.get_section_by_name(".symtab")

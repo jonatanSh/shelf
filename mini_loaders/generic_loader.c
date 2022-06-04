@@ -82,6 +82,8 @@ void loader_main(int argc, char ** argv, char ** envp) {
             }
         }
         total_argv_envp_size += 2; // for null terminators
+        // Now overriding the auxiliary vector to point to the first pht_entry
+        argv[total_argv_envp_size++]=(entry_ptr + table->elf_header_size);
 #endif
     call_main(entry_point, argc, argv, total_argv_envp_size);
 
