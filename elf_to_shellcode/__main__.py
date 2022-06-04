@@ -4,9 +4,15 @@ import logging
 from argparse import ArgumentParser
 
 parser = ArgumentParser("ElfToShellcode")
-parser.add_argument("--input", help="elf input file")
-parser.add_argument("--arch", choices=Arches.__all__, help="Elf file target architecture")
-parser.add_argument("--endian", choices=ENDIANS, help="Target elf file endian")
+parser.add_argument("--input", help="elf input file", required=True)
+parser.add_argument("--arch",
+                    required=True,
+                    choices=Arches.__all__,
+                    help="Elf file target architecture")
+parser.add_argument("--endian",
+                    required=True,
+                    choices=ENDIANS,
+                    help="Target elf file endian")
 parser.add_argument("--output", default=None, help="Output file path")
 parser.add_argument("--start-method", default=StartFiles.no_start_files,
                     choices=StartFiles.__all__, help="Start method required for full glibc usage")
