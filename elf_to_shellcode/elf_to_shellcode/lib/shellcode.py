@@ -233,7 +233,6 @@ class Shellcode(object):
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
-
                 if header.p_flags & P_FLAGS.PF_X:
                     min_s = min(min_s, header.p_offset)
         assert min_s != 2 ** 32

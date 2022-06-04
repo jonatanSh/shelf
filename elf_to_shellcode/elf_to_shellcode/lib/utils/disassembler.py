@@ -19,7 +19,7 @@ class Disassembler(object):
         mode = capstone.CS_MODE_32
         if shellcode.arch in ['x64']:
             mode = capstone.CS_MODE_64
-        if shellcode.arch in ["arm32",'arm64']:
+        if shellcode.arch in ["arm32", 'arm64']:
             mode = capstone.CS_MODE_ARM
         self.cs = capstone.Cs(
             ARCHES[shellcode.arch],
@@ -27,7 +27,7 @@ class Disassembler(object):
         )
         self.shellcode = shellcode
         offset = self.shellcode.instruction_offset_after_objdump
-        self.opcodes = self.shellcode.do_objdump(self.shellcode.shellcode_data[offset:])
+        self.opcodes = self.shellcode.do_objdump(self.shellcode.shellcode_data)[offset:]
         self.instructions = [instruction for instruction in self.cs.disasm(
             self.opcodes,
             offset,

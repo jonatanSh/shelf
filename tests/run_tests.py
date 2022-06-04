@@ -6,7 +6,7 @@ QEMUS = {
     "mips": "qemu-mips-static",
     "intel_x32": "qemu-i386-static",
     "intel_x64": "qemu-x86_64-static",
-    "arm_32": "qemu-arm-static",
+    "arm32": "qemu-arm-static",
     "aarch64": "qemu-aarch64-static"
 }
 test_cases = {
