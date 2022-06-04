@@ -17,7 +17,7 @@ typedef unsigned long long size_t;
     );                              \
 }                                   \
 
-#define call_main(main_ptr) {                           \
+#define call_main(main_ptr, argc, argv, envp) {                           \
    register size_t x0 asm("x0") = (size_t)(main_ptr); \
    asm(                                                 \
         "add sp,sp, #-8\n"                              \

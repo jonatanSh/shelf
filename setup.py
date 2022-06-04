@@ -9,10 +9,12 @@ except:
 
 setup(
     name='elf_to_shellcode',
-    version='1.8',
+    version='1.9',
     packages=find_packages(),
     include_package_data=True,
-    install_requires=['pyelftools'],
+    install_requires=[
+        'pyelftools',
+        'capstone'],
     license='MIT License',
     description='Python package to create shellcdoes from elfs supported arch '
                 '(mips, arm (32bit), i386 32bit, i386 64bit, aarch64)',

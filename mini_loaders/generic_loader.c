@@ -1,12 +1,13 @@
 #include "./loader_generic.h"
 
-void loader_main() {
+void loader_main(int argc, char ** argv, char ** envp) {
     size_t pc;
     size_t table_start;
     size_t table_size = 0;
     struct relocation_table * table;
     size_t base_address;
     size_t magic;
+    size_t total_argv_envp_size = 0;
     get_pc();
     #ifndef TABLE_MAGIC
         #ifndef GET_TABLE_MAGIC
@@ -45,7 +46,7 @@ void loader_main() {
             // We have relocation attributes
             // Can't use jump tables in loader :(
             if(attributes->attribute_1 == IRELATIVE) {
-                v_offset = ((IRELATIVE_T)(v_offset))();
+                v_offset = (size_t)((IRELATIVE_T)(v_offset))();
             }
         }
         // Fixing the entry
@@ -54,8 +55,20 @@ void loader_main() {
         parsed_entries_size += entry->size;
         entry_ptr += entry->size;
     }
-    void * entry_point = (*(size_t*)(entry_ptr) + base_address);
-    call_main(entry_point);
+    void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
+
+#ifdef SUPPORT_START_FILES
+        int looking_at_argv = 0;
+        int index = 0;
+        total_argv_envp_size = argc + 1; // for null terminator
+        while(argv[total_argv_envp_size]) {
+            total_argv_envp_size ++;
+        }
+        total_argv_envp_size += 1; // for envp null terminator       
+        // Now overriding the auxiliary vector to point to the first pht_entry
+        argv[total_argv_envp_size] = (entry_ptr + table->elf_header_size);
+#endif
+    call_main(entry_point, argc, argv, total_argv_envp_size);
 
 error:
 exit:

@@ -1,20 +1,6 @@
 # Elf to shellcode
 Convert standard elf files to standalone shellcodes.
-Please read the following documentation view the examples for this project to work
-
-## How does this work ?
-The python library parses the elf and create a simple relocatable file format
-Then the mini loader is inserted as the entry point of the elf the mini loader
-will load the relocatable format and execute it.
-There are no special requirements, the library contain the compiled
-mini loaders.
-
-This project is intended to convert elf to os independent shellcodes.
-Therefor the loader never allocate memory and the shellcode format is not packed.
-You can just execute it, eg ...
-```c
-((void (*)()) shellcode)();
-```
+Please read the following documentation and view the examples for this project to work properly
 
 #### Project links
 [Github](https://github.com/jonatanSh/elf_to_shellcode)
@@ -34,6 +20,23 @@ You can just execute it, eg ...
 python2 -m pip install elf_to_shellcode
 ```
 
+## How does this work ?
+The python library parses the elf and create a simple relocatable file format
+Then the mini loader is inserted as the entry point of the elf the mini loader
+will load the relocatable format and execute it.
+There are no special requirements, the library contain the compiled
+mini loaders.
+
+This project is intended to convert elf to os independent shellcodes.
+Therefor the loader never allocate memory and the shellcode format is not packed.
+You can just execute it, eg ...
+```c
+((void (*)()) shellcode)();
+```
+note that __libc_start_main perform syscalls
+therefor if you want your shellcode to be fully os independent you must compile with -nostartfiles
+follow the examples below
+
 ## Creating a shellcode
 
 Some compilation flags are required for this to work properly.
@@ -48,7 +51,9 @@ simplified make command for mips big endian
 
 ```c
 gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
-python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
+#                       [Architectures] [ENDIAN] [Libc full support]
+python -m elf_to_shellcode --input binary.out --arch mips --endain big
+                                         
 ```
 
 ### Examples:
@@ -58,30 +63,36 @@ python -m elf_to_shellcode binary.out mips big mipsbe.shellcode
 [Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
 
 #### Compiling with libc
-Libc has destructors and constructors this project doesn't fully support libc.
-take a look at the provided example (which uses libc) and note that some function won't work properly.
+Libc has destructors and constructors only some architectures fully support libc.
+take a look at the provided example (which uses libc) and note that some function won't work properly in some architectures.
 
 eg...
 
-
 printf is using fwrite which uses the FILE * struct for stdout.
 this file is opened post libc initialization (in one of the libc constructors).
-__start is responsible for calling libc constructors and we don't use __start (for other reasons).
+__libc_start_main is responsible for calling libc constructors and we don't support __start in all architecutres (for other reasons).
 therefor you can't use printf in the shellcode, but you can implement it using snprintf and write
+
+### Architectures that fully support libc:
+
+* None
 
 ### Converting the elf to shellcode:
 
 ```python
-from elf_to_shellcode.relocate import make_shellcode, Arches
+from elf_to_shellcode.relocate import make_shellcode, Arches, Startfiles
 shellcode = make_shellcode(
     binary_path="/tmp/binary.out",
     arch=Arches.MIPS_32,
-    endian="big"
+    endian="big",
+    # Currently, no arch support glibc
+    start_file_method=Startfiles.no_start_files, 
 )
 
 with open("myshellcode.out", 'wb') as fp:
     fp.write(shellcode)
 ```
+
 
 ### Testing your shellcode
 You can use the provided shellcode

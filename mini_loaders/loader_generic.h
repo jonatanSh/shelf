@@ -38,6 +38,7 @@ struct table_entry {
 struct relocation_table {
     size_t magic;
     size_t total_size;
+    size_t elf_header_size;
 };
 
 struct entry_attributes {

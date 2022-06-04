@@ -18,7 +18,7 @@ typedef unsigned int size_t;
     );                              \
 }                                   \
 
-#define call_main(main_ptr) {                           \
+#define call_main(main_ptr, argc, argv, envp) {                           \
    register size_t t9 asm("t9") = (size_t)(main_ptr);   \
    asm(                                                 \
        "addiu $sp, $sp, -4\n"                           \
