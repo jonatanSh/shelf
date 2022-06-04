@@ -1,5 +1,5 @@
 CFLAGS+=-fno-stack-protector -fPIE -fpic -static
-CFLAGS+=-nostartfiles --entry=main 
+# CFLAGS+=-nostartfiles --entry=main 
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 include $(SELF_DIR)/compilers.mk
 

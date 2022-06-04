@@ -7,6 +7,7 @@ from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
 import logging
 from elftools.elf.constants import P_FLAGS
+
 logger = logging.getLogger("[GENERIC]")
 
 py_version = int(sys.version[0])
@@ -116,6 +117,12 @@ class Shellcode(object):
             return 8
         raise Exception("Unknown ptr size")
 
+    def sizeof(self, tp):
+        if tp == "short":
+            return 2
+        else:
+            raise NotImplementedError()
+
     @property
     def loader(self):
         if not self._loader:
@@ -143,13 +150,14 @@ class Shellcode(object):
 
         size_encoded = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
                                                                           self.ptr_fmt), len(table))])
-        return self.pack_pointer(self.shellcode_table_magic) + size_encoded+self.pre_table_header + table
+        return self.pack_pointer(self.shellcode_table_magic) + size_encoded + self.pre_table_header + table
 
     @property
     def pre_table_header(self):
         header = ""
+        sht_entry_header_size = 2 * self.sizeof("short")  # two shorts
         header += self.pack_pointer(
-            self.elffile.header.e_ehsize
+            self.elffile.header.e_ehsize + sht_entry_header_size
         )
         return header
 

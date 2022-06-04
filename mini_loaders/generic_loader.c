@@ -60,30 +60,13 @@ void loader_main(int argc, char ** argv, char ** envp) {
 #ifdef SUPPORT_START_FILES
         int looking_at_argv = 0;
         int index = 0;
-        while(1) {
-            if(looking_at_argv == 0) {
-                if(argv[index] != 0) {
-                    index+=1;
-                    total_argv_envp_size+=1;
-                }
-                else {
-                    index = 0;
-                    looking_at_argv = 1;
-                }
-            }
-            else {
-                if(envp[index] != 0) {
-                    total_argv_envp_size+=1;
-                    index+=1;
-                }
-                else {
-                    break;
-                }
-            }
+        total_argv_envp_size = argc + 1; // for null terminator
+        while(argv[total_argv_envp_size]) {
+            total_argv_envp_size ++;
         }
-        total_argv_envp_size += 2; // for null terminators
+        total_argv_envp_size += 1; // for envp null terminator       
         // Now overriding the auxiliary vector to point to the first pht_entry
-        argv[total_argv_envp_size++]=(entry_ptr + table->elf_header_size);
+        argv[total_argv_envp_size] = (entry_ptr + table->elf_header_size);
 #endif
     call_main(entry_point, argc, argv, total_argv_envp_size);
 
