@@ -2,9 +2,6 @@ from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_ma
 from elftools.elf.enums import ENUM_RELOC_TYPE_i386
 from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
-import logging
-
-logger = logging.getLogger("[INTEL-X32-SHELLCODE]")
 
 
 def get_glibc_instructions_filter(address):
@@ -33,7 +30,7 @@ class IntelX32Shellcode(Shellcode):
             },
             supported_start_methods=[
                 StartFiles.no_start_files,
-                StartFiles.glibc
+                # StartFiles.glibc
             ],
             **kwargs
         )
@@ -79,7 +76,7 @@ class IntelX32Shellcode(Shellcode):
             )
 
             for address in addresses:
-                logger.info("![GLIBC] |InstructionPatch| Sym({}) Relative({}), Absolute({})".format(
+                self.logger.info("![GLIBC] |InstructionPatch| Sym({}) Relative({}), Absolute({})".format(
                     sym.name,
                     hex(address),
                     hex(shellcode.make_absolute(address))

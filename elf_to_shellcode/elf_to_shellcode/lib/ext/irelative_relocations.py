@@ -1,8 +1,6 @@
 from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes, StartFiles
 import logging
 
-logger = logging.getLogger("[IRELATIVE-HELPER]")
-
 
 class IrelativeRelocs(object):
     def __init__(self, irelative_type,
@@ -13,6 +11,8 @@ class IrelativeRelocs(object):
         self.get_glibc_instructions_filter = get_glibc_instructions_filter
         self.glibc_irelative_first_reference = 2 ** 32
         self.glibc_last_reference = 0
+        self.logger = logging.getLogger("[IRELATIVE-HELPER]")
+
 
     def relocation_for_rela_plt_got_plt(self, shellcode, shellcode_data):
         """
@@ -34,7 +34,7 @@ class IrelativeRelocs(object):
 
             virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
             function_offset = shellcode.make_relative(relocation.entry.r_addend)
-            logger.info("| IRELATIVE | Relative(*{}={}()) Absolute(*{}={}())".format(
+            self.logger.info("| IRELATIVE | Relative(*{}={}()) Absolute(*{}={}())".format(
                 hex(virtual_offset),
                 hex(function_offset),
                 hex(shellcode.make_absolute(virtual_offset)),
@@ -97,7 +97,7 @@ class IrelativeRelocs(object):
                 instruction_filter=self.get_glibc_instructions_filter(entry)
             )
             for address in addresses:
-                logger.info("[!GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
+                self.logger.info("[!GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
                     hex(address),
                     hex(shellcode.make_absolute(address))
                 ))
@@ -122,7 +122,7 @@ class IrelativeRelocs(object):
         else:
             shellcode.addresses_to_patch[virtual_offset] = function_offset
 
-        logger.info("| {} | Relative(*{}={}()) Absolute(*{}={}())".format(
+        self.logger.info("| {} | Relative(*{}={}()) Absolute(*{}={}())".format(
             hdr,
             hex(virtual_offset),
             hex(function_offset),
@@ -141,7 +141,7 @@ class IrelativeRelocs(object):
                     shellcode.shellcode_data[index: index + shellcode.ptr_size])
                 # Here we try to locate this reference.
                 if entry == relocation.entry.r_offset:
-                    logger.info("| HEADER | Relative(*{}={}()) Absolute(*{}={}())".format(
+                    self.logger.info("| HEADER | Relative(*{}={}()) Absolute(*{}={}())".format(
                         hex(index),
                         hex(relocation_entry_relative),
                         hex(shellcode.make_absolute(index)),

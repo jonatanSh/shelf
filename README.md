@@ -75,7 +75,7 @@ therefor you can't use printf in the shellcode, but you can implement it using s
 
 ### Architectures that fully support libc:
 
-* i386 (32bit)
+* None
 
 ### Converting the elf to shellcode:
 
@@ -85,7 +85,7 @@ shellcode = make_shellcode(
     binary_path="/tmp/binary.out",
     arch=Arches.MIPS_32,
     endian="big",
-    # Some arches support glibc ... eg i386 (32bit) start files
+    # Currently, no arch support glibc
     start_file_method=Startfiles.no_start_files, 
 )
 

@@ -8,7 +8,6 @@ from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassemble
 import logging
 from elftools.elf.constants import P_FLAGS
 
-logger = logging.getLogger("[GENERIC]")
 
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
@@ -31,6 +30,10 @@ class Shellcode(object):
                  sections_to_relocate={},
                  ext_bindings=[],
                  supported_start_methods=[]):
+        self.logger = logging.getLogger("[{}]".format(
+            self.__class__.__name__
+        ))
+
         self.elffile = elffile
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
@@ -192,7 +195,7 @@ class Shellcode(object):
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
-                logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
+                self.logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
                     section_name,
                     hex(virtual_offset),
                     hex(sym_offset),
@@ -280,7 +283,7 @@ class Shellcode(object):
         full_header = str(self.loader) + str(relocation_table) + str(shellcode_header)
         args = sys.modules["global_args"]
         if args.save_without_header:
-            logger.info("Saving without shellcode table")
+            self.logger.info("Saving without shellcode table")
             return shellcode_data
         else:
             return self.build_shellcode_from_header_and_code(full_header, shellcode_data)

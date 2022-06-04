@@ -16,8 +16,8 @@ parser.add_argument("--save-without-header", default=False, action="store_true",
 args = parser.parse_args()
 sys.modules["global_args"] = args
 if args.verbose:
-    logging.basicConfig(level=logging.INFO)
-
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info("Verbose level: DEBUG")
 if args.output:
     output_file = args.output
 else:
