@@ -3,6 +3,7 @@ from elftools.elf.enums import ENUM_RELOC_TYPE_i386
 from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 import logging
+
 logger = logging.getLogger("[INTEL-X32-SHELLCODE]")
 
 
@@ -57,15 +58,16 @@ class IntelX32Shellcode(Shellcode):
         :param shellcode_data: shellcode data
         :return: new shellcode object
         """
-        special_symbols = [
-            '__environ',
-            '__libc_stack_end'
-        ]
         symtab = shellcode.elffile.get_section_by_name('.symtab')
+
+        special_symbols = [s.name for s in symtab.iter_symbols()
+                           if s.entry.st_info.bind == 'STB_GLOBAL'
+                           and s.entry.st_info.type == 'STT_OBJECT']
 
         for sym_name in special_symbols:
             sym = symtab.get_symbol_by_name(sym_name)
-            if len(sym) == 0:
+
+            if not sym or len(sym) == 0:
                 continue
             if len(sym) > 1:
                 raise Exception("Unknown error")
@@ -77,7 +79,8 @@ class IntelX32Shellcode(Shellcode):
             )
 
             for address in addresses:
-                logger.info("![GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
+                logger.info("![GLIBC] |InstructionPatch| Sym({}) Relative({}), Absolute({})".format(
+                    sym.name,
                     hex(address),
                     hex(shellcode.make_absolute(address))
                 ))
