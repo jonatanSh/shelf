@@ -1,2 +1,2 @@
-recursive-include elf_to_shellcode/elf_to_shellcode/resources/*.shellcode
+recursive-include elf_to_shellcode/elf_to_shellcode/resources/ *.shellcode
 global-exclude *.pyc
