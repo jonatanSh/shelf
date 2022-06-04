@@ -79,8 +79,8 @@ class IrelativeRelocs(object):
         return shellcode_data
 
     def fix_glibc_references(self, shellcode):
-        if shellcode.start_file_method == StartFiles.glibc:
-            pass
+        if shellcode.start_file_method != StartFiles.glibc:
+            return
 
         assert self.glibc_irelative_first_reference != 2 ** 32
         assert self.glibc_last_reference != 0

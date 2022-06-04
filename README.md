@@ -52,7 +52,7 @@ simplified make command for mips big endian
 ```c
 gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
 #                       [Architectures] [ENDIAN] [Libc full support]
-python -m elf_to_shellcode binary.out mips big no
+python -m elf_to_shellcode --input binary.out --arch mips --endain big
                                          
 ```
 

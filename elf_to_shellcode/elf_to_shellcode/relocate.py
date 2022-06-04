@@ -11,8 +11,13 @@ class Arches(object):
     INTEL_X64 = "intel_x64"
     ARM_32 = "arm_32"
     ARM_64 = "aarch64"
-
-
+    __all__ = [
+        MIPS_32,
+        INTEL_X32,
+        INTEL_X64,
+        ARM_32,
+        ARM_64
+    ]
 
 
 ENDIANS = ["big", "little"]

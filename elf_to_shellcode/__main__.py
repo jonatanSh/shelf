@@ -1,27 +1,30 @@
 import sys
-from elf_to_shellcode.relocate import make_shellcode
+from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
 import logging
+from argparse import ArgumentParser
 
-logging.basicConfig(level=logging.INFO)
-if len(sys.argv) < 4:
-    print("Usage <input> <arch> <endian> <glibc|no_startfiles> <output|optional>")
-    sys.exit(1)
-input_file = sys.argv[1]
-arch = sys.argv[2]
-endian = sys.argv[3]
-libc = sys.argv[4]
-if libc not in ['no', 'glibc']:
-    print("Please use:\nglibc - for glibc start files")
-    print("no - for no start files usage")
-    sys.exit(1)
+parser = ArgumentParser("ElfToShellcode")
+parser.add_argument("--input", help="elf input file")
+parser.add_argument("--arch", choices=Arches.__all__, help="Elf file target architecture")
+parser.add_argument("--endian", choices=ENDIANS, help="Target elf file endian")
+parser.add_argument("--output", default=None, help="Output file path")
+parser.add_argument("--start-method", default=StartFiles.no_start_files,
+                    choices=StartFiles.__all__, help="Start method required for full glibc usage")
+parser.add_argument("--verbose", default=False, action="store_true", help="Verbose output")
+parser.add_argument("--save-without-header", default=False, action="store_true",
+                    help="Debug option, use only to store the elf without the mini loader and the relocation table")
+args = parser.parse_args()
+sys.modules["global_args"] = args
+if args.verbose:
+    logging.basicConfig(level=logging.INFO)
 
-if len(sys.argv) > 5:
-    output_file = sys.argv[5]
+if args.output:
+    output_file = args.output
 else:
-    output_file = input_file + "{0}.out.shell".format(arch)
+    output_file = args.input + "{0}.out.shell".format(args.arch)
 
 with open(output_file, "wb") as fp:
-    fp.write(make_shellcode(input_file, arch=arch, endian=endian,
-                            start_file_method=libc))
+    fp.write(make_shellcode(args.input, arch=args.arch, endian=args.endian,
+                            start_file_method=args.start_method))
 
 print("Created: {}".format(output_file))

@@ -279,8 +279,12 @@ class Shellcode(object):
         relocation_table = self.relocation_table
 
         full_header = str(self.loader) + str(relocation_table) + str(shellcode_header)
-
-        return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
+        args = sys.modules["global_args"]
+        if args.save_without_header:
+            logger.info("Saving without shellcode table")
+            return shellcode_data
+        else:
+            return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
     def make_relative(self, address):
         return address - self.linker_base_address
