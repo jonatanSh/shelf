@@ -46,10 +46,10 @@ typedef unsigned int size_t;
 
 #define call_main_no_glibc(main_ptr, argc, argv, total_args) {                           \
    register size_t eax asm("eax") = (size_t)(main_ptr); \
-   asm(                                                 \                            \
-        "call eax\n"                                  \
+   asm(                                                 \
+        "call eax\n"                                    \
        :  :                                             \
-       "r"(eax) \
+       "r"(eax)                                         \
    );                                                   \
 }                                                       \
 
@@ -58,7 +58,7 @@ typedef unsigned int size_t;
 #ifdef SUPPORT_START_FILES
     #define call_main call_main_glibc
 #else
-    #define call_main call_main_glibc
+    #define call_main call_main_no_glibc
 #endif
 
 #endif
