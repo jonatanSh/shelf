@@ -9,7 +9,7 @@ except:
 
 setup(
     name='elf_to_shellcode',
-    version='1.8',
+    version='1.9',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
