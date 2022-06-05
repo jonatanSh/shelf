@@ -13,7 +13,6 @@ class IrelativeRelocs(object):
         self.glibc_last_reference = 0
         self.logger = logging.getLogger("[IRELATIVE-HELPER]")
 
-
     def relocation_for_rela_plt_got_plt(self, shellcode, shellcode_data):
         """
         Specific handler for the .rela.plt and .got.plt relocations
@@ -69,7 +68,8 @@ class IrelativeRelocs(object):
                 self.do_jmp_slot_relocation(
                     shellcode=shellcode,
                     got_plt=got_plt,
-                    relocation=relocation
+                    relocation=relocation,
+                    shellcode_data=shellcode_data
                 )
             else:
                 raise Exception("Relocation not supported yet: {}".format(
@@ -155,6 +155,24 @@ class IrelativeRelocs(object):
                     self.glibc_last_reference = max(self.glibc_irelative_first_reference,
                                                     address_not_relative + shellcode.ptr_size * 2)
 
-    def do_jmp_slot_relocation(self, shellcode, got_plt, relocation):
+    def do_jmp_slot_relocation(self, shellcode,
+                               got_plt,
+                               relocation,
+                               shellcode_data):
+        """
+        Todo patch the internal function with a normal jump
+        :param shellcode:
+        :param got_plt:
+        :param relocation:
+        :param shellcode_data:
+        :return:
+        """
         # This case is already integrated in to the default relocation algorithm
-        pass
+        got_plt = shellcode.elffile.get_section_by_name(".got.plt")
+        got_header = got_plt.header
+        entry = relocation.entry
+        offset = entry.r_offset
+        assert got_header.sh_addr <= offset <= got_header.sh_addr + got_header.sh_size
+        got_relative_offset = offset - got_header.sh_addr
+        jmp_slot_address = shellcode.unpack_ptr(got_plt.data()[got_relative_offset:])
+        shellcode.addresses_to_patch[offset] = jmp_slot_address

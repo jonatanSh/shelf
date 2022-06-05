@@ -204,6 +204,7 @@ class Shellcode(object):
                     struct.unpack("{}{}".format(self.endian, self.ptr_fmt),
                                   shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
+                    self.logger.info("{}".format(hex(data_section_value)))
                     continue
 
                 sym_offset = data_section_value - self.linker_base_address
@@ -310,7 +311,7 @@ class Shellcode(object):
 
     def unpack_ptr(self, stream):
         return struct.unpack("{}{}".format(self.endian,
-                                           self.ptr_fmt), stream)[0]
+                                           self.ptr_fmt), stream[:self.ptr_size])[0]
 
     def stream_unpack_pointers(self, stream, num_of_ptrs):
         return struct.unpack("{}{}".format(self.endian,
