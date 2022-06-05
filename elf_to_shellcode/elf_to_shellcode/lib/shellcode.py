@@ -88,7 +88,9 @@ class Shellcode(object):
         args = sys.modules["global_args"]
         features_map = sorted(args.loader_supports, key=lambda lfeature: lfeature[1])
         loader_additional = "_".join([feature for feature in features_map])
-        ld_name = ld.format(ld_base + "_" + loader_additional)
+        if loader_additional:
+            loader_additional = "_" + loader_additional
+        ld_name = ld.format(ld_base + loader_additional)
         self.logger.info("Using loader: {}".format(ld_name))
         return ld_name
 
