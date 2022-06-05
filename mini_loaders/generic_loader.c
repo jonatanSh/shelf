@@ -15,7 +15,7 @@ void loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
-    int loader_magic,
+    size_t loader_magic,
     size_t pc) {
     size_t table_start;
     size_t table_size = 0;
@@ -84,11 +84,12 @@ exit:
 
 #ifdef SUPPORT_DYNAMIC_LOADER
 
-int get_elf_information() {
+int get_elf_information(struct elf_information_struct **info) {
     size_t pc;
     size_t magic;
     struct relocation_table * table;
     int status = ERROR;
+    size_t table_hdr_size = sizeof(struct relocation_table) - sizeof(struct elf_information_struct);
     call_get_pc();
     resolve_table_magic();
     advance_pc_to_magic();
@@ -96,6 +97,9 @@ int get_elf_information() {
     if(table->magic != magic) {
         goto error;
     }
+
+    *info = (struct elf_information_struct *)(pc+table_hdr_size);
+    status = OK;
 
 error:
     return status;

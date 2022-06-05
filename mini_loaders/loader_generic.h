@@ -71,6 +71,7 @@ typedef void * (*IRELATIVE_T)();
 }                                                                           \
 
 #define ERROR -1
+#define OK 1
 
 #ifndef ARCH_CALL_GET_PC
     #define ARCH_CALL_GET_PC "call get_pc_internal\n"
