@@ -120,6 +120,68 @@ arm in 64 bit mode generate adrl instruction.
 These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
 page aligned to overcome this limitation the shellcode is padded
 
+### Shellcode Concatenation
+you can concatenate shellcodes to each other.
+eg ...
+```python
+MEMORY = [
+    shellcode1,
+    shellcode2
+]
+```
+In order to call function inside shellcode2 use the dynamic loader feature
+
+
+### Dynamic loader
+you can add the dynamic loader support using
+```bash
+--loader-supports dynamic
+```
+This will increase the size of the mini loader, but will enable you to link against the loader itself
+And load shellcodes yourself which are concatenated
+eg ...
+```c
+typedef unsigned int size_t;
+// External struct defention
+struct elf_information_struct {
+    size_t elf_header_size;
+};
+
+// External function from the loader
+void loader_main(
+    int argc, 
+    char ** argv, 
+    char ** envp,
+    size_t loader_magic,
+    size_t pc);
+// External function from the loader
+int get_elf_information();
+
+// External defines
+#define OK 1
+#define ERROR -1
+#define LOADER_MAGIC_32BIT 0xaabbccdd
+void main() {
+   struct elf_information_struct my_info;
+   size_t next_shellcode_address;
+   if(get_elf_information(&my_info) == ERROR) {
+        return;
+   }
+   next_shellcode_address = my_info->base_address + my_info->total_size;
+   
+   // Loading and calling the concatenaited shellcode
+   loader_main(
+        0,
+        0,
+        0,
+        LOADER_MAGIC_32BIT,
+        next_shellcode_address
+   )
+ 
+}
+```
+
+
 # Optimizations
 some Compiler optimization (like -o3) may produce un-shellcodeable output.
 #### Example of compiler optimization (intel x32):
