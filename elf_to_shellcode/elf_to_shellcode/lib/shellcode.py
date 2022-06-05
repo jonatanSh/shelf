@@ -5,6 +5,7 @@ import sys
 from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
+from elf_to_shellcode.elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
 import logging
 from elftools.elf.constants import P_FLAGS
 
@@ -68,11 +69,17 @@ class Shellcode(object):
             self.endian = ">"
             if mini_loader_big_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_big_endian))
+                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_big_endian))
         else:
             if mini_loader_little_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_little_endian))
+                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_little_endian))
             self.endian = "<"
         self.arch = arch
+        self.debugger_symbols = [
+            "loader_main"
+        ]
+        self.support_dynamic = False
 
         self.disassembler = Disassembler(self)
 
@@ -87,6 +94,8 @@ class Shellcode(object):
             ))
         args = sys.modules["global_args"]
         features_map = sorted(args.loader_supports, key=lambda lfeature: lfeature[1])
+        for feature in features_map:
+            setattr(self, "support_{}".format(feature), True)
         loader_additional = "_".join([feature for feature in features_map])
         if loader_additional:
             loader_additional = "_" + loader_additional
@@ -196,14 +205,23 @@ class Shellcode(object):
                                   shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     continue
+
+                symbol_name = self.get_symbol_name_from_address(data_section_value)
+                if symbol_name in self.debugger_symbols:
+                    if self.support_dynamic:
+                        self.logger.info("Found loader symbol: {}".format(
+                            symbol_name
+                        ))
+                        continue
                 sym_offset = data_section_value - self.linker_base_address
                 if sym_offset < 0:
                     continue
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
-                self.logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
+                self.logger.info("|{}_{}| Relative(*{}={}), Absolute(*{}={})".format(
                     section_name,
+                    symbol_name,
                     hex(virtual_offset),
                     hex(sym_offset),
                     hex(self.make_absolute(virtual_offset)),
