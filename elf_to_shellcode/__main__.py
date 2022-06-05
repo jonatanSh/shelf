@@ -25,6 +25,10 @@ parser.add_argument("--loader-supports",
                     required=False,
                     help="Loader additional features, this will increase the size of the static loader",
                     default=[])
+parser.add_argument("--interactive",
+                    default=False,
+                    action="store_true",
+                    help="Debug mode to open interactive cli with the shellcode class")
 args = parser.parse_args()
 sys.modules["global_args"] = args
 if args.verbose:
