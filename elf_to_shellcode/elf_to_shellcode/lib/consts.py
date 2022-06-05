@@ -10,3 +10,13 @@ class StartFiles(object):
         glibc,
         no_start_files
     ]
+
+
+class LoaderSupports(object):
+    choices = {
+        "dynamic": ('dynamic', 0)
+    }
+
+    @staticmethod
+    def resolve_choice(key):
+        return LoaderSupports.choices[key]

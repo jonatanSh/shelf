@@ -8,7 +8,6 @@ from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassemble
 import logging
 from elftools.elf.constants import P_FLAGS
 
-
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
 PTR_SIZES = {
@@ -79,13 +78,19 @@ class Shellcode(object):
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
-            return ld.format("")
+            ld_base = ""
         elif StartFiles.glibc == self.start_file_method:
-            return ld.format("_glibc")
+            ld_base = "_glibc"
         else:
             raise Exception("Unknown start method: {}".format(
                 self.start_file_method
             ))
+        args = sys.modules["global_args"]
+        features_map = sorted(args.loader_supports, key=lambda lfeature: lfeature[1])
+        loader_additional = "_".join([feature for feature in features_map])
+        ld_name = ld.format(ld_base + "_" + loader_additional)
+        self.logger.info("Using loader: {}".format(ld_name))
+        return ld_name
 
     def make_absolute(self, address):
         return address + self.linker_base_address

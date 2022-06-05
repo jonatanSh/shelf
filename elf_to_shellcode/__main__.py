@@ -2,7 +2,7 @@ import sys
 from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
 import logging
 from argparse import ArgumentParser
-
+from elf_to_shellcode.lib.consts import LoaderSupports
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
 parser.add_argument("--arch",
@@ -19,6 +19,12 @@ parser.add_argument("--start-method", default=StartFiles.no_start_files,
 parser.add_argument("--verbose", default=False, action="store_true", help="Verbose output")
 parser.add_argument("--save-without-header", default=False, action="store_true",
                     help="Debug option, use only to store the elf without the mini loader and the relocation table")
+parser.add_argument("--loader-supports",
+                    choices=LoaderSupports.choices.keys(),
+                    nargs="+",
+                    required=False,
+                    help="Loader additional features, this will increase the size of the static loader",
+                    )
 args = parser.parse_args()
 sys.modules["global_args"] = args
 if args.verbose:
