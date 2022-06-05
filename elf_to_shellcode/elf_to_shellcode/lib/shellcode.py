@@ -387,13 +387,14 @@ def make_shellcode(elf_path, shellcode_cls, endian,
                    start_file_method):
     shellcode, fd = get_shellcode_class(elf_path, shellcode_cls, endian,
                                         start_file_method=start_file_method)
-    shellcode = shellcode.get_shellcode()
     args = sys.modules["global_args"]
     if args.interactive:
         print("Opening interactive shell")
         import IPython
         IPython.embed()
         sys.exit(1)
+    shellcode = shellcode.get_shellcode()
+
 
     fd.close()
     return shellcode
