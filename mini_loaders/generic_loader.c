@@ -1,14 +1,25 @@
 #include "./loader_generic.h"
 
-void loader_main(int argc, char ** argv, char ** envp) {
-    size_t pc;
+/*
+    Loader entry point
+    argc = number of arguments
+    argv = argument vector
+    envp = enviroment variables
+    loader_magic used with pc, if present and equal to the arch magic table magic
+    pc is taken from the arguments and not calculated
+*/
+void loader_main(
+    int argc, 
+    char ** argv, 
+    char ** envp,
+    int loader_magic,
+    size_t pc) {
     size_t table_start;
     size_t table_size = 0;
     struct relocation_table * table;
     size_t base_address;
     size_t magic;
     size_t total_argv_envp_size = 0;
-    get_pc();
     #ifndef TABLE_MAGIC
         #ifndef GET_TABLE_MAGIC
             #error Table magic unknown
@@ -17,6 +28,12 @@ void loader_main(int argc, char ** argv, char ** envp) {
     #else
         magic = TABLE_MAGIC;
     #endif
+    /*
+        Otherwise loader has be called with pc
+    */
+    if(loader_magic != magic) {
+        get_pc();        
+    }
 
     for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {
         pc += ARCH_OPCODE_SIZE;
