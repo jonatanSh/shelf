@@ -30,7 +30,7 @@ typedef unsigned long long size_t;
        :  :                                             \
        "r"(rax)                                         \
    );                                                   \
-}                                                       \
+}                                                   \
 
 
 #endif

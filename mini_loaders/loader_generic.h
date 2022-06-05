@@ -35,10 +35,13 @@ struct table_entry {
     size_t f_offset;
     size_t v_offset;
 };
+struct elf_information_struct {
+    size_t elf_header_size;
+};
 struct relocation_table {
     size_t magic;
     size_t total_size;
-    size_t elf_header_size;
+    struct elf_information_struct elf_information;
 };
 
 struct entry_attributes {
@@ -51,5 +54,37 @@ enum RELOCATION_ATTRIBUTES {
 
 typedef void * (*IRELATIVE_T)();
 
+
+#ifndef TABLE_MAGIC
+    #define resolve_table_magic GET_TABLE_MAGIC 
+#else
+    #define resolve_table_magic() {magic=TABLE_MAGIC;}
+#endif
+
+#define advance_pc_to_magic() {                                             \
+    for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {          \
+        pc += ARCH_OPCODE_SIZE;                                             \
+        if(*((size_t*)pc) == magic) {                                       \
+            break;                                                          \
+        }                                                                   \
+    }                                                                       \
+}                                                                           \
+
+#define ERROR -1
+
+#ifndef ARCH_CALL_GET_PC
+    #define ARCH_CALL_GET_PC "call get_pc_internal\n"
+#endif
+
+#define call_get_pc_generic() {     \
+    asm(                            \
+        ARCH_CALL_GET_PC            \
+        : "=r"(pc) :                \
+    );                              \
+}                                   \
+
+#ifndef call_get_pc
+    #define call_get_pc call_get_pc_generic
+#endif
 
 #endif

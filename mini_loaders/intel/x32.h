@@ -26,6 +26,7 @@ typedef unsigned int size_t;
     );                              \
 }                                   \
 
+
 #define call_main_glibc(main_ptr, argc, argv, total_args) {                           \
    register size_t eax asm("eax") = (size_t)(main_ptr); \
    register size_t ebx asm("ebx") = (size_t)(argc);     \

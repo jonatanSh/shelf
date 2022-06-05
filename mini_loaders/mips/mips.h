@@ -4,6 +4,7 @@ typedef unsigned int size_t;
 
 #define ARCH_OPCODE_SIZE 4 
 #define TABLE_MAGIC 0xaabbccdd
+#define ARCH_CALL_GET_PC "bal get_pc_internal\n"
 
 #define get_pc() {      \
     asm(                            \

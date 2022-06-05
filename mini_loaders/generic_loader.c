@@ -1,6 +1,9 @@
 #include "./loader_generic.h"
 
 /*
+    Macro insted of functions:
+        we must use macros we dont want to generate internal calls in the loader
+
     Loader entry point
     argc = number of arguments
     argv = argument vector
@@ -20,26 +23,13 @@ void loader_main(
     size_t base_address;
     size_t magic;
     size_t total_argv_envp_size = 0;
-    #ifndef TABLE_MAGIC
-        #ifndef GET_TABLE_MAGIC
-            #error Table magic unknown
-        #endif
-        GET_TABLE_MAGIC();
-    #else
-        magic = TABLE_MAGIC;
-    #endif
+    resolve_table_magic();
     /*
         Otherwise loader has be called with pc
     */
     if(loader_magic != magic) {
-        get_pc();        
-    }
-
-    for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {
-        pc += ARCH_OPCODE_SIZE;
-        if(*((size_t*)pc) == magic) {
-            break;
-        }
+        get_pc();
+        advance_pc_to_magic();        
     }
     // If we got here then we found the table
     table = (struct relocation_table *)pc;
@@ -83,7 +73,7 @@ void loader_main(
         }
         total_argv_envp_size += 1; // for envp null terminator       
         // Now overriding the auxiliary vector to point to the first pht_entry
-        argv[total_argv_envp_size] = (entry_ptr + table->elf_header_size);
+        argv[total_argv_envp_size] = (entry_ptr + table->elf_information.elf_header_size);
 #endif
     call_main(entry_point, argc, argv, total_argv_envp_size);
 
@@ -91,3 +81,26 @@ error:
 exit:
     return;
 }
+
+#ifdef SUPPORT_DYNAMIC_LOADER
+
+int get_elf_information() {
+    size_t pc;
+    size_t magic;
+    struct relocation_table * table;
+    int status = ERROR;
+    call_get_pc();
+    resolve_table_magic();
+    advance_pc_to_magic();
+    table = (struct relocation_table *)pc;
+    if(table->magic != magic) {
+        goto error;
+    }
+
+error:
+    return status;
+
+
+}
+
+#endif
