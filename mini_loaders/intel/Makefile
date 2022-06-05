@@ -10,25 +10,25 @@ all: $(TARGETS)
 x32:
 	$(X32_CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_x32.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_x32.out $(RESOURCES)mini_loader_x32.shellcode
-	readelf -S ../../outputs/mini_loader_x32.out > $(RESOURCES)mini_loader_x32.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_x32.out > $(RESOURCES)mini_loader_x32.shellcode.symbols
 
 x32_glibc:
 	$(X32_CC) $(CFLAGS) -DSUPPORT_START_FILES ../generic_loader.c -o ../../outputs/mini_loader_x32_glibc.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_x32_glibc.out $(RESOURCES)mini_loader_x32_glibc.shellcode
-	readelf -S ../../outputs/mini_loader_x32_glibc.out > $(RESOURCES)mini_loader_x32_glibc.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_x32_glibc.out > $(RESOURCES)mini_loader_x32_glibc.shellcode.symbols
 
 
 x64:
 	$(X64_CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_x64.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_x64.out $(RESOURCES)mini_loader_x64.shellcode
-	readelf -S ../../outputs/mini_loader_x64.out > $(RESOURCES)mini_loader_x64.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_x64.out > $(RESOURCES)mini_loader_x64.shellcode.symbols
 
 x32_dynamic:
 	$(X32_CC) -DSUPPORT_DYNAMIC_LOADER $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_x32_dynamic.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_x32_dynamic.out $(RESOURCES)mini_loader_x32_dynamic.shellcode
-	readelf -S ../../outputs/mini_loader_x32_dynamic.out > $(RESOURCES)mini_loader_x32_dynamic.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_x32_dynamic.out > $(RESOURCES)mini_loader_x32_dynamic.shellcode.symbols
 
 x64_dynamic:
 	$(X64_CC) -DSUPPORT_DYNAMIC_LOADER $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_x64_dynamic.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_x64_dynamic.out $(RESOURCES)mini_loader_x64_dynamic.shellcode
-	readelf -S ../../outputs/mini_loader_x64_dynamic.out > $(RESOURCES)mini_loader_x64_dynamic.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_x64_dynamic.out > $(RESOURCES)mini_loader_x64_dynamic.shellcode.symbols

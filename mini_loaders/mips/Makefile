@@ -9,19 +9,19 @@ all: $(TARGETS)
 mips:
 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_mips.out $(RESOURCES)mini_loader_mips.shellcode
-	readelf -S ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mips.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mips.shellcode.symbols
 mipsbe:
 	$(CC) $(CFLAGS) $(DEFINES) -BE ../generic_loader.c -o ../../outputs/mini_loader_mips_be.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_mips.out $(RESOURCES)mini_loader_mipsbe.shellcode
-	readelf -S ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mipsbe.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mipsbe.shellcode.symbols
 	
 mips_dynamic:
 	$(CC) -DSUPPORT_DYNAMIC_LOADER $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips_dynamic.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_mips_dynamic.out $(RESOURCES)mini_loader_mips_dynamic.shellcode
-	readelf -S ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mips_dynamic.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mips_dynamic.shellcode.symbols
 
 mipsbe_dynamic:
 	$(CC) -DSUPPORT_DYNAMIC_LOADER $(CFLAGS) $(DEFINES) -BE ../generic_loader.c -o ../../outputs/mini_loader_mipsbe_dynamic.out
 	$(OBJCOPY) -j .text -O binary ../../outputs/mini_loader_mipsbe_dynamic.out $(RESOURCES)mini_loader_mipsbe_dynamic.shellcode
-	readelf -S ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mipsbe_dynamic.shellcode.symbols
+	readelf -s ../../outputs/mini_loader_mips.out > $(RESOURCES)mini_loader_mipsbe_dynamic.shellcode.symbols
 	
