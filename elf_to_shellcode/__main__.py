@@ -24,7 +24,7 @@ parser.add_argument("--loader-supports",
                     nargs="+",
                     required=False,
                     help="Loader additional features, this will increase the size of the static loader",
-                    )
+                    default=[])
 args = parser.parse_args()
 sys.modules["global_args"] = args
 if args.verbose:
