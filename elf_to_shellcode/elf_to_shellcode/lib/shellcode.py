@@ -206,22 +206,14 @@ class Shellcode(object):
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     continue
 
-                symbol_name = self.get_symbol_name_from_address(data_section_value)
-                if symbol_name in self.debugger_symbols:
-                    if self.support_dynamic:
-                        self.logger.info("Found loader symbol: {}".format(
-                            symbol_name
-                        ))
-                        continue
                 sym_offset = data_section_value - self.linker_base_address
                 if sym_offset < 0:
                     continue
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
                 virtual_offset = data_section_header.sh_addr - self.linker_base_address
                 virtual_offset += symbol_relative_offset
-                self.logger.info("|{}_{}| Relative(*{}={}), Absolute(*{}={})".format(
+                self.logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
                     section_name,
-                    symbol_name,
                     hex(virtual_offset),
                     hex(sym_offset),
                     hex(self.make_absolute(virtual_offset)),
