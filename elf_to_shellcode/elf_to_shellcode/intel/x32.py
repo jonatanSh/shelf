@@ -2,6 +2,7 @@ from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_ma
 from elftools.elf.enums import ENUM_RELOC_TYPE_i386
 from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
 
 
 def get_glibc_instructions_filter(address):
@@ -31,6 +32,9 @@ class IntelX32Shellcode(Shellcode):
                 StartFiles.no_start_files,
                 # StartFiles.glibc
             ],
+            reloc_types={
+                RELOC_TYPES.JMP_SLOT: ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT']
+            },
             **kwargs
         )
         self.irelative = IrelativeRelocs(

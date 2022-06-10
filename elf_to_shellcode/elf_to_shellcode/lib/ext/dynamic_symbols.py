@@ -1,10 +1,15 @@
 from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes
+from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
 import logging
 
 
 class DynamicRelocations(object):
-    def __init__(self):
-        self.logger = logging.getLogger("[DynamicRelocs]")
+    def __init__(self, reloc_types):
+        self.handlers = {}
+        self.handlers['JMPREL'] = self.handle_jmp_slot_relocs
+        self.handlers["REL"] = self.handle_rels
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.reloc_types = reloc_types
 
     def handle(self, shellcode, shellcode_data):
 
@@ -15,10 +20,18 @@ class DynamicRelocations(object):
             return shellcode_data
         assert dynsym
         relocation_table = dynamic.get_relocation_tables()
-        if "JMPREL" in relocation_table:
-            self.handle_jmp_slot_relocs(shellcode=shellcode,
-                                        table=relocation_table["JMPREL"],
-                                        dynsym=dynsym)
+        relocs = relocation_table.keys()
+        for reloc_type in relocs:
+            handler = self.handlers.get(reloc_type, None)
+            if not handler:
+                self.logger.error("[HandlerNotFound] {}".format(
+                    reloc_type
+                ))
+                raise Exception("Not supported")
+            else:
+                handler(shellcode=shellcode,
+                        table=relocation_table["JMPREL"],
+                        dynsym=dynsym)
         return shellcode_data
 
     def handle_jmp_slot_relocs(self, shellcode,
@@ -26,7 +39,7 @@ class DynamicRelocations(object):
                                dynsym):
         for relocation in table.iter_relocations():
             entry = relocation.entry
-            offset = entry.r_offset
+            offset = shellcode.make_relative(entry.r_offset)
             symbol_obj = dynsym.get_symbol(entry.r_info_sym)
             symbol_name = symbol_obj.name
             r_address = symbol_obj.entry.st_value
@@ -50,7 +63,7 @@ class DynamicRelocations(object):
             Trying to resolve
             """
             if not shellcode.loader_symbols.has_symbol(symbol_name):
-                logging.info("[SymNotFound] {}".format(
+                self.logger.info("[SymNotFound] {}".format(
                     symbol_name
                 ))
                 continue
@@ -65,3 +78,29 @@ class DynamicRelocations(object):
             ))
             shellcode.addresses_to_patch[offset] = [jmp_slot_address,
                                                     RelocationAttributes.relative_to_loader_base]
+
+    def handle_rels(self,
+                    shellcode,
+                    table,
+                    dynsym):
+        for entry in table.iter_relocations():
+            entry = entry.entry
+            symbol_obj = dynsym.get_symbol(entry.r_info_sym)
+            v_offset = shellcode.make_relative(symbol_obj.entry.st_value)
+            offset = shellcode.make_relative(entry.r_offset)
+            if entry.r_info_type == self.reloc_types[RELOC_TYPES.JMP_SLOT]:
+                self.logger.info("[JMP_SL_IRELATIVE] Relative(*{}={}()) Absolute(*{}={}())".format(
+                    hex(offset),
+                    hex(v_offset),
+                    hex(shellcode.make_absolute(offset)),
+                    hex(shellcode.make_absolute(v_offset))
+                ))
+                shellcode.addresses_to_patch[offset] = [v_offset,
+                                                        RelocationAttributes.call_to_resolve]
+
+            else:
+                self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
+                    entry.r_info_type,
+                    self.reloc_types
+                ))
+                assert False

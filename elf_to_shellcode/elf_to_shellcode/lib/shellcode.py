@@ -30,7 +30,8 @@ class Shellcode(object):
                  ptr_fmt,
                  sections_to_relocate={},
                  ext_bindings=[],
-                 supported_start_methods=[]):
+                 supported_start_methods=[],
+                 reloc_types={}):
         self.logger = logging.getLogger("[{}]".format(
             self.__class__.__name__
         ))
@@ -86,7 +87,7 @@ class Shellcode(object):
         self.support_dynamic = False
 
         self.disassembler = Disassembler(self)
-        self.dynamic_relocs = DynamicRelocations()
+        self.dynamic_relocs = DynamicRelocations(reloc_types)
         self.add_relocation_handler(self.dynamic_relocs.handle)
 
     def format_loader(self, ld):
@@ -217,9 +218,8 @@ class Shellcode(object):
                     struct.unpack("{}{}".format(self.endian, self.ptr_fmt),
                                   shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
-                    self.logger.info("{}".format(hex(data_section_value)))
+                    self.logger.info("[R_SKIPPED]{}".format(hex(data_section_value)))
                     continue
-
                 sym_offset = data_section_value - self.linker_base_address
                 if sym_offset < 0:
                     continue

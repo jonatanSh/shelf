@@ -3,6 +3,10 @@ class RelocationAttributes(object):
     relative_to_loader_base = 2
 
 
+class RELOC_TYPES(object):
+    JMP_SLOT = "JMP_SLT"
+
+
 class StartFiles(object):
     glibc = "glibc"
     no_start_files = "no"
