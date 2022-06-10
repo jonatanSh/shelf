@@ -64,6 +64,9 @@ void loader_main(
             else if(attributes->attribute_1 == RELATIVE_TO_LOADER_BASE) {
                 v_offset = (size_t)(entry->v_offset + loader_base);
             }
+            else if(attributes->attribute_1 == RELATIVE) {
+                v_offset = (size_t)(*((size_t*)f_offset)) + base_address;
+            }
             else {
                 goto error;
             }

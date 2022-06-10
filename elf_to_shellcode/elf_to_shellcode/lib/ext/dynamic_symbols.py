@@ -42,6 +42,8 @@ class DynamicRelocations(object):
             self.handle_rel_dyn(shellcode, rel_dyn)
 
     def handle_rel_dyn(self, shellcode, rel_dyn):
+        dynsym = shellcode.elffile.get_section_by_name(".dynsym")
+
         for entry in rel_dyn.iter_relocations():
             entry = entry.entry
             if entry.r_info_type == self.reloc_types[RELOC_TYPES.RELATIVE]:
@@ -51,8 +53,21 @@ class DynamicRelocations(object):
                     hex(shellcode.make_absolute(offset)),
                 ))
                 shellcode.addresses_to_patch[offset] = [0, RelocationAttributes.relative]
-            elif entry.r_info_type in [2,14]:
+            elif entry.r_info_type in [2, 14]:
                 continue
+            elif entry.r_info_type == self.reloc_types[RELOC_TYPES.GLOBAL_SYM]:
+                sym = dynsym.get_symbol(entry.r_info_sym)
+                offset = shellcode.make_relative(entry.r_offset)
+                r_address = shellcode.make_relative(sym.entry.st_value)
+                self.logger.info("[SYM_R|{}] Relative(*{}={}) Absolute(*{}={})".format(
+                    sym.name,
+                    hex(offset),
+                    hex(r_address),
+                    hex(shellcode.make_absolute(offset)),
+                    hex(shellcode.make_absolute(r_address))
+                ))
+                shellcode.addresses_to_patch[offset] = r_address
+
             else:
                 self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
                     entry,

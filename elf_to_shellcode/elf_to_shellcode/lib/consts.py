@@ -7,6 +7,7 @@ class RelocationAttributes(object):
 class RELOC_TYPES(object):
     JMP_SLOT = "JMP_SLT"
     RELATIVE = "RELATIVE"
+    GLOBAL_SYM = "GLOBAL_SYM"
 
 
 class StartFiles(object):

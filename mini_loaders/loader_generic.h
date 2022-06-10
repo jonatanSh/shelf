@@ -51,7 +51,8 @@ struct entry_attributes {
 
 enum RELOCATION_ATTRIBUTES {
     IRELATIVE = 1,
-    RELATIVE_TO_LOADER_BASE = 2
+    RELATIVE_TO_LOADER_BASE = 2,
+    RELATIVE = 3,
 };
 
 typedef void * (*IRELATIVE_T)();

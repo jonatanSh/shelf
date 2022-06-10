@@ -35,7 +35,8 @@ class IntelX32Shellcode(Shellcode):
             ],
             reloc_types={
                 RELOC_TYPES.JMP_SLOT: ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT'],
-                RELOC_TYPES.RELATIVE: ENUM_RELOC_TYPE_i386['R_386_RELATIVE']
+                RELOC_TYPES.RELATIVE: ENUM_RELOC_TYPE_i386['R_386_RELATIVE'],
+                RELOC_TYPES.GLOBAL_SYM: ENUM_RELOC_TYPE_i386['R_386_32']
 
             },
             **kwargs
