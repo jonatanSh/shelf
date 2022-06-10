@@ -159,20 +159,5 @@ class IrelativeRelocs(object):
                                got_plt,
                                relocation,
                                shellcode_data):
-        """
-        Todo patch the internal function with a normal jump
-        :param shellcode:
-        :param got_plt:
-        :param relocation:
-        :param shellcode_data:
-        :return:
-        """
-        # This case is already integrated in to the default relocation algorithm
-        got_plt = shellcode.elffile.get_section_by_name(".got.plt")
-        got_header = got_plt.header
-        entry = relocation.entry
-        offset = entry.r_offset
-        assert got_header.sh_addr <= offset <= got_header.sh_addr + got_header.sh_size
-        got_relative_offset = offset - got_header.sh_addr
-        jmp_slot_address = shellcode.unpack_ptr(got_plt.data()[got_relative_offset:])
-        shellcode.addresses_to_patch[offset] = jmp_slot_address
+        # Already handled
+        pass

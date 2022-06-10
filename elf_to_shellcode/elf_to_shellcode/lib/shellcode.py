@@ -6,6 +6,7 @@ from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUti
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
+from elf_to_shellcode.elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 import logging
 from elftools.elf.constants import P_FLAGS
 
@@ -82,6 +83,8 @@ class Shellcode(object):
         self.support_dynamic = False
 
         self.disassembler = Disassembler(self)
+        self.dynamic_relocs = DynamicRelocations()
+        self.add_relocation_handler(self.dynamic_relocs.handle)
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
@@ -395,7 +398,6 @@ def make_shellcode(elf_path, shellcode_cls, endian,
         IPython.embed()
         sys.exit(1)
     shellcode = shellcode.get_shellcode()
-
 
     fd.close()
     return shellcode
