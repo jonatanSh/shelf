@@ -27,13 +27,16 @@ class IntelX32Shellcode(Shellcode):
             ptr_fmt="I",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
+
             },
             supported_start_methods=[
                 StartFiles.no_start_files,
                 # StartFiles.glibc
             ],
             reloc_types={
-                RELOC_TYPES.JMP_SLOT: ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT']
+                RELOC_TYPES.JMP_SLOT: ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT'],
+                RELOC_TYPES.RELATIVE: ENUM_RELOC_TYPE_i386['R_386_RELATIVE']
+
             },
             **kwargs
         )

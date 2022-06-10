@@ -32,7 +32,33 @@ class DynamicRelocations(object):
                 handler(shellcode=shellcode,
                         table=relocation_table["JMPREL"],
                         dynsym=dynsym)
+        self.handle_other_dynamic_relocations(shellcode=shellcode)
         return shellcode_data
+
+    def handle_other_dynamic_relocations(self, shellcode):
+        rel_dyn = shellcode.elffile.get_section_by_name('.rel.dyn')
+        rel_plt = shellcode.elffile.get_section_by_name('.rel.plt')
+        if rel_dyn:
+            self.handle_rel_dyn(shellcode, rel_dyn)
+
+    def handle_rel_dyn(self, shellcode, rel_dyn):
+        for entry in rel_dyn.iter_relocations():
+            entry = entry.entry
+            if entry.r_info_type == self.reloc_types[RELOC_TYPES.RELATIVE]:
+                offset = shellcode.make_relative(entry.r_offset)
+                self.logger.info("[REL_RELATIVE] Relative({}) Absolute({})".format(
+                    hex(offset),
+                    hex(shellcode.make_absolute(offset)),
+                ))
+                shellcode.addresses_to_patch[offset] = [0, RelocationAttributes.relative]
+            elif entry.r_info_type in [2,14]:
+                continue
+            else:
+                self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
+                    entry,
+                    self.reloc_types
+                ))
+                assert False
 
     def handle_jmp_slot_relocs(self, shellcode,
                                table,
@@ -100,7 +126,7 @@ class DynamicRelocations(object):
 
             else:
                 self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
-                    entry.r_info_type,
+                    entry,
                     self.reloc_types
                 ))
                 assert False

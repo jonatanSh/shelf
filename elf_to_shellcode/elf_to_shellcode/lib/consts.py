@@ -1,10 +1,12 @@
 class RelocationAttributes(object):
     call_to_resolve = 1
     relative_to_loader_base = 2
+    relative = 3
 
 
 class RELOC_TYPES(object):
     JMP_SLOT = "JMP_SLT"
+    RELATIVE = "RELATIVE"
 
 
 class StartFiles(object):
