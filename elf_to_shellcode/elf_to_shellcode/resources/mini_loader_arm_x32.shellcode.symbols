@@ -15,11 +15,11 @@ Symbol table '.symtab' contains 22 entries:
     11: 00000000     0 SECTION LOCAL  DEFAULT   11 
     12: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
     13: 000100b8     0 NOTYPE  LOCAL  DEFAULT    2 $a
-    14: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 _bss_end__
-    15: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start__
-    16: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 __bss_end__
-    17: 000100b8   568 FUNC    GLOBAL DEFAULT    2 loader_main
-    18: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start
-    19: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 __end__
-    20: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 _edata
-    21: 000202f0     0 NOTYPE  GLOBAL DEFAULT    2 _end
+    14: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 _bss_end__
+    15: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start__
+    16: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 __bss_end__
+    17: 000100b8   592 FUNC    GLOBAL DEFAULT    2 loader_main
+    18: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start
+    19: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 __end__
+    20: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 _edata
+    21: 00020308     0 NOTYPE  GLOBAL DEFAULT    2 _end

@@ -20,9 +20,7 @@ class ShellcodeLoader(object):
 
     def get_relative_symbol_address(self, symbol_name):
         sym_rel = self.symbols[symbol_name] - self.base_address
-        """
-        If we want to reference loader symbols we must use relative addressing
-        -table-loader_size is the base address of the loader
-        """
-        sym_rel -= self.loader_size
         return sym_rel
+
+    def has_symbol(self, symbol_name):
+        return symbol_name in self.symbols

@@ -1,6 +1,7 @@
 #ifndef LOADER_INTEL_X64
 #define LOADER_INTEL_X64
 typedef unsigned long long size_t;
+
 #define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \
     asm(                        \

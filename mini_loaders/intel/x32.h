@@ -1,7 +1,6 @@
 #ifndef LOADER_INTEL_X32
 #define LOADER_INTEL_X32
-
-
+typedef unsigned int size_t;
 
 #define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \

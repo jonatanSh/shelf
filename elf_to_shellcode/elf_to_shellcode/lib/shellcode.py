@@ -169,11 +169,10 @@ class Shellcode(object):
             if type(value) is not list:
                 value = [value]
 
-            value_packed = self.pack_list_of(value,
-                                             self.ptr_signed_fmt)
+            value_packed = self.pack_list_of_pointers(value)
 
             relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}".format(self.endian,
-                                                                                    self.ptr_signed_fmt), key)])
+                                                                                    self.ptr_fmt), key)])
             relocation_entry += value_packed
 
             relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)
@@ -191,6 +190,7 @@ class Shellcode(object):
         header += self.pack_pointer(
             self.elffile.header.e_ehsize + sht_entry_header_size
         )
+        header += self.pack_pointer(len(self.loader))
         return header
 
     def correct_symbols(self, shellcode_data):
@@ -360,7 +360,7 @@ class Shellcode(object):
         current_offset += self.ptr_size  # skipping magic
         table_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
         current_offset += self.ptr_size  # skip ptr size
-        current_offset += self.ptr_size  # skip elf size entry
+        current_offset += len(self.pre_table_header)
 
         handled_size = 0
         while handled_size < table_size:

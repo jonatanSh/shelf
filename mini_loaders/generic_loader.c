@@ -21,6 +21,7 @@ void loader_main(
     size_t table_size = 0;
     struct relocation_table * table;
     size_t base_address;
+    size_t loader_base;
     size_t magic;
     size_t total_argv_envp_size = 0;
     resolve_table_magic();
@@ -39,6 +40,7 @@ void loader_main(
     // Size of table header + entries + entry point
     base_address = (size_t)(table);
     base_address += sizeof(struct relocation_table) + table->total_size + sizeof(size_t);
+    loader_base =(size_t)((void *)(table) - table->elf_information.loader_size);
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     // We consider the table size and the entry point as parsed
     size_t parsed_entries_size = 0;
@@ -49,14 +51,18 @@ void loader_main(
         size_t f_offset = entry->f_offset + base_address;
         size_t v_offset = entry->v_offset + base_address; 
         
+        /*
+            DO NOT USE SWITCH CASE HERE
+            it will create a relocatable section
+        */
         if(entry->size > sizeof(size_t) * 3) {
             // We have relocation attributes
             // Can't use jump tables in loader :(
             if(attributes->attribute_1 == IRELATIVE) {
                 v_offset = (size_t)((IRELATIVE_T)(v_offset))();
             }
-            else if(attributes->attribute_1 == RELATIVE_TO_TABLE_START) {
-                v_offset = (size_t)(entry->v_offset + (void *)(table));
+            else if(attributes->attribute_1 == RELATIVE_TO_LOADER_BASE) {
+                v_offset = (size_t)(entry->v_offset + loader_base);
             }
             else {
                 goto error;

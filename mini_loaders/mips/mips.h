@@ -1,5 +1,6 @@
 #ifndef LOADER_MIPS
 #define LOADER_MIPS
+typedef unsigned int size_t;
 
 #define ARCH_OPCODE_SIZE 4 
 #define TABLE_MAGIC 0xaabbccdd
