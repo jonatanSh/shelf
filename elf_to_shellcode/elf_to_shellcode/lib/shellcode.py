@@ -49,6 +49,7 @@ class Shellcode(object):
                 self.linker_base_address = segment.header.p_vaddr
                 break
         self.ptr_fmt = ptr_fmt
+        self.ptr_signed_fmt = self.ptr_fmt.lower()
         self.relocation_handlers = []
 
         for binding in ext_bindings:
@@ -70,11 +71,13 @@ class Shellcode(object):
             self.endian = ">"
             if mini_loader_big_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_big_endian))
-                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_big_endian))
+                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_big_endian),
+                                                      loader_size=len(self._loader))
         else:
             if mini_loader_little_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_little_endian))
-                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_little_endian))
+                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_little_endian),
+                                                      loader_size=len(self._loader))
             self.endian = "<"
         self.arch = arch
         self.debugger_symbols = [
@@ -118,6 +121,12 @@ class Shellcode(object):
     def pack_pointer(self, n):
         return self.pack(self.ptr_fmt, n)
 
+    def pack_list_of(self, lst, fmt):
+        packed = ""
+        for item in lst:
+            packed += self.pack(fmt, item)
+        return packed
+
     def pack_list_of_pointers(self, lst):
         packed = ""
         for item in lst:
@@ -160,10 +169,11 @@ class Shellcode(object):
             if type(value) is not list:
                 value = [value]
 
-            value_packed = self.pack_list_of_pointers(value)
+            value_packed = self.pack_list_of(value,
+                                             self.ptr_signed_fmt)
 
             relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}".format(self.endian,
-                                                                                    self.ptr_fmt), key)])
+                                                                                    self.ptr_signed_fmt), key)])
             relocation_entry += value_packed
 
             relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)

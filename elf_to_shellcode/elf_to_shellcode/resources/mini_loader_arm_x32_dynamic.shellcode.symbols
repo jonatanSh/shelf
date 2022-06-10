@@ -1,5 +1,5 @@
 
-Symbol table '.symtab' contains 22 entries:
+Symbol table '.symtab' contains 23 entries:
    Num:    Value  Size Type    Bind   Vis      Ndx Name
      0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
      1: 00010094     0 SECTION LOCAL  DEFAULT    1 
@@ -12,14 +12,15 @@ Symbol table '.symtab' contains 22 entries:
      8: 00000000     0 SECTION LOCAL  DEFAULT    8 
      9: 00000000     0 SECTION LOCAL  DEFAULT    9 
     10: 00000000     0 SECTION LOCAL  DEFAULT   10 
-    11: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
-    12: 000100b8     0 NOTYPE  LOCAL  DEFAULT    2 $a
-    13: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 _bss_end__
-    14: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start__
-    15: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 __bss_end__
-    16: 000100b8   520 FUNC    GLOBAL DEFAULT    2 loader_main
-    17: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start
-    18: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 __end__
-    19: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 _edata
-    20: 000203b8     0 NOTYPE  GLOBAL DEFAULT    2 _end
-    21: 000102c0   248 FUNC    GLOBAL DEFAULT    2 get_elf_information
+    11: 00000000     0 SECTION LOCAL  DEFAULT   11 
+    12: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
+    13: 000100b8     0 NOTYPE  LOCAL  DEFAULT    2 $a
+    14: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 _bss_end__
+    15: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start__
+    16: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 __bss_end__
+    17: 000100b8   568 FUNC    GLOBAL DEFAULT    2 loader_main
+    18: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 __bss_start
+    19: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 __end__
+    20: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 _edata
+    21: 000203e8     0 NOTYPE  GLOBAL DEFAULT    2 _end
+    22: 000102f0   248 FUNC    GLOBAL DEFAULT    2 get_elf_information

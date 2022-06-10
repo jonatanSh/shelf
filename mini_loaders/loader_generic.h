@@ -3,6 +3,8 @@
 
 #define MAX_SEARCH_DEPTH 0x400
 
+typedef unsigned int size_t;
+typedef signed int loader_off_t;
 
 #if defined(__x86_64__) || defined(_M_X64)
     #include "./intel/x64.h"
@@ -32,8 +34,8 @@
 
 struct table_entry {
     size_t size;
-    size_t f_offset;
-    size_t v_offset;
+    loader_off_t f_offset;
+    loader_off_t v_offset;
 };
 struct elf_information_struct {
     size_t elf_header_size;
@@ -49,7 +51,8 @@ struct entry_attributes {
 };
 
 enum RELOCATION_ATTRIBUTES {
-    IRELATIVE = 1
+    IRELATIVE = 1,
+    RELATIVE_TO_TABLE_START = 2
 };
 
 typedef void * (*IRELATIVE_T)();

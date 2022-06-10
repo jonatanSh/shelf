@@ -55,6 +55,12 @@ void loader_main(
             if(attributes->attribute_1 == IRELATIVE) {
                 v_offset = (size_t)((IRELATIVE_T)(v_offset))();
             }
+            else if(attributes->attribute_1 == RELATIVE_TO_TABLE_START) {
+                v_offset = (size_t)(entry->v_offset + (void *)(table));
+            }
+            else {
+                goto error;
+            }
         }
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;

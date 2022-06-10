@@ -1,4 +1,4 @@
-from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes, StartFiles
+from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes
 import logging
 
 
@@ -34,4 +34,5 @@ class DynamicRelocations(object):
                 hex(shellcode.make_absolute(offset)),
                 hex(shellcode.make_absolute(jmp_slot_address))
             ))
-            shellcode.addresses_to_patch[offset] = jmp_slot_address
+            shellcode.addresses_to_patch[offset] = [jmp_slot_address,
+                                                    RelocationAttributes.relative_to_start_of_table]

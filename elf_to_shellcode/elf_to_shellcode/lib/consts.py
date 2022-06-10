@@ -1,5 +1,6 @@
 class RelocationAttributes(object):
     call_to_resolve = 1
+    relative_to_start_of_table = 2
 
 
 class StartFiles(object):

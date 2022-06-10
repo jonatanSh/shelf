@@ -1,6 +1,5 @@
 #ifndef LOADER_INTEL_X32
 #define LOADER_INTEL_X32
-typedef unsigned int size_t;
 
 
 
