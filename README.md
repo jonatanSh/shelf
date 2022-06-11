@@ -141,28 +141,29 @@ This will increase the size of the mini loader, but will enable you to link agai
 And load shellcodes yourself which are concatenated
 eg ...
 ```c
-typedef unsigned int size_t;
-// External struct defention
 struct elf_information_struct {
     size_t elf_header_size;
+    size_t loader_size;
 };
-
-// External function from the loader
+struct relocation_table {
+    size_t magic;
+    size_t total_size;
+    struct elf_information_struct elf_information;
+};
 void loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
     size_t loader_magic,
     size_t pc);
-// External function from the loader
-int get_elf_information();
+
+int get_elf_information(struct relocation_table ** info);
 
 // External defines
 #define OK 1
 #define ERROR -1
-#define LOADER_MAGIC_32BIT 0xaabbccdd
 void main() {
-   struct elf_information_struct my_info;
+   struct relocation_table * my_info;
    size_t next_shellcode_address;
    if(get_elf_information(&my_info) == ERROR) {
         return;
@@ -174,7 +175,7 @@ void main() {
         0,
         0,
         0,
-        LOADER_MAGIC_32BIT,
+        my_info->magic,
         next_shellcode_address
    )
  
