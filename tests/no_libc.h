@@ -2,8 +2,10 @@
 #define NO_LIBC
 #include <sys/syscall.h>
 #if defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+    typedef int size_t; 
     #include "./no_libc/i386.h"
 #elif defined(__aarch64__)
+    typedef long long size_t;
     #include "./no_libc/aarch64.h"
 #endif
 

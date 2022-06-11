@@ -1,9 +1,28 @@
+
+#include <stdarg.h>
+#include "sprintf.h"
+#ifdef NOLIBC
+    #include "./no_libc.h"
+
+    unsigned int strlen(const char *str)
+    {
+        unsigned int length = 0;
+
+        while (*str++)
+            length++;
+
+        return (length);
+    }
+
+    void write(int fd, char *message, int size) {
+        print_out(message, size);
+    }
+#else
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdarg.h>
-#include "sprintf.h"
+#endif
 
 #define MAX_DEBUG_BUFFER 0xffff
 #define TRACE_FORMAT "[ELF_FEATURES:INFO] %s %s(line:%u):\x00"
