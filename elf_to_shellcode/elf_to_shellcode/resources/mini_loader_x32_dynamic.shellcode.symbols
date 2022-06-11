@@ -20,4 +20,4 @@ Symbol table '.symtab' contains 20 entries:
     16: 0804c000     0 NOTYPE  GLOBAL DEFAULT    4 __bss_start
     17: 0804c000     0 NOTYPE  GLOBAL DEFAULT    4 _edata
     18: 0804c000     0 NOTYPE  GLOBAL DEFAULT    4 _end
-    19: 08049170   130 FUNC    GLOBAL DEFAULT    3 get_elf_information
+    19: 08049170   116 FUNC    GLOBAL DEFAULT    3 get_elf_information

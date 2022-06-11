@@ -99,12 +99,11 @@ exit:
 
 #ifdef SUPPORT_DYNAMIC_LOADER
 
-int get_elf_information(struct elf_information_struct **info) {
+int get_elf_information(struct relocation_table **info) {
     size_t pc;
     size_t magic;
     struct relocation_table * table;
     int status = ERROR;
-    size_t table_hdr_size = sizeof(struct relocation_table) - sizeof(struct elf_information_struct);
     call_get_pc();
     resolve_table_magic();
     advance_pc_to_magic();
@@ -113,7 +112,7 @@ int get_elf_information(struct elf_information_struct **info) {
         goto error;
     }
 
-    *info = (struct elf_information_struct *)(pc+table_hdr_size);
+    *info = table;
     status = OK;
 
 error:
