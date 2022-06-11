@@ -2,8 +2,6 @@
 #define LOADER_INTEL_X32
 typedef unsigned int size_t;
 
-
-
 #define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \
     asm(                        \
@@ -25,6 +23,7 @@ typedef unsigned int size_t;
                                     \
     );                              \
 }                                   \
+
 
 #define call_main_glibc(main_ptr, argc, argv, total_args) {                           \
    register size_t eax asm("eax") = (size_t)(main_ptr); \

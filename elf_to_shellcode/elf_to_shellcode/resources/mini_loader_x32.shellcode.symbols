@@ -1,0 +1,22 @@
+
+Symbol table '.symtab' contains 19 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 080480f4     0 SECTION LOCAL  DEFAULT    1 
+     2: 08048118     0 SECTION LOCAL  DEFAULT    2 
+     3: 08049000     0 SECTION LOCAL  DEFAULT    3 
+     4: 0804a000     0 SECTION LOCAL  DEFAULT    4 
+     5: 00000000     0 SECTION LOCAL  DEFAULT    5 
+     6: 00000000     0 SECTION LOCAL  DEFAULT    6 
+     7: 00000000     0 SECTION LOCAL  DEFAULT    7 
+     8: 00000000     0 SECTION LOCAL  DEFAULT    8 
+     9: 00000000     0 SECTION LOCAL  DEFAULT    9 
+    10: 00000000     0 SECTION LOCAL  DEFAULT   10 
+    11: 00000000     0 SECTION LOCAL  DEFAULT   11 
+    12: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
+    13: 08049034     0 NOTYPE  LOCAL  DEFAULT    3 get_pc_internal
+    14: 08049038     0 NOTYPE  LOCAL  DEFAULT    3 next
+    15: 08049000   368 FUNC    GLOBAL DEFAULT    3 loader_main
+    16: 0804c000     0 NOTYPE  GLOBAL DEFAULT    4 __bss_start
+    17: 0804c000     0 NOTYPE  GLOBAL DEFAULT    4 _edata
+    18: 0804c000     0 NOTYPE  GLOBAL DEFAULT    4 _end

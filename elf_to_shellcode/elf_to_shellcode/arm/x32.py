@@ -1,4 +1,6 @@
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
+from elftools.elf.enums import ENUM_RELOC_TYPE_ARM
 
 
 class ArmX32Shellcode(Shellcode):
@@ -16,6 +18,7 @@ class ArmX32Shellcode(Shellcode):
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
                 '.got.plt': {'align_by': 'sh_entsize', 'relocate_all': True},
             },
+            support_dynamic=False,
             **kwargs
         )
 

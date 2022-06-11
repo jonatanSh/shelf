@@ -27,6 +27,8 @@ typedef unsigned int size_t;
     );                              \
 }                                   \
 
+#define call_get_pc get_pc
+
 #define call_main(main_ptr, argc, argv, envp) {                           \
    register size_t r0 asm("r0") = (size_t)(main_ptr); \
    asm(                                                 \

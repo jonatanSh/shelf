@@ -1,4 +1,4 @@
-TARGETS=mips x32 x32_glibc x64 arm32 aarch64
+TARGETS=mips intel arm
 
 .PHONY: all $(TARGETS)
 all: $(TARGETS)
@@ -6,16 +6,8 @@ all: $(TARGETS)
 mips:
 	cd mips && make
 
-x32:
-	cd intel && make x32
+intel:
+	cd intel && make
 
-x32_glibc:
-	cd intel && make x32_glibc
-	
-x64:
-	cd intel && make x64
-
-arm32:
-	cd arm && make arm32
-aarch64:
-	cd arm && make arm64
+arm:
+	cd arm && make

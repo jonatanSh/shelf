@@ -5,6 +5,7 @@ from elf_to_shellcode.elf_to_shellcode.arm.x32 import arm_x32_make_shellcode
 from elf_to_shellcode.elf_to_shellcode.arm.x64 import arm_x64_make_shellcode
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 
+
 class Arches(object):
     MIPS_32 = "mips"
     INTEL_X32 = "intel_x32"

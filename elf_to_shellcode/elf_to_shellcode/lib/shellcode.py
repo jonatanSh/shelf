@@ -5,9 +5,10 @@ import sys
 from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
 from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
+from elf_to_shellcode.elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
+from elf_to_shellcode.elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 import logging
 from elftools.elf.constants import P_FLAGS
-
 
 py_version = int(sys.version[0])
 assert py_version == 2, "Python3 is not supported for now :("
@@ -27,9 +28,12 @@ class Shellcode(object):
                  mini_loader_little_endian,
                  shellcode_table_magic,
                  ptr_fmt,
+                 support_dynamic=False,
                  sections_to_relocate={},
                  ext_bindings=[],
-                 supported_start_methods=[]):
+                 supported_start_methods=[],
+                 reloc_types={}):
+        self.support_dynamic = support_dynamic
         self.logger = logging.getLogger("[{}]".format(
             self.__class__.__name__
         ))
@@ -48,6 +52,7 @@ class Shellcode(object):
                 self.linker_base_address = segment.header.p_vaddr
                 break
         self.ptr_fmt = ptr_fmt
+        self.ptr_signed_fmt = self.ptr_fmt.lower()
         self.relocation_handlers = []
 
         for binding in ext_bindings:
@@ -69,23 +74,46 @@ class Shellcode(object):
             self.endian = ">"
             if mini_loader_big_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_big_endian))
+                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_big_endian),
+                                                      loader_size=len(self._loader))
         else:
             if mini_loader_little_endian:
                 self._loader = get_resource(self.format_loader(mini_loader_little_endian))
+                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_little_endian),
+                                                      loader_size=len(self._loader))
             self.endian = "<"
         self.arch = arch
+        self.debugger_symbols = [
+            "loader_main"
+        ]
+
 
         self.disassembler = Disassembler(self)
+        if self.support_dynamic:
+            self.dynamic_relocs = DynamicRelocations(reloc_types)
+            self.add_relocation_handler(self.dynamic_relocs.handle)
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
-            return ld.format("")
+            ld_base = ""
         elif StartFiles.glibc == self.start_file_method:
-            return ld.format("_glibc")
+            ld_base = "_glibc"
         else:
             raise Exception("Unknown start method: {}".format(
                 self.start_file_method
             ))
+        args = sys.modules["global_args"]
+        features_map = sorted(args.loader_supports, key=lambda lfeature: lfeature[1])
+        for feature in features_map:
+            value = getattr(self, "support_{}".format(feature))
+            if not value:
+                raise Exception("Arch does not support: {}".format(feature))
+        loader_additional = "_".join([feature for feature in features_map])
+        if loader_additional:
+            loader_additional = "_" + loader_additional
+        ld_name = ld.format(ld_base + loader_additional)
+        self.logger.info("Using loader: {}".format(ld_name))
+        return ld_name
 
     def make_absolute(self, address):
         return address + self.linker_base_address
@@ -98,6 +126,12 @@ class Shellcode(object):
 
     def pack_pointer(self, n):
         return self.pack(self.ptr_fmt, n)
+
+    def pack_list_of(self, lst, fmt):
+        packed = ""
+        for item in lst:
+            packed += self.pack(fmt, item)
+        return packed
 
     def pack_list_of_pointers(self, lst):
         packed = ""
@@ -162,6 +196,7 @@ class Shellcode(object):
         header += self.pack_pointer(
             self.elffile.header.e_ehsize + sht_entry_header_size
         )
+        header += self.pack_pointer(len(self.loader))
         return header
 
     def correct_symbols(self, shellcode_data):
@@ -188,6 +223,7 @@ class Shellcode(object):
                     struct.unpack("{}{}".format(self.endian, self.ptr_fmt),
                                   shellcode_data[data_section_start:data_section_end])[0]
                 if data_section_value not in original_symbol_addresses and not relocate_all:
+                    self.logger.info("[R_SKIPPED]{}".format(hex(data_section_value)))
                     continue
                 sym_offset = data_section_value - self.linker_base_address
                 if sym_offset < 0:
@@ -293,7 +329,7 @@ class Shellcode(object):
 
     def unpack_ptr(self, stream):
         return struct.unpack("{}{}".format(self.endian,
-                                           self.ptr_fmt), stream)[0]
+                                           self.ptr_fmt), stream[:self.ptr_size])[0]
 
     def stream_unpack_pointers(self, stream, num_of_ptrs):
         return struct.unpack("{}{}".format(self.endian,
@@ -329,7 +365,7 @@ class Shellcode(object):
         current_offset += self.ptr_size  # skipping magic
         table_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
         current_offset += self.ptr_size  # skip ptr size
-        current_offset += self.ptr_size  # skip elf size entry
+        current_offset += len(self.pre_table_header)
 
         handled_size = 0
         while handled_size < table_size:
@@ -370,7 +406,14 @@ def make_shellcode(elf_path, shellcode_cls, endian,
                    start_file_method):
     shellcode, fd = get_shellcode_class(elf_path, shellcode_cls, endian,
                                         start_file_method=start_file_method)
+    args = sys.modules["global_args"]
+    if args.interactive:
+        print("Opening interactive shell")
+        import IPython
+        IPython.embed()
+        sys.exit(1)
     shellcode = shellcode.get_shellcode()
+
     fd.close()
     return shellcode
 

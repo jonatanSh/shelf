@@ -1,6 +1,11 @@
+import os
 import subprocess
 from subprocess import Popen, PIPE
 import sys
+from argparse import ArgumentParser
+import logging
+
+parser = ArgumentParser("testRunner")
 
 QEMUS = {
     "mips": "qemu-mips-static",
@@ -22,7 +27,7 @@ def translate_to_binary_name(arch):
         return "mipsbe"
 
 
-def run_arch_tests(arch, case, debug, *args):
+def run_arch_tests(arch, case):
     qemu = QEMUS[arch]
     loader = "../outputs/shellcode_loader_{}.out".format(arch)
     tests = [case]
@@ -34,18 +39,36 @@ def run_arch_tests(arch, case, debug, *args):
             if arch not in supported_arches:
                 continue
         test = case.format(translate_to_binary_name(arch))
-        db_arg = "-g 1234" if (debug == "debug") else ""
+        db_arg = "-g 1234" if args.debug else ""
+        assert os.path.exists(loader), "Error loader doesn't exists for: {}".format(arch)
+        assert os.path.exists(test), "Error test for: {}_{} does not exists".format(
+            arch,
+            case
+        )
         command = "{} {} {} {}".format(qemu, db_arg, loader, test)
-        print("-" * 30)
-        if debug == "debug":
+        if not args.only_stdout:
+            print("-" * 30)
+        if args.debug:
             print("Waiting for debugger at: {}".format(1234))
             print(command)
+        logging.info("Running command: {}".format(command))
         stdout, stderr = subprocess.Popen(command, shell=True, stdout=PIPE, stderr=PIPE).communicate()
-        if success in stdout:
+        if args.only_stdout:
+            print(stdout)
+            print(stderr)
+            continue
+        if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
             print("test: {} for: {} ... Success".format(test_case, arch))
         else:
             print("test: {} for: {} ... Failure, output:".format(test_case, arch))
             print stdout, stderr
+        if args.verbose:
+            logging.info("Stdout: {}".format(
+                stdout
+            ))
+            logging.info("Stderr: {}".format(
+                stderr
+            ))
         print("-" * 30)
         print("\n")
 
@@ -53,33 +76,23 @@ def run_arch_tests(arch, case, debug, *args):
 def main(arch, case, *args):
     if arch == "all":
         for key in QEMUS.keys():
-            run_arch_tests(key, case, *args)
+            run_arch_tests(key, case)
     else:
-        run_arch_tests(arch, case, *args)
+        run_arch_tests(arch, case)
 
 
 usage_printed = False
 
-
-def print_usage():
-    global usage_printed
-    if usage_printed:
-        return
-    usage_printed = True
-    print("run_tests.py - run all tests")
-    print("more complex usage")
-    print("run_tests.py aarch64 elf_features debug")
-    print("\n" * 2)
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print_usage()
-        sys.argv.append("all")
-    if len(sys.argv) < 3:
-        print_usage()
-        sys.argv.append("all")
-    if len(sys.argv) < 4:
-        print_usage()
-        sys.argv.append("no")
-    main(*sys.argv[1:])
+arch_choices = QEMUS.keys() + ["all"]
+tests = test_cases.keys() + ['all']
+parser.add_argument("--arch", choices=arch_choices, required=False, default="all")
+parser.add_argument("--test", choices=tests, required=False, default="all")
+parser.add_argument("--debug", default=False, action="store_true", required=False, help="Run qemu on local port 1234")
+parser.add_argument("--verbose", default=False, action="store_true", required=False)
+parser.add_argument("--only-stdout", default=False, required=False, action="store_true",
+                    help="Run and only display stdout and stderr")
+args = parser.parse_args()
+if args.verbose:
+    assert not args.only_stdout, "error --only-stdout and --verbose dont work togther"
+    logging.basicConfig(level=logging.INFO)
+main(arch=args.arch, case=args.test)

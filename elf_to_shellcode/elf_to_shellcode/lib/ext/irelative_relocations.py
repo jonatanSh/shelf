@@ -13,7 +13,6 @@ class IrelativeRelocs(object):
         self.glibc_last_reference = 0
         self.logger = logging.getLogger("[IRELATIVE-HELPER]")
 
-
     def relocation_for_rela_plt_got_plt(self, shellcode, shellcode_data):
         """
         Specific handler for the .rela.plt and .got.plt relocations
@@ -28,9 +27,10 @@ class IrelativeRelocs(object):
 
         for relocation in rela_plt.iter_relocations():
             if relocation.entry.r_info != self.irelative_type:
-                raise Exception("Relocation not supported yet: {}".format(
+                self.logger.error("Relocation not supported yet: {}".format(
                     relocation.entry.r_info
                 ))
+                continue
 
             virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
             function_offset = shellcode.make_relative(relocation.entry.r_addend)
@@ -69,7 +69,8 @@ class IrelativeRelocs(object):
                 self.do_jmp_slot_relocation(
                     shellcode=shellcode,
                     got_plt=got_plt,
-                    relocation=relocation
+                    relocation=relocation,
+                    shellcode_data=shellcode_data
                 )
             else:
                 raise Exception("Relocation not supported yet: {}".format(
@@ -155,6 +156,9 @@ class IrelativeRelocs(object):
                     self.glibc_last_reference = max(self.glibc_irelative_first_reference,
                                                     address_not_relative + shellcode.ptr_size * 2)
 
-    def do_jmp_slot_relocation(self, shellcode, got_plt, relocation):
-        # This case is already integrated in to the default relocation algorithm
+    def do_jmp_slot_relocation(self, shellcode,
+                               got_plt,
+                               relocation,
+                               shellcode_data):
+        # Already handled
         pass
