@@ -19,7 +19,16 @@ class IntelX64Shellcode(Shellcode):
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
             },
-            support_dynamic=False,
+            reloc_types={
+                RELOC_TYPES.JMP_SLOT: ENUM_RELOC_TYPE_x64['R_X86_64_JUMP_SLOT'],
+                RELOC_TYPES.RELATIVE: ENUM_RELOC_TYPE_x64['R_X86_64_RELATIVE'],
+                RELOC_TYPES.GLOBAL_SYM: ENUM_RELOC_TYPE_x64['R_X86_64_64'],
+                RELOC_TYPES.GLOBAL_DAT: ENUM_RELOC_TYPE_x64['R_X86_64_GLOB_DAT'],
+                RELOC_TYPES.DO_NOT_HANDLE: [
+                ]
+
+            },
+            support_dynamic=True,
             **kwargs
         )
         self.irelative = IrelativeRelocs(ENUM_RELOC_TYPE_x64['R_X86_64_IRELATIVE'])

@@ -11,8 +11,8 @@ intel_x32_%:
 	python -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode --loader-support dynamic
 
 intel_x64_%:
-	$(X64_CC) $(CFLAGS) $(C_FILES) -static $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
-	python -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out --arch intel_x64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out.shellcode
+	$(X64_CC) -DDYNAMIC_SUPPORT $(C_FILES)  $(subst intel_x64_,,$@).c $(CFLAGS)  -shared /usr/i686-linux-gnu/lib64/libc.a -lm -lc -lgcc -lc -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
+	python -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out --arch intel_x64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out.shellcode --loader-supports dynamic
 
 arm32_%:
 	$(ARM_CC) $(CFLAGS) $(C_FILES) -static $(subst arm32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
