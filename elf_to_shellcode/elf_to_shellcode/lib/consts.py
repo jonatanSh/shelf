@@ -9,6 +9,7 @@ class RELOC_TYPES(object):
     RELATIVE = "RELATIVE"
     GLOBAL_SYM = "GLOBAL_SYM"
     GLOBAL_DAT = "GLOBAL_DAT"
+    DO_NOT_HANDLE = "DO_NOT_HANDLE"
 
 
 class StartFiles(object):

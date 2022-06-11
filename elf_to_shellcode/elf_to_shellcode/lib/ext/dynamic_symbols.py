@@ -11,6 +11,30 @@ class DynamicRelocations(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.reloc_types = reloc_types
 
+        self.entry_handlers = {
+            self.reloc_types[RELOC_TYPES.RELATIVE]: self.reloc_relative_handle,
+            self.reloc_types[RELOC_TYPES.GLOBAL_SYM]: self.global_sym_dat_handle,
+            self.reloc_types[RELOC_TYPES.GLOBAL_DAT]: self.global_sym_dat_handle,
+            self.reloc_types[RELOC_TYPES.JMP_SLOT]: self.jmp_slot_reloc_handle
+
+        }
+
+    def call_entry_handler(self, entry, shellcode, dynsym):
+        if entry.r_info_type in self.reloc_types[RELOC_TYPES.DO_NOT_HANDLE]:
+            self.logger.warn("Not calling handler for entry: {}, marked as do not handle".format(
+                entry
+            ))
+            return
+        entry_handler = self.entry_handlers.get(entry.r_info_type, None)
+        if not entry_handler:
+            self.logger.error("Entry handler for: {} not found, available: {}".format(
+                entry,
+                self.entry_handlers.keys()
+            ))
+            assert False
+
+        entry_handler(entry=entry, shellcode=shellcode, dynsym=dynsym)
+
     def handle(self, shellcode, shellcode_data):
 
         # This case is already integrated in to the default relocation algorithm
@@ -44,7 +68,7 @@ class DynamicRelocations(object):
         if rel_dyn:
             self.handle_rel_dyn(shellcode, rel_dyn)
 
-    def reloc_relative_handle(self, shellcode, entry):
+    def reloc_relative_handle(self, shellcode, entry, **kwargs):
         offset = shellcode.make_relative(entry.r_offset)
         self.logger.info("[REL_RELATIVE] Relative({}) Absolute({})".format(
             hex(offset),
@@ -70,27 +94,11 @@ class DynamicRelocations(object):
 
         for entry in rel_dyn.iter_relocations():
             entry = entry.entry
-            if entry.r_info_type == self.reloc_types[RELOC_TYPES.RELATIVE]:
-                self.reloc_relative_handle(shellcode=shellcode,
-                                           entry=entry)
-            elif entry.r_info_type in [2, 14]:
-                continue
-            elif entry.r_info_type in [
-                self.reloc_types[RELOC_TYPES.GLOBAL_SYM],
-                self.reloc_types[RELOC_TYPES.GLOBAL_DAT]
-            ]:
-                self.global_sym_dat_handle(
-                    shellcode=shellcode,
-                    dynsym=dynsym,
-                    entry=entry
-                )
-
-            else:
-                self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
-                    entry,
-                    self.reloc_types
-                ))
-                assert False
+            self.call_entry_handler(
+                entry=entry,
+                dynsym=dynsym,
+                shellcode=shellcode
+            )
 
     def jmp_slot_reloc_handle(self, shellcode, entry, dynsym):
         entry = entry
@@ -159,21 +167,8 @@ class DynamicRelocations(object):
                     dynsym):
         for entry in table.iter_relocations():
             entry = entry.entry
-            if entry.r_info_type == self.reloc_types[RELOC_TYPES.JMP_SLOT]:
-                self.jmp_slot_reloc_handle(
-                    shellcode=shellcode,
-                    dynsym=dynsym,
-                    entry=entry
-                )
-            # Think about, those, they are already handled because the code is bad for now
-            elif entry.r_info_type in [self.reloc_types[RELOC_TYPES.GLOBAL_SYM],
-                                       self.reloc_types[RELOC_TYPES.RELATIVE],
-                                       self.reloc_types[RELOC_TYPES.GLOBAL_DAT],
-                                       2, 14]:
-                continue
-            else:
-                self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
-                    entry,
-                    self.reloc_types
-                ))
-                assert False
+            self.call_entry_handler(
+                entry=entry,
+                dynsym=dynsym,
+                shellcode=shellcode
+            )

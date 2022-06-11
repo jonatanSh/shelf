@@ -37,7 +37,11 @@ class IntelX32Shellcode(Shellcode):
                 RELOC_TYPES.JMP_SLOT: ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT'],
                 RELOC_TYPES.RELATIVE: ENUM_RELOC_TYPE_i386['R_386_RELATIVE'],
                 RELOC_TYPES.GLOBAL_SYM: ENUM_RELOC_TYPE_i386['R_386_32'],
-                RELOC_TYPES.GLOBAL_DAT: ENUM_RELOC_TYPE_i386['R_386_GLOB_DAT']
+                RELOC_TYPES.GLOBAL_DAT: ENUM_RELOC_TYPE_i386['R_386_GLOB_DAT'],
+                RELOC_TYPES.DO_NOT_HANDLE: [
+                    ENUM_RELOC_TYPE_i386['R_386_PC32'],
+                    ENUM_RELOC_TYPE_i386['R_386_TLS_TPOFF'],
+                ]
 
             },
             support_dynamic=True,
