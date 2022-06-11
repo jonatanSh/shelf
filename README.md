@@ -51,9 +51,7 @@ simplified make command for mips big endian
 
 ```c
 gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
-#                       [Architectures] [ENDIAN] [Libc full support]
-python -m elf_to_shellcode --input binary.out --arch mips --endain big
-                                         
+python -m elf_to_shellcode --input binary.out --arch mips --endain big                                     
 ```
 
 ### Examples:
@@ -76,22 +74,6 @@ therefor you can't use printf in the shellcode, but you can implement it using s
 ### Architectures that fully support libc:
 
 * None
-
-### Converting the elf to shellcode:
-
-```python
-from elf_to_shellcode.relocate import make_shellcode, Arches, Startfiles
-shellcode = make_shellcode(
-    binary_path="/tmp/binary.out",
-    arch=Arches.MIPS_32,
-    endian="big",
-    # Currently, no arch support glibc
-    start_file_method=Startfiles.no_start_files, 
-)
-
-with open("myshellcode.out", 'wb') as fp:
-    fp.write(shellcode)
-```
 
 
 ### Testing your shellcode
