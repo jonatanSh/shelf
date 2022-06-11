@@ -120,17 +120,6 @@ arm in 64 bit mode generate adrl instruction.
 These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
 page aligned to overcome this limitation the shellcode is padded
 
-### Shellcode Concatenation
-you can concatenate shellcodes to each other.
-eg ...
-```python
-MEMORY = [
-    shellcode1,
-    shellcode2
-]
-```
-In order to call function inside shellcode2 use the dynamic loader feature
-
 
 ### Dynamic loader
 you can add the dynamic loader support using
@@ -138,7 +127,8 @@ you can add the dynamic loader support using
 --loader-supports dynamic
 ```
 This will increase the size of the mini loader, but will enable you to link against the loader itself
-And load shellcodes yourself which are concatenated
+and load shellcodes yourself
+in future versions it will enable you to create your own runtime resolve function
 eg ...
 ```c
 struct elf_information_struct {
@@ -182,6 +172,10 @@ void main() {
 }
 ```
 
+this feature is currently only enabled for:
+* intel x32 shellcodes
+
+please take a look at the elf_features test and makefile to fully understand how to use this feature
 
 # Optimizations
 some Compiler optimization (like -o3) may produce un-shellcodeable output.
