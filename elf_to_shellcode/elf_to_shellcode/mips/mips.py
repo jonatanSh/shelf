@@ -1,4 +1,6 @@
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
+from elftools.elf.enums import ENUM_RELOC_TYPE_MIPS
 
 
 class MipsShellcode(Shellcode):
@@ -17,6 +19,7 @@ class MipsShellcode(Shellcode):
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
 
             },
+            support_dynamic=False,
             **kwargs
         )
 

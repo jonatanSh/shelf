@@ -28,10 +28,12 @@ class Shellcode(object):
                  mini_loader_little_endian,
                  shellcode_table_magic,
                  ptr_fmt,
+                 support_dynamic=False,
                  sections_to_relocate={},
                  ext_bindings=[],
                  supported_start_methods=[],
                  reloc_types={}):
+        self.support_dynamic = support_dynamic
         self.logger = logging.getLogger("[{}]".format(
             self.__class__.__name__
         ))
@@ -84,11 +86,12 @@ class Shellcode(object):
         self.debugger_symbols = [
             "loader_main"
         ]
-        self.support_dynamic = False
+
 
         self.disassembler = Disassembler(self)
-        self.dynamic_relocs = DynamicRelocations(reloc_types)
-        self.add_relocation_handler(self.dynamic_relocs.handle)
+        if self.support_dynamic:
+            self.dynamic_relocs = DynamicRelocations(reloc_types)
+            self.add_relocation_handler(self.dynamic_relocs.handle)
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
@@ -102,7 +105,9 @@ class Shellcode(object):
         args = sys.modules["global_args"]
         features_map = sorted(args.loader_supports, key=lambda lfeature: lfeature[1])
         for feature in features_map:
-            setattr(self, "support_{}".format(feature), True)
+            value = getattr(self, "support_{}".format(feature))
+            if not value:
+                raise Exception("Arch does not support: {}".format(feature))
         loader_additional = "_".join([feature for feature in features_map])
         if loader_additional:
             loader_additional = "_" + loader_additional

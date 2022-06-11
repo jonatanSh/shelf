@@ -29,8 +29,11 @@ class DynamicRelocations(object):
                 ))
                 raise Exception("Not supported")
             else:
+                logging.info("Relocation types: {}".format(
+                    relocation_table.keys()
+                ))
                 handler(shellcode=shellcode,
-                        table=relocation_table["JMPREL"],
+                        table=relocation_table[reloc_type],
                         dynsym=dynsym)
         self.handle_other_dynamic_relocations(shellcode=shellcode)
         return shellcode_data
@@ -151,8 +154,12 @@ class DynamicRelocations(object):
                     hex(shellcode.make_absolute(offset)),
                     hex(shellcode.make_absolute(v_offset))
                 ))
-
-
+            # Think about, those, they are already handled because the code is bad for now
+            elif entry.r_info_type in [self.reloc_types[RELOC_TYPES.GLOBAL_SYM],
+                                       self.reloc_types[RELOC_TYPES.RELATIVE],
+                                       self.reloc_types[RELOC_TYPES.GLOBAL_DAT],
+                                       2, 14]:
+                continue
             else:
                 self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(
                     entry,

@@ -19,6 +19,7 @@ class ArmX64Shellcode(Shellcode):
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
             },
+            support_dynamic=False,
             **kwargs
         )
         self.irelative = IrelativeRelocs(ENUM_RELOC_TYPE_AARCH64['R_AARCH64_TLS_DTPMOD32'])

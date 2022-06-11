@@ -102,6 +102,8 @@ void main(int random) {
     struct relocation_table * info;
     TRACE("Calling get elf information, testing dynamic shellcode\n");
 
+#ifdef DYNAMIC_SUPPORT
+    TRACE("Arch support dynamic relocations, testing dynamic objects\n");
     status=get_elf_information(&info);
     if(status == ERROR) {
         TRACE("Error while calling get elf information\n");
@@ -112,7 +114,7 @@ void main(int random) {
     info->magic,
     info->elf_information.elf_header_size, 
     info->elf_information.loader_size);
-
+#endif
 error:
     return;
 }

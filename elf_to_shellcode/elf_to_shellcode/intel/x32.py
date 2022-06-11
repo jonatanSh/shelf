@@ -40,6 +40,7 @@ class IntelX32Shellcode(Shellcode):
                 RELOC_TYPES.GLOBAL_DAT: ENUM_RELOC_TYPE_i386['R_386_GLOB_DAT']
 
             },
+            support_dynamic=True,
             **kwargs
         )
         self.irelative = IrelativeRelocs(

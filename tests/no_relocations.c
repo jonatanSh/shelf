@@ -18,5 +18,7 @@ int get_elf_information();
 void main() {
     struct elf_information_struct info;
     print_out("Hello\n", 6);
-    get_elf_information(&info);
+    #ifdef DYNAMIC_SUPPORT
+        get_elf_information(&info);
+    #endif
 }

@@ -1,6 +1,7 @@
 from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_x64
 from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
+from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
 
 
 class IntelX64Shellcode(Shellcode):
@@ -14,9 +15,11 @@ class IntelX64Shellcode(Shellcode):
             mini_loader_big_endian=None,
             shellcode_table_magic=0x8899aabbccddeeff,
             ptr_fmt="Q",
+
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
             },
+            support_dynamic=False,
             **kwargs
         )
         self.irelative = IrelativeRelocs(ENUM_RELOC_TYPE_x64['R_X86_64_IRELATIVE'])
