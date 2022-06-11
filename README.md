@@ -121,7 +121,7 @@ These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
 page aligned to overcome this limitation the shellcode is padded
 
 
-### Dynamic loader
+### Dynamic loader and function injection
 you can add the dynamic loader support using
 ```bash
 --loader-supports dynamic
@@ -130,6 +130,13 @@ This will increase the size of the mini loader, but will enable you to link agai
 and load shellcodes yourself
 in future versions it will enable you to create your own runtime resolve function
 eg ...
+
+### Function injection:
+get_elf_information address (loader function) is injected while building the shellcode.
+the library statically set the address of external functions.
+currently, it is not exposed to the user but in future versions
+support for user input for external functions will be added. 
+
 ```c
 struct elf_information_struct {
     size_t elf_header_size;
