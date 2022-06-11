@@ -27,9 +27,10 @@ class IrelativeRelocs(object):
 
         for relocation in rela_plt.iter_relocations():
             if relocation.entry.r_info != self.irelative_type:
-                raise Exception("Relocation not supported yet: {}".format(
+                self.logger.error("Relocation not supported yet: {}".format(
                     relocation.entry.r_info
                 ))
+                continue
 
             virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
             function_offset = shellcode.make_relative(relocation.entry.r_addend)

@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-typedef unsigned int size_t;
 
 struct elf_information_struct {
     size_t elf_header_size;
