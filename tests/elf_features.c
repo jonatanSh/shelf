@@ -1,6 +1,20 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+typedef unsigned int size_t;
+
+struct elf_information_struct {
+    size_t elf_header_size;
+};
+
+void loader_main(
+    int argc, 
+    char ** argv, 
+    char ** envp,
+    size_t loader_magic,
+    size_t pc);
+
+int get_elf_information();
 
 
 
@@ -50,5 +64,8 @@ void main(int random) {
     test_jump_table(random);
     write_out("Testing global ptr arrays\n");
     test_global_ptr_arrays();
+    struct elf_information_struct info;
+    write_out("Hello\n");
+    //get_elf_information(&info);
 }
 

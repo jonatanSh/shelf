@@ -55,7 +55,10 @@ class DynamicRelocations(object):
                 shellcode.addresses_to_patch[offset] = [0, RelocationAttributes.relative]
             elif entry.r_info_type in [2, 14]:
                 continue
-            elif entry.r_info_type == self.reloc_types[RELOC_TYPES.GLOBAL_SYM]:
+            elif entry.r_info_type in [
+                self.reloc_types[RELOC_TYPES.GLOBAL_SYM],
+                self.reloc_types[RELOC_TYPES.GLOBAL_DAT]
+            ]:
                 sym = dynsym.get_symbol(entry.r_info_sym)
                 offset = shellcode.make_relative(entry.r_offset)
                 r_address = shellcode.make_relative(sym.entry.st_value)
@@ -90,7 +93,7 @@ class DynamicRelocations(object):
             """
             if r_address:
                 r_address = shellcode.make_relative(r_address)
-                self.logger.info("[JMP_SL_LC] Relative(*{}={}()) Absolute(*{}={}())".format(
+                self.logger.info("[JMP_SL_LC] Relative(*{}={}) Absolute(*{}={})".format(
                     hex(offset),
                     hex(r_address),
                     hex(shellcode.make_absolute(offset)),
@@ -111,7 +114,7 @@ class DynamicRelocations(object):
             jmp_slot_address = shellcode.loader_symbols.get_relative_symbol_address(
                 symbol_name=symbol_name
             )
-            self.logger.info("[JMP_SL_EXT] Relative(*{}={}()) Absolute(*{}={}())".format(
+            self.logger.info("[JMP_SL] Relative(*{}={}()) Absolute(*{}={}())".format(
                 hex(offset),
                 hex(jmp_slot_address),
                 hex(shellcode.make_absolute(offset)),
@@ -130,14 +133,25 @@ class DynamicRelocations(object):
             v_offset = shellcode.make_relative(symbol_obj.entry.st_value)
             offset = shellcode.make_relative(entry.r_offset)
             if entry.r_info_type == self.reloc_types[RELOC_TYPES.JMP_SLOT]:
-                self.logger.info("[JMP_SL_IRELATIVE] Relative(*{}={}()) Absolute(*{}={}())".format(
+                sym_type = symbol_obj.entry.st_info.type
+                if sym_type == "STT_FUNC":
+                    shellcode.addresses_to_patch[offset] = v_offset
+                elif sym_type == "STT_LOOS":
+                    shellcode.addresses_to_patch[offset] = [v_offset,
+                                                            RelocationAttributes.call_to_resolve]
+                elif sym_type == "STT_NOTYPE":
+                    self.logger.error("Sym type: STT_NOTYPE error")
+                else:
+                    self.logger.error("Unknown symtype: {} {}".format(symbol_obj.name, sym_type))
+                    assert False
+                self.logger.info("[JMP_SL_{}] Relative(*{}={}()) Absolute(*{}={}())".format(
+                    sym_type,
                     hex(offset),
                     hex(v_offset),
                     hex(shellcode.make_absolute(offset)),
                     hex(shellcode.make_absolute(v_offset))
                 ))
-                shellcode.addresses_to_patch[offset] = [v_offset,
-                                                        RelocationAttributes.call_to_resolve]
+
 
             else:
                 self.logger.error("[R_TYPE_NOT_SUPPORTED]: {}, only {} are supported".format(

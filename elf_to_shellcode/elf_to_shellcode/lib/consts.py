@@ -8,6 +8,7 @@ class RELOC_TYPES(object):
     JMP_SLOT = "JMP_SLT"
     RELATIVE = "RELATIVE"
     GLOBAL_SYM = "GLOBAL_SYM"
+    GLOBAL_DAT = "GLOBAL_DAT"
 
 
 class StartFiles(object):
