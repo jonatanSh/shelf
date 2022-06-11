@@ -6,7 +6,7 @@
 #include "sprintf.h"
 
 #define MAX_DEBUG_BUFFER 0xffff
-#define TRACE_FORMAT "[INFO] %s %s(line:%u):"
+#define TRACE_FORMAT "[ELF_FEATURES:INFO] %s %s(line:%u):"
 
 struct elf_information_struct {
     size_t elf_header_size;
@@ -58,11 +58,11 @@ void trace_handler(const char* fmt, const char * file, const char * func, unsign
 
 
 void say_hi() {
-    write_out("Hi\n");
+    TRACE("Hi\n");
 }
 
 void say_hello() {
-    write_out("Hello\n");
+    TRACE("Hello\n");
 }
 
 typedef void (*function_t)();
@@ -76,9 +76,9 @@ void test_jump_table(int random) {
 
     switch(random) {
         case 1:
-            write_out("Case is 1\n");
+            TRACE("Case is 1\n");
         default:
-            write_out("Case is default\n");
+            TRACE("Case is default\n");
     }
 }
 
@@ -95,7 +95,6 @@ void test_global_ptr_arrays() {
 
 
 
-// This function doesn't get any arguments, the int random is only for the compiler to not optimize the switch case
 void main(int random) {
     int status;
     TRACE("Hello from shellcode!\n");

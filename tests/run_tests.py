@@ -46,13 +46,17 @@ def run_arch_tests(arch, case):
             case
         )
         command = "{} {} {} {}".format(qemu, db_arg, loader, test)
-        print("-" * 30)
+        if not args.only_stdout:
+            print("-" * 30)
         if args.debug:
             print("Waiting for debugger at: {}".format(1234))
             print(command)
         logging.info("Running command: {}".format(command))
         stdout, stderr = subprocess.Popen(command, shell=True, stdout=PIPE, stderr=PIPE).communicate()
-
+        if args.only_stdout:
+            print(stdout)
+            print(stderr)
+            continue
         if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
             print("test: {} for: {} ... Success".format(test_case, arch))
         else:
@@ -85,7 +89,10 @@ parser.add_argument("--arch", choices=arch_choices, required=False, default="all
 parser.add_argument("--test", choices=tests, required=False, default="all")
 parser.add_argument("--debug", default=False, action="store_true", required=False, help="Run qemu on local port 1234")
 parser.add_argument("--verbose", default=False, action="store_true", required=False)
+parser.add_argument("--only-stdout", default=False, required=False, action="store_true",
+                    help="Run and only display stdout and stderr")
 args = parser.parse_args()
 if args.verbose:
+    assert not args.only_stdout, "error --only-stdout and --verbose dont work togther"
     logging.basicConfig(level=logging.INFO)
 main(arch=args.arch, case=args.test)
