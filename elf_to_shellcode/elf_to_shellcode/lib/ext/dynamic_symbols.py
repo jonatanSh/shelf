@@ -5,9 +5,10 @@ import logging
 
 class DynamicRelocations(object):
     def __init__(self, reloc_types):
-        self.handlers = {}
-        self.handlers['JMPREL'] = self.handle_jmp_slot_relocs
-        self.handlers["REL"] = self.handle_rels
+        self.handlers = {
+            'JMPREL': self.handle_jmp_slot_relocs,
+            "REL": self.handle_rels
+        }
         self.logger = logging.getLogger(self.__class__.__name__)
         self.reloc_types = reloc_types
 
