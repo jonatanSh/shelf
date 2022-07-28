@@ -16,9 +16,11 @@ Please read the following documentation and view the examples for this project t
 
 #### Installation:
 ```bash
-# suport python2 and python3
 pip install elf_to_shellcode
 ```
+###### Python version support
+* python3
+* python2
 
 ## How does this work ?
 The python library parses the elf and create a simple relocatable file format
