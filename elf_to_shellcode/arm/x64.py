@@ -32,7 +32,7 @@ class ArmX64Shellcode(Shellcode):
             alignment = len(header) % aarch64_alignment
         else:
             alignment = aarch64_alignment - len(header)
-        padding = '\x00' * alignment
+        padding = b'\x00' * alignment
         header_moved = self.move_header_by_offset(header,
                                                   offset=len(padding))
 

@@ -3,6 +3,8 @@ from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFile
 import logging
 from argparse import ArgumentParser
 from elf_to_shellcode.lib.consts import LoaderSupports
+from elf_to_shellcode.lib import five
+
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
 parser.add_argument("--arch",
@@ -40,7 +42,8 @@ else:
     output_file = args.input + "{0}.out.shell".format(args.arch)
 
 with open(output_file, "wb") as fp:
-    fp.write(make_shellcode(args.input, arch=args.arch, endian=args.endian,
-                            start_file_method=args.start_method))
+    shellcode = make_shellcode(args.input, arch=args.arch, endian=args.endian,
+                               start_file_method=args.start_method)
+    fp.write(five.to_file(shellcode))
 
 print("Created: {}".format(output_file))
