@@ -3,7 +3,7 @@ import os
 
 try:
     with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'rb') as fp:
-        README = fp.read()
+        README = str(fp.read())
 except:
     print("Readme error")
 
