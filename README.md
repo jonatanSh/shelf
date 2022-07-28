@@ -7,14 +7,6 @@ Please read the following documentation and view the examples for this project t
 
 [Pypi](https://pypi.org/project/elf-to-shellcode/)
 
-#### Advanced conceptes and features
-[Compiling with libc](docs/libc.md)
-
-[Dynamic shellcode](docs/dynamic.md)
-
-[Optimizations](docs/optimizations.md)
-
-
 #### Supported architectures
 * mips
 * i386 (32bit)
@@ -111,3 +103,10 @@ Hello from shellcode !
 arm in 64 bit mode generate adrl instruction.
 These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
 page aligned to overcome this limitation the shellcode is padded
+
+#### Advanced conceptes and features
+[Compiling with libc](docs/libc.md)
+
+[Dynamic shellcode](docs/dynamic.md)
+
+[Optimizations](docs/optimizations.md)
