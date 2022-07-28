@@ -1,5 +1,5 @@
-from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes
-from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
+from elf_to_shellcode.lib.consts import RelocationAttributes
+from elf_to_shellcode.lib.consts import RELOC_TYPES
 import logging
 
 

@@ -1,4 +1,4 @@
-from elf_to_shellcode.elf_to_shellcode.lib.consts import RelocationAttributes, StartFiles
+from elf_to_shellcode.lib.consts import RelocationAttributes, StartFiles
 import logging
 
 

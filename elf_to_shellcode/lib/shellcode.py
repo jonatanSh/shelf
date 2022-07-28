@@ -1,17 +1,16 @@
 from elftools.elf.elffile import ELFFile
-from elf_to_shellcode.elf_to_shellcode.resources import get_resource
+from elf_to_shellcode.resources import get_resource
 import struct
 import sys
-from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
-from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
-from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
-from elf_to_shellcode.elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
-from elf_to_shellcode.elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.lib.utils.address_utils import AddressUtils
+from elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.lib.utils.disassembler import Disassembler
+from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
+from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 import logging
 from elftools.elf.constants import P_FLAGS
+from elf_to_shellcode.lib import five
 
-py_version = int(sys.version[0])
-assert py_version == 2, "Python3 is not supported for now :("
 PTR_SIZES = {
     4: "I",
     8: "Q"
@@ -87,7 +86,6 @@ class Shellcode(object):
             "loader_main"
         ]
 
-
         self.disassembler = Disassembler(self)
         if self.support_dynamic:
             self.dynamic_relocs = DynamicRelocations(reloc_types)
@@ -128,13 +126,13 @@ class Shellcode(object):
         return self.pack(self.ptr_fmt, n)
 
     def pack_list_of(self, lst, fmt):
-        packed = ""
+        packed = five.py_obj()
         for item in lst:
             packed += self.pack(fmt, item)
         return packed
 
     def pack_list_of_pointers(self, lst):
-        packed = ""
+        packed = five.py_obj()
         for item in lst:
             packed += self.pack_pointer(item)
         return packed
@@ -169,7 +167,7 @@ class Shellcode(object):
 
     @property
     def relocation_table(self):
-        table = ""
+        table = five.py_obj()
 
         for key, value in self.addresses_to_patch.items():
             if type(value) is not list:
@@ -177,21 +175,19 @@ class Shellcode(object):
 
             value_packed = self.pack_list_of_pointers(value)
 
-            relocation_entry = "".join([str(v) for v in struct.pack("{0}{1}".format(self.endian,
-                                                                                    self.ptr_fmt), key)])
+            relocation_entry = self.pack_pointer(key)
             relocation_entry += value_packed
 
             relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)
             relocation_entry = relocation_size + relocation_entry
             table += relocation_entry
 
-        size_encoded = "".join([str(v) for v in struct.pack("{}{}".format(self.endian,
-                                                                          self.ptr_fmt), len(table))])
+        size_encoded = self.pack_pointer(len(table))
         return self.pack_pointer(self.shellcode_table_magic) + size_encoded + self.pre_table_header + table
 
     @property
     def pre_table_header(self):
-        header = ""
+        header = five.py_obj()
         sht_entry_header_size = 2 * self.sizeof("short")  # two shorts
         header += self.pack_pointer(
             self.elffile.header.e_ehsize + sht_entry_header_size
@@ -243,7 +239,7 @@ class Shellcode(object):
         return shellcode_data
 
     def do_objdump(self, data):
-        new_binary = ""
+        new_binary = five.py_obj()
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
@@ -257,12 +253,12 @@ class Shellcode(object):
                     hex(len(data))
                 )
                 # first we make sure this part is already filled
-                new_binary = new_binary.ljust(end, '\x00')
+                new_binary = five.ljust(new_binary, end, b'\x00')
                 segment_data = data[f_start:f_end]
 
                 # Now we rewrite the segment data
                 # We look at new binary as memory dump so we write using virtual addresses offsets
-                new_binary = str(new_binary[:start]) + str(segment_data) + str(new_binary[start + len(segment_data):])
+                new_binary = new_binary[:start] + segment_data + new_binary[start + len(segment_data):]
         return new_binary  # TODO check if the elf header is really required
 
     @property
@@ -316,7 +312,7 @@ class Shellcode(object):
         # This must be here !
         relocation_table = self.relocation_table
 
-        full_header = str(self.loader) + str(relocation_table) + str(shellcode_header)
+        full_header = self.loader + relocation_table + shellcode_header
         args = sys.modules["global_args"]
         if args.save_without_header:
             self.logger.info("Saving without shellcode table")

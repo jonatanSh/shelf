@@ -1,9 +1,9 @@
-from elf_to_shellcode.elf_to_shellcode.mips.mips import mips_make_shellcode
-from elf_to_shellcode.elf_to_shellcode.intel.x32 import intel_x32_make_shellcode
-from elf_to_shellcode.elf_to_shellcode.intel.x64 import intel_x64_make_shellcode
-from elf_to_shellcode.elf_to_shellcode.arm.x32 import arm_x32_make_shellcode
-from elf_to_shellcode.elf_to_shellcode.arm.x64 import arm_x64_make_shellcode
-from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.mips.mips import mips_make_shellcode
+from elf_to_shellcode.intel.x32 import intel_x32_make_shellcode
+from elf_to_shellcode.intel.x64 import intel_x64_make_shellcode
+from elf_to_shellcode.arm.x32 import arm_x32_make_shellcode
+from elf_to_shellcode.arm.x64 import arm_x64_make_shellcode
+from elf_to_shellcode.lib.consts import StartFiles
 
 
 class Arches(object):

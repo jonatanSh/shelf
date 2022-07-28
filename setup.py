@@ -3,13 +3,13 @@ import os
 
 try:
     with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'rb') as fp:
-        README = fp.read()
+        README = str(fp.read())
 except:
     print("Readme error")
 
 setup(
     name='elf_to_shellcode',
-    version='2.1.1',
+    version='2.1.3',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[

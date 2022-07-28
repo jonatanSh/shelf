@@ -16,8 +16,8 @@ Please read the following documentation and view the examples for this project t
 
 #### Installation:
 ```bash
-# Unfortunately only python2 is supported for now
-python2 -m pip install elf_to_shellcode
+# suport python2 and python3
+pip install elf_to_shellcode
 ```
 
 ## How does this work ?

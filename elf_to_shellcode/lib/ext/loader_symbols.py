@@ -1,4 +1,4 @@
-from elf_to_shellcode.elf_to_shellcode.resources import get_resource_path
+from elf_to_shellcode.resources import get_resource_path
 
 
 class ShellcodeLoader(object):

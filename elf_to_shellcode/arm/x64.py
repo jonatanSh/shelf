@@ -1,6 +1,6 @@
-from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
-from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
+from elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 
 
 # Refernce: https://static1.squarespace.com/static/59c4375b8a02c798d1cce06f/t/59d55a7bf5e2319471bb94a4/1507154557709/ELF+for+ARM64.pdf
@@ -32,7 +32,7 @@ class ArmX64Shellcode(Shellcode):
             alignment = len(header) % aarch64_alignment
         else:
             alignment = aarch64_alignment - len(header)
-        padding = '\x00' * alignment
+        padding = b'\x00' * alignment
         header_moved = self.move_header_by_offset(header,
                                                   offset=len(padding))
 

@@ -1,4 +1,5 @@
 import capstone
+from elf_to_shellcode.lib import five
 
 ARCHES = {
     "mips": capstone.CS_ARCH_MIPS,
@@ -29,7 +30,7 @@ class Disassembler(object):
         offset = self.shellcode.instruction_offset_after_objdump
         self.opcodes = self.shellcode.do_objdump(self.shellcode.shellcode_data)[offset:]
         self.instructions = [instruction for instruction in self.cs.disasm(
-            self.opcodes,
+            five.to_disasm(self.opcodes),
             offset,
         )]
 
