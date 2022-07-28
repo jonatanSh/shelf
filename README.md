@@ -105,6 +105,9 @@ These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
 page aligned to overcome this limitation the shellcode is padded
 
 #### Advanced conceptes and features
+
+for following links only work on the github page
+
 [Compiling with libc](docs/libc.md)
 
 [Dynamic shellcode](docs/dynamic.md)
