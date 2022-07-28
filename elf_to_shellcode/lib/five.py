@@ -33,8 +33,9 @@ def array_join(array):
 
 
 def ljust(source, size, by):
-    length = (len(source) - size)
+    length = (size - len(source))
     if length < 0:
         length = 0
     source += by * length
+    assert len(source) == size
     return source
