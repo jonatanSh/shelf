@@ -1,4 +1,3 @@
-
 # Optimizations
 some Compiler optimization (like -o3) may produce un-shellcodeable output.
 #### Example of compiler optimization (intel x32):

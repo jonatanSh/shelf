@@ -9,7 +9,9 @@ Please read the following documentation and view the examples for this project t
 
 #### Advanced conceptes and features
 [Compiling with libc](docs/libc.md)
+
 [Dynamic shellcode](docs/dynamic.md)
+
 [Optimizations](docs/optimizations.md)
 
 

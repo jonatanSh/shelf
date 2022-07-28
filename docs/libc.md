@@ -1,4 +1,4 @@
-#### Compiling with libc
+# Compiling with libc
 Libc has destructors and constructors only some architectures fully support libc.
 take a look at the provided example (which uses libc) and note that some function won't work properly in some architectures.
 
