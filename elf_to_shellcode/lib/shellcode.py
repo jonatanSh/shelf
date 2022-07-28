@@ -1,12 +1,12 @@
 from elftools.elf.elffile import ELFFile
-from elf_to_shellcode.elf_to_shellcode.resources import get_resource
+from elf_to_shellcode.resources import get_resource
 import struct
 import sys
-from elf_to_shellcode.elf_to_shellcode.lib.utils.address_utils import AddressUtils
-from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
-from elf_to_shellcode.elf_to_shellcode.lib.utils.disassembler import Disassembler
-from elf_to_shellcode.elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
-from elf_to_shellcode.elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.lib.utils.address_utils import AddressUtils
+from elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.lib.utils.disassembler import Disassembler
+from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
+from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 import logging
 from elftools.elf.constants import P_FLAGS
 

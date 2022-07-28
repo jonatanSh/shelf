@@ -1,8 +1,8 @@
-from elf_to_shellcode.elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_i386
-from elf_to_shellcode.elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
-from elf_to_shellcode.elf_to_shellcode.lib.consts import StartFiles
-from elf_to_shellcode.elf_to_shellcode.lib.consts import RELOC_TYPES
+from elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
+from elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.lib.consts import RELOC_TYPES
 
 
 def get_glibc_instructions_filter(address):
