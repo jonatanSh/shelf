@@ -29,6 +29,20 @@ will load the relocatable format and execute it.
 There are no special requirements, the library contain the compiled
 mini loaders.
 
+```mermaid
+  classDiagram
+    ShellcodeEntryPoint --|> MiniLoader
+    ShellcodeEntryPoint: Shellcode to jump into the mini loader
+    MiniLoader --|> Relocation table
+    MiniLoader: Contain all the logic for parsing the relocation table
+    MiniLoader: fully os independent
+    Relocation table --|> SHELF
+    Relocation table : Contain table required for shellcode runtime relocation
+    SHELF: Shellcode elf - This is the compiled binary we convert into shellcode
+    SHELF: This binary is stripped into only opcodes
+    SHELF: fully relocatable using the relocation table
+```
+
 This project is intended to convert elf to os independent shellcodes.
 Therefor the loader never allocate memory and the shellcode format is not packed.
 You can just execute it, eg ...
