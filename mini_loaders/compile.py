@@ -6,11 +6,27 @@ TARGET_FILES = [
 ]
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
+
+
+def cfiles(directory):
+    return [os.path.join(directory, filename) for filename in os.listdir(directory)
+            if filename.endswith(".c")]
+
+
+OSAL_BASE = cfiles('../osals')
+LINUX_OSAL_FILES = OSAL_BASE
+LINUX_OSAL_FILES += cfiles("../osals/linux/")
+LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/")
+LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/sys")
+
 features = {
     # This is just a normal loader keep this
     '': {'defs': [], 'files': ['generic_loader.c']},
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c']},
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
+    'eshelfs': {'defs': ['ESHELF'],
+                'files': ['generic_loader.c'] + LINUX_OSAL_FILES,
+                'cflags': ['-I../osals/linux/', '-I../osals']},
 
 }
 
@@ -28,10 +44,10 @@ class Compiler(object):
         print(cmd_fmt)
         subprocess.check_call(cmd_fmt, shell=True)
 
-    def gcc(self, *options):
+    def gcc(self, flags, *options):
         return self.execute(
             self._gcc,
-            *(self.cflags + list(options))
+            *(self.cflags + flags + list(options))
         )
 
     def objcopy(self, *options):
@@ -46,12 +62,12 @@ class Compiler(object):
             *options
         )
 
-    def compile(self, files, output_file, defines=[]):
+    def compile(self, files, output_file, defines, flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
         args = ['-D{}'.format(d) for d in defines]
         args += files
         args += ['-o', output_file]
-        self.gcc(*args)
+        self.gcc(flags, *args)
         resource_out = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode")))
         symbol_filename = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode.symbols")))
 
@@ -122,6 +138,7 @@ compilers = [
 for compiler in compilers:
     for feature_name, attributes in features.items():
         supported = attributes.get('supported')
+        flags = attributes.get("cflags", [])
         if supported:
             if compiler.compiler_name not in supported:
                 print("Skipping feature: {} for compiler: {}".format(
@@ -137,5 +154,6 @@ for compiler in compilers:
         compiler.compile(
             files=attributes['files'],
             output_file=target_out,
-            defines=attributes['defs']
+            defines=attributes['defs'],
+            flags=flags
         )

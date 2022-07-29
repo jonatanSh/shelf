@@ -1,4 +1,5 @@
 #include "./loader_generic.h"
+#include "eshelf/debug.h"
 
 /*
     Macro insted of functions:
@@ -24,6 +25,7 @@ void loader_main(
     size_t loader_base;
     size_t magic;
     size_t total_argv_envp_size = 0;
+    TRACE("Mini loader loaded");
     resolve_table_magic();
     /*
         Otherwise loader has be called with pc
