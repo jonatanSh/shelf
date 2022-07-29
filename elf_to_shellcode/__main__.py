@@ -2,7 +2,7 @@ import sys
 from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
 import logging
 from argparse import ArgumentParser
-from elf_to_shellcode.lib.consts import LoaderSupports
+from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
 from elf_to_shellcode.lib import five
 
 parser = ArgumentParser("ElfToShellcode")
@@ -31,6 +31,11 @@ parser.add_argument("--interactive",
                     default=False,
                     action="store_true",
                     help="Debug mode to open interactive cli with the shellcode class")
+parser.add_argument("--output-format",
+                    choices=OUTPUT_FORMATS,
+                    required=False,
+                    default='shelf',
+                    help="Output format for shellcode, read more in the docs/output_format.md")
 args = parser.parse_args()
 sys.modules["global_args"] = args
 if args.verbose:

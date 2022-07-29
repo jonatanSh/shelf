@@ -3,8 +3,9 @@ This format wrap the output SHELF shellcode into a standalone elf.
 This format is used for debug pruposes
 
 ## How does this work ?
-This format build a new elf file and host the shelf inside that file.
-then it changes the entry point of this new elf to point into the shellcode
+Elf mini loaders are also provided in this package.
+when this format is selected the loader is a full elf
+we then modify the loader and add an executable section to it, we insert the shelf into that section
 
 ```mermaid
   classDiagram
@@ -15,5 +16,5 @@ then it changes the entry point of this new elf to point into the shellcode
 ## How to use
 just add the following outputing option
 ```python
---output-fmt eshelf
+--output-format eshelf
 ```
