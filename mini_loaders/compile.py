@@ -32,8 +32,7 @@ features = {
                     'mips',
                     'mipsbe'
                 ],
-                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded"},
-
+                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded"}
 }
 
 
