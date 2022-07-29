@@ -1,0 +1,3 @@
+#ifndef ESHELF_DEBUG
+
+#define ESHELF_DEBUG
