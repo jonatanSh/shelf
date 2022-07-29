@@ -31,15 +31,17 @@ features = {
                     'x64',
                     'mips',
                     'mipsbe'
-                ]},
+                ],
+                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded"},
 
 }
 
 
 class Compiler(object):
-    def __init__(self, gcc, objcopy, cflags, compiler_name):
-        self._gcc = gcc
-        self._objcopy = objcopy
+    def __init__(self, host, cflags, compiler_name):
+        self._gcc = "{}-gcc".format(host)
+        self._objcopy = "{}-objcopy".format(host)
+        self._strip = "{}-strip".format(host)
         self.cflags = cflags.split(" ")
         self.compiler_name = compiler_name
 
@@ -67,7 +69,13 @@ class Compiler(object):
             *options
         )
 
-    def compile(self, files, output_file, defines, flags):
+    def strip(self, *options):
+        return self.execute(
+            self._strip,
+            *options
+        )
+
+    def compile(self, files, output_file, defines, flags, strip_flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
         args = ['-D{}'.format(d) for d in defines]
         args += files
@@ -76,14 +84,19 @@ class Compiler(object):
         resource_out = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode")))
         symbol_filename = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode.symbols")))
 
-        self.objcopy(
-            "-j",
-            '.text',
-            '-O',
-            'binary',
-            output_file,
-            resource_out
-        )
+        if not strip_flags:
+            self.objcopy(
+                "-j",
+                '.text',
+                '-O',
+                'binary',
+                output_file,
+                resource_out
+            )
+        else:
+            self.strip(
+                *(strip_flags.split(" ") + [output_file, "-o", resource_out])
+            )
 
         self.readelf(
             '-s',
@@ -94,39 +107,33 @@ class Compiler(object):
 
 
 MipsCompiler = Compiler(
-    gcc=r'mips-linux-gnu-gcc',
-    objcopy=r'mips-linux-gnu-objcopy',
+    host=r'mips-linux-gnu',
     cflags='-g -static -Wno-stack-protector -nolibc -nostartfiles --entry=loader_main',
     compiler_name="mips"
 )
 MipsCompilerBE = Compiler(
-    gcc=r'mips-linux-gnu-gcc',
-    objcopy=r'mips-linux-gnu-objcopy',
+    host=r'mips-linux-gnu',
     cflags='-g -static -Wno-stack-protector -nolibc -nostartfiles --entry=loader_main -BE',
     compiler_name="mipsbe"
 )
 IntelX32 = Compiler(
-    gcc=r'i686-linux-gnu-gcc',
-    objcopy=r'i686-linux-gnu-objcopy',
+    host=r'i686-linux-gnu',
     cflags='-static -nolibc -nostartfiles -g -Wno-stack-protector -masm=intel -fno-plt -fno-pic --entry=loader_main',
     compiler_name="x32"
 )
 IntelX64 = Compiler(
-    gcc=r'i686-linux-gnu-gcc',
-    objcopy=r'i686-linux-gnu-objcopy',
+    host=r'i686-linux-gnu',
     cflags='-static -nolibc -nostartfiles -g -Wno-stack-protector -masm=intel -fno-plt -fno-pic --entry=loader_main -m64',
     compiler_name="x64"
 )
 
 ArmX32 = Compiler(
-    gcc=r'arm-linux-gnueabi-gcc',
-    objcopy=r'arm-linux-gnueabi-objcopy',
+    host=r'arm-linux-gnueabi',
     cflags='--entry=loader_main -static -nolibc -nostartfiles -g -Wno-stack-protector -fno-plt -fno-pic',
     compiler_name="arm_x32"
 )
 AARCH64 = Compiler(
-    gcc=r'aarch64-linux-gnu-gcc',
-    objcopy=r'aarch64-linux-gnu-objcopy',
+    host=r'aarch64-linux-gnu',
     cflags='--entry=loader_main -static -nolibc -nostartfiles -g -Wno-stack-protector -fno-plt -fno-pic',
     compiler_name="arm_x64"
 )
@@ -160,5 +167,6 @@ for compiler in compilers:
             files=attributes['files'],
             output_file=target_out,
             defines=attributes['defs'],
-            flags=flags
+            flags=flags,
+            strip_flags=attributes.get("strip_flags")
         )
