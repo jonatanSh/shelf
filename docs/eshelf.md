@@ -1,6 +1,7 @@
 # ESHELF - Elf Shellcode ELF
 This format wrap the output SHELF shellcode into a standalone elf.
-This format is used for debug pruposes
+
+This format is used for debug pruposes only and the shellcode only work on linux machines (due to specific syscalls)
 
 ## How does this work ?
 Elf mini loaders are also provided in this package.
