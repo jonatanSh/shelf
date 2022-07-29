@@ -31,7 +31,7 @@
 	register long _arg5 asm("edi") = (long)(arg5);                        \
 									      \
 	asm volatile (                                                        \
-		"int $0x80\n"                                                 \
+		"int 0x80\n"                                                 \
 		: "=a" (_ret)                                                 \
 		: "r"(_arg1), "r"(_arg2), "r"(_arg3), "r"(_arg4), "r"(_arg5), \
 		  "0"(_num)                                                   \

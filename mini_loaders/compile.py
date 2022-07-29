@@ -26,7 +26,12 @@ features = {
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
     'eshelfs': {'defs': ['ESHELF'],
                 'files': ['generic_loader.c'] + LINUX_OSAL_FILES,
-                'cflags': ['-I../osals/linux/', '-I../osals']},
+                'cflags': ['-I../osals/linux/', '-I../osals'],
+                'supported': [
+                    'x64',
+                    'mips',
+                    'mipsbe'
+                ]},
 
 }
 
