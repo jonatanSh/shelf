@@ -19,6 +19,7 @@ LINUX_OSAL_FILES += cfiles("../osals/linux/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/sys")
 
+# should perform cartesian product on the features
 features = {
     # This is just a normal loader keep this
     '': {'defs': [], 'files': ['generic_loader.c']},
