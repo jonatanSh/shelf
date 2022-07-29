@@ -19,3 +19,8 @@ just add the following outputing option
 ```python
 --output-format eshelf
 ```
+
+### Supported architectures:
+
+* mips
+* intel x64
