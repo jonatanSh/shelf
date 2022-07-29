@@ -4,7 +4,7 @@ TARGETS=arm32 arm64 arm32_dynamic arm64_dynamic
 X32_CC=arm-linux-gnueabi-gcc
 x64_CC=aarch64-linux-gnu-gcc
 CFLAGS=--entry=loader_main -static -nolibc -nostartfiles -g -Wno-stack-protector -fno-plt -fno-pic
-RESOURCES=../../elf_to_shellcode/elf_to_shellcode/resources/
+RESOURCES=../../elf_to_shellcode/resources/
 
 all: $(TARGETS)
 
