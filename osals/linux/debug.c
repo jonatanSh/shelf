@@ -21,4 +21,6 @@ void trace_handler(const char * file, const char * func, unsigned int line, char
         ap);
     va_end (ap);
     sys_write(1, debug_buffer, strlen(debug_buffer));
+    sys_write(1, "\n", 1);
+
 }
