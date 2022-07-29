@@ -113,3 +113,5 @@ for following links only work on the github page
 [Dynamic shellcode](docs/dynamic.md)
 
 [Optimizations](docs/optimizations.md)
+
+[Output formats](docs/output_formats.md)
