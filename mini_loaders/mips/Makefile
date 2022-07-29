@@ -3,7 +3,7 @@ OBJCOPY=mips-linux-gnu-objcopy
 CFLAGS=-g -static -Wno-stack-protector -nolibc -nostartfiles --entry=loader_main
 DEFINES=
 TARGETS=mips mipsbe mips_dynamic mipsbe_dynamic
-RESOURCES=../../elf_to_shellcode/elf_to_shellcode/resources/
+RESOURCES=../../elf_to_shellcode/resources/
 all: $(TARGETS)
 
 mips:
