@@ -16,7 +16,7 @@ we then modify the loader and add an executable section to it, we insert the she
 
 ## How to use
 just add the following outputing option
-```python
+```bash
 --output-format eshelf
 ```
 
