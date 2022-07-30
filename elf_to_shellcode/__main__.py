@@ -2,8 +2,10 @@ import sys
 from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
 import logging
 from argparse import ArgumentParser
-from elf_to_shellcode.lib.consts import LoaderSupports
+from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
 from elf_to_shellcode.lib import five
+import os
+import stat
 
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
@@ -31,7 +33,25 @@ parser.add_argument("--interactive",
                     default=False,
                     action="store_true",
                     help="Debug mode to open interactive cli with the shellcode class")
+parser.add_argument("--output-format",
+                    choices=OUTPUT_FORMATS,
+                    required=False,
+                    default='shelf',
+                    help="Output format for shellcode, read more in the docs/output_format.md")
+parser.add_argument("--loader-path",
+                    help="Loader to use while creating the target shellcode",
+                    default=None, required=False)
+parser.add_argument("--loader-symbols-path",
+                    required=False,
+                    default=None,
+                    help="Loader symbols to use while creating the shellcode"
+                    )
 args = parser.parse_args()
+
+if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_path, args.loader_symbols_path]):
+    parser.error("--loader-path and --loader-symbols-path must be used together")
+    sys.exit(1)
+
 sys.modules["global_args"] = args
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
@@ -45,5 +65,7 @@ with open(output_file, "wb") as fp:
     shellcode = make_shellcode(args.input, arch=args.arch, endian=args.endian,
                                start_file_method=args.start_method)
     fp.write(five.to_file(shellcode))
+    st = os.stat(output_file)
+    os.chmod(output_file, st.st_mode | stat.S_IEXEC)
 
 print("Created: {}".format(output_file))

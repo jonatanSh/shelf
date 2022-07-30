@@ -30,3 +30,11 @@ class LoaderSupports(object):
     @staticmethod
     def resolve_choice(key):
         return LoaderSupports.choices[key]
+
+
+class OUTPUT_FORMAT_MAP(object):
+    eshelf = 'eshelf'
+    shelf = 'shelf'
+
+
+OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]

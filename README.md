@@ -108,8 +108,8 @@ page aligned to overcome this limitation the shellcode is padded
 
 for following links only work on the github page
 
-[Compiling with libc](docs/libc.md)
-
-[Dynamic shellcode](docs/dynamic.md)
-
-[Optimizations](docs/optimizations.md)
+* [Compiling with libc](docs/libc.md)
+* [Dynamic shellcode](docs/dynamic.md)
+* [Optimizations](docs/optimizations.md)
+* [Output formats](docs/output_formats.md)
+* [Development](docs/develop.md)

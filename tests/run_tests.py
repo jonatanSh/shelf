@@ -16,7 +16,8 @@ QEMUS = {
 }
 test_cases = {
     'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "Hello"],
-    'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello']
+    'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
+    'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['intel_x64'], 'Hello']
 }
 
 
@@ -45,7 +46,10 @@ def run_arch_tests(arch, case):
             arch,
             case
         )
-        command = "{} {} {} {}".format(qemu, db_arg, loader, test)
+        if test_case is not 'eshelf':
+            command = "{} {} {} {}".format(qemu, db_arg, loader, test)
+        else:
+            command = "{} {} {}".format(qemu, db_arg, test)
         if not args.only_stdout:
             print("-" * 30)
         if args.debug:
