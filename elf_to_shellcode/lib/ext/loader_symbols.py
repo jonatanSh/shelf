@@ -2,8 +2,8 @@ from elf_to_shellcode.resources import get_resource_path
 
 
 class ShellcodeLoader(object):
-    def __init__(self, loader_path, loader_size):
-        self.loader_symbols = get_resource_path(loader_path + ".symbols")
+    def __init__(self, symbols_path, loader_size):
+        self.loader_symbols = symbols_path
         self.symbols = {}
         self.base_address = 0
         with open(self.loader_symbols) as fp:

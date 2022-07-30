@@ -77,16 +77,25 @@ class Shellcode(object):
             self.endian = ">"
             if mini_loader_big_endian:
                 self.loader_path = self.format_loader(mini_loader_big_endian)
-                self._loader = get_resource(self.loader_path)
-                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_big_endian),
-                                                      loader_size=len(self._loader))
         else:
             if mini_loader_little_endian:
                 self.loader_path = self.format_loader(mini_loader_little_endian)
-                self._loader = get_resource(self.loader_path)
-                self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_little_endian),
-                                                      loader_size=len(self._loader))
+
             self.endian = "<"
+
+        if self.args.loader_path:
+            self.logger.info("Using loader resources from user")
+            self.loader_path = self.args.loader_path
+            self.loader_symbols_path = self.args.loader_symbols_path
+        else:
+            self.loader_path = get_resource_path(self.loader_path)
+            self.loader_symbols_path = self.loader_path + ".symbols"
+
+        assert self.loader_path
+        assert self.loader_symbols_path
+        self._loader = get_resource(self.loader_path, resolve=False)
+        self.loader_symbols = ShellcodeLoader(self.loader_symbols_path,
+                                              loader_size=len(self._loader))
         self.arch = arch
         self.debugger_symbols = [
             "loader_main"
@@ -341,7 +350,7 @@ class Shellcode(object):
 
     def build_eshelf(self, relocation_table, shellcode_header, shellcode_data):
         shellcode_data = relocation_table + shellcode_header + shellcode_data
-        loader = lief.parse(get_resource_path(self.loader_path))
+        loader = lief.parse(self.loader_path)
         segment = lief.ELF.Segment()
         segment.type = lief.ELF.SEGMENT_TYPES.LOAD
         rwx = lief.ELF.SEGMENT_FLAGS(lief.ELF.SEGMENT_FLAGS.R | lief.ELF.SEGMENT_FLAGS.W | lief.ELF.SEGMENT_FLAGS.X)
