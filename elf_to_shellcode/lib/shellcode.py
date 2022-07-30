@@ -347,7 +347,7 @@ class Shellcode(object):
         rwx = lief.ELF.SEGMENT_FLAGS(lief.ELF.SEGMENT_FLAGS.R | lief.ELF.SEGMENT_FLAGS.W | lief.ELF.SEGMENT_FLAGS.X)
         segment.flags = rwx
         segment.content = bytearray(shellcode_data)
-        loader.add(segment)
+        segment = loader.add(segment)
         tmp_path = tempfile.mktemp(".out")
         elf_buffer = None
         try:
@@ -360,7 +360,17 @@ class Shellcode(object):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
         assert elf_buffer is not None, "Error"
-        return elf_buffer
+        loader_symbol_address = self.loader.find(self.pack_pointer(0xdeadbeff))
+        assert loader_symbol_address == self.loader.rfind(self.pack_pointer(0xdeadbeff)), "Error found more then one " \
+                                                                                          "occurrence"
+        self.logger.info("Setting shellcode base address at: {}".format(
+            hex(segment.virtual_address)
+        ))
+        shellcode_start = self.pack_pointer(segment.virtual_address)
+        elf_buffer_with_address = elf_buffer[:loader_symbol_address]
+        elf_buffer_with_address += shellcode_start
+        elf_buffer_with_address += elf_buffer[loader_symbol_address + self.ptr_size:]
+        return elf_buffer_with_address
 
     def make_relative(self, address):
         return address - self.linker_base_address

@@ -12,6 +12,12 @@
     loader_magic used with pc, if present and equal to the arch magic table magic
     pc is taken from the arguments and not calculated
 */
+
+
+#ifdef ESHELF
+    static size_t __loader_symbol__shellcode_entry = 0xdeadbeff;
+#endif
+
 void loader_main(
     int argc, 
     char ** argv, 
@@ -44,9 +50,13 @@ void loader_main(
     TRACE("Loader magic is %x, required table magic is %x",
     loader_magic, magic);
     if(loader_magic != magic) {
-        get_pc();
+        #ifndef ESHELF
+            get_pc();
+            advance_pc_to_magic();
+        #else
+            pc = __loader_symbol__shellcode_entry;
+        #endif
         TRACE("Pc at search start: %x", pc);
-        advance_pc_to_magic();        
     }
     TRACE("Found table at: %x", pc);
     // If we got here then we found the table

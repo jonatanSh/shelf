@@ -19,8 +19,11 @@ class ShellcodeLoader(object):
         self.base_address = self.symbols['loader_main']
 
     def get_relative_symbol_address(self, symbol_name):
-        sym_rel = self.symbols[symbol_name] - self.base_address
+        sym_rel = self.get_symbol_address(symbol_name) - self.base_address
         return sym_rel
 
     def has_symbol(self, symbol_name):
         return symbol_name in self.symbols
+
+    def get_symbol_address(self, symbol_name):
+        return self.symbols[symbol_name]

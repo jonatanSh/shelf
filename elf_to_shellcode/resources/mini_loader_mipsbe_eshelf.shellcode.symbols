@@ -6,10 +6,10 @@ Symbol table '.symtab' contains 111 entries:
      2: 00400110     0 SECTION LOCAL  DEFAULT    2 
      3: 00400128     0 SECTION LOCAL  DEFAULT    3 
      4: 00400150     0 SECTION LOCAL  DEFAULT    4 
-     5: 00402600     0 SECTION LOCAL  DEFAULT    5 
-     6: 00412920     0 SECTION LOCAL  DEFAULT    6 
-     7: 00412950     0 SECTION LOCAL  DEFAULT    7 
-     8: 00000000     0 SECTION LOCAL  DEFAULT    8 
+     5: 00402590     0 SECTION LOCAL  DEFAULT    5 
+     6: 004128b0     0 SECTION LOCAL  DEFAULT    6 
+     7: 004128c0     0 SECTION LOCAL  DEFAULT    7 
+     8: 004128f0     0 SECTION LOCAL  DEFAULT    8 
      9: 00000000     0 SECTION LOCAL  DEFAULT    9 
     10: 00000000     0 SECTION LOCAL  DEFAULT   10 
     11: 00000000     0 SECTION LOCAL  DEFAULT   11 
@@ -20,95 +20,95 @@ Symbol table '.symtab' contains 111 entries:
     16: 00000000     0 SECTION LOCAL  DEFAULT   16 
     17: 00000000     0 SECTION LOCAL  DEFAULT   17 
     18: 00000000     0 SECTION LOCAL  DEFAULT   18 
-    19: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
-    20: 004027b0    12 OBJECT  LOCAL  DEFAULT    5 __FUNCTION__.0
-    21: 00400278     0 NOTYPE  LOCAL  DEFAULT    4 get_pc_internal
-    22: 00400284     0 NOTYPE  LOCAL  DEFAULT    4 next
+    19: 00000000     0 SECTION LOCAL  DEFAULT   19 
+    20: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
+    21: 004128b0     4 OBJECT  LOCAL  DEFAULT    6 __loader_symbol__shellcode_entry
+    22: 00402740    12 OBJECT  LOCAL  DEFAULT    5 __FUNCTION__.0
     23: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/sprintf.c
-    24: 00400770   600 FUNC    LOCAL  DEFAULT    4 sitoa
+    24: 00400700   600 FUNC    LOCAL  DEFAULT    4 sitoa
     25: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/string.c
     26: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/debug.c
-    27: 00412950     4 OBJECT  LOCAL  DEFAULT    7 errno
-    28: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    29: 00412960     4 OBJECT  LOCAL  DEFAULT    7 errno
-    30: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    31: 00412970     4 OBJECT  LOCAL  DEFAULT    7 errno
-    32: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    33: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    34: 00412980     4 OBJECT  LOCAL  DEFAULT    7 errno
-    35: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    36: 00412990     4 OBJECT  LOCAL  DEFAULT    7 errno
-    37: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    38: 004129a0     4 OBJECT  LOCAL  DEFAULT    7 errno
-    39: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    40: 004129b0     4 OBJECT  LOCAL  DEFAULT    7 errno
-    41: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    42: 004129c0     4 OBJECT  LOCAL  DEFAULT    7 errno
-    43: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    44: 004129d0     4 OBJECT  LOCAL  DEFAULT    7 errno
-    45: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    46: 004129e0     4 OBJECT  LOCAL  DEFAULT    7 errno
-    47: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    48: 004129f0     4 OBJECT  LOCAL  DEFAULT    7 errno
-    49: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_w
-    50: 00412a00     4 OBJECT  LOCAL  DEFAULT    7 errno
+    27: 004128f0     4 OBJECT  LOCAL  DEFAULT    8 errno
+    28: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/more.c
+    29: 00412900     4 OBJECT  LOCAL  DEFAULT    8 errno
+    30: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/poll.c
+    31: 00412910     4 OBJECT  LOCAL  DEFAULT    8 errno
+    32: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/port.c
+    33: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/unistd.c
+    34: 00412920     4 OBJECT  LOCAL  DEFAULT    8 errno
+    35: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/ioctl.c
+    36: 00412930     4 OBJECT  LOCAL  DEFAULT    8 errno
+    37: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/mman.c
+    38: 00412940     4 OBJECT  LOCAL  DEFAULT    8 errno
+    39: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/mount.c
+    40: 00412950     4 OBJECT  LOCAL  DEFAULT    8 errno
+    41: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/select.c
+    42: 00412960     4 OBJECT  LOCAL  DEFAULT    8 errno
+    43: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/signal.c
+    44: 00412970     4 OBJECT  LOCAL  DEFAULT    8 errno
+    45: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/stat.c
+    46: 00412980     4 OBJECT  LOCAL  DEFAULT    8 errno
+    47: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/time.c
+    48: 00412990     4 OBJECT  LOCAL  DEFAULT    8 errno
+    49: 00000000     0 FILE    LOCAL  DEFAULT  ABS ../osals/linux/syscalls_wrapper/sys/wait.c
+    50: 004129a0     4 OBJECT  LOCAL  DEFAULT    8 errno
     51: 00000000     0 FILE    LOCAL  DEFAULT  ABS 
-    52: 0041a910     0 NOTYPE  LOCAL  DEFAULT    6 _gp
-    53: 0040161c   100 FUNC    GLOBAL DEFAULT    4 sys_close
-    54: 00401b74    96 FUNC    GLOBAL DEFAULT    4 sys_setsid
-    55: 00412920     0 NOTYPE  GLOBAL DEFAULT    6 _fdata
-    56: 00401b0c   104 FUNC    GLOBAL DEFAULT    4 sys_setpgid
-    57: 004019b8   108 FUNC    GLOBAL DEFAULT    4 sys_lseek
-    58: 00402418   104 FUNC    GLOBAL DEFAULT    4 sys_umask
-    59: 004013f4    36 FUNC    GLOBAL DEFAULT    4 __stack_chk_guard
-    60: 004017c4    96 FUNC    GLOBAL DEFAULT    4 sys_fork
-    61: 004021d0   112 FUNC    GLOBAL DEFAULT    4 sys_mkdir
-    62: 00401a98   116 FUNC    GLOBAL DEFAULT    4 sys_read
-    63: 00401f80   128 FUNC    GLOBAL DEFAULT    4 sys_mount
-    64: 00401f10   112 FUNC    GLOBAL DEFAULT    4 sys_munmap
-    65: 004020f0   104 FUNC    GLOBAL DEFAULT    4 sys_kill
-    66: 00401da0   248 FUNC    GLOBAL DEFAULT    4 sys_mmap
-    67: 00400dd4   168 FUNC    GLOBAL DEFAULT    4 my_sprintf
-    68: 00402160   112 FUNC    GLOBAL DEFAULT    4 sys_chmod
-    69: 004013d0    36 FUNC    GLOBAL DEFAULT    4 __stack_chk_fail
-    70: 00401948   112 FUNC    GLOBAL DEFAULT    4 sys_link
-    71: 00401824   100 FUNC    GLOBAL DEFAULT    4 sys_fsync
-    72: 00401a24   116 FUNC    GLOBAL DEFAULT    4 sys_open
-    73: 004011a0   112 FUNC    GLOBAL DEFAULT    4 sys_getdents64
-    74: 0040153c   120 FUNC    GLOBAL DEFAULT    4 sys_chown
-    75: 004012f4    96 FUNC    GLOBAL DEFAULT    4 sys_sched_yield
-    76: 00401cac   116 FUNC    GLOBAL DEFAULT    4 sys_write
-    77: 004016e4   104 FUNC    GLOBAL DEFAULT    4 sys_dup2
-    78: 00400150  1560 FUNC    GLOBAL DEFAULT    4 loader_main
+    52: 0041a8b0     0 NOTYPE  LOCAL  DEFAULT    7 _gp
+    53: 004015ac   100 FUNC    GLOBAL DEFAULT    4 sys_close
+    54: 00401b04    96 FUNC    GLOBAL DEFAULT    4 sys_setsid
+    55: 004128b0     0 NOTYPE  GLOBAL DEFAULT    6 _fdata
+    56: 00401a9c   104 FUNC    GLOBAL DEFAULT    4 sys_setpgid
+    57: 00401948   108 FUNC    GLOBAL DEFAULT    4 sys_lseek
+    58: 004023a8   104 FUNC    GLOBAL DEFAULT    4 sys_umask
+    59: 00401384    36 FUNC    GLOBAL DEFAULT    4 __stack_chk_guard
+    60: 00401754    96 FUNC    GLOBAL DEFAULT    4 sys_fork
+    61: 00402160   112 FUNC    GLOBAL DEFAULT    4 sys_mkdir
+    62: 00401a28   116 FUNC    GLOBAL DEFAULT    4 sys_read
+    63: 00401f10   128 FUNC    GLOBAL DEFAULT    4 sys_mount
+    64: 00401ea0   112 FUNC    GLOBAL DEFAULT    4 sys_munmap
+    65: 00402080   104 FUNC    GLOBAL DEFAULT    4 sys_kill
+    66: 00401d30   248 FUNC    GLOBAL DEFAULT    4 sys_mmap
+    67: 00400d64   168 FUNC    GLOBAL DEFAULT    4 my_sprintf
+    68: 004020f0   112 FUNC    GLOBAL DEFAULT    4 sys_chmod
+    69: 00401360    36 FUNC    GLOBAL DEFAULT    4 __stack_chk_fail
+    70: 004018d8   112 FUNC    GLOBAL DEFAULT    4 sys_link
+    71: 004017b4   100 FUNC    GLOBAL DEFAULT    4 sys_fsync
+    72: 004019b4   116 FUNC    GLOBAL DEFAULT    4 sys_open
+    73: 00401130   112 FUNC    GLOBAL DEFAULT    4 sys_getdents64
+    74: 004014cc   120 FUNC    GLOBAL DEFAULT    4 sys_chown
+    75: 00401284    96 FUNC    GLOBAL DEFAULT    4 sys_sched_yield
+    76: 00401c3c   116 FUNC    GLOBAL DEFAULT    4 sys_write
+    77: 00401674   104 FUNC    GLOBAL DEFAULT    4 sys_dup2
+    78: 00400150  1456 FUNC    GLOBAL DEFAULT    4 loader_main
     79: 00400150     0 NOTYPE  GLOBAL DEFAULT    4 _ftext
-    80: 004024f0   120 FUNC    GLOBAL DEFAULT    4 sys_wait4
-    81: 00401680   100 FUNC    GLOBAL DEFAULT    4 sys_dup
-    82: 00401280   116 FUNC    GLOBAL DEFAULT    4 sys_reboot
-    83: 00402568    76 FUNC    GLOBAL DEFAULT    4 sys_waitpid
-    84: 00401d20   116 FUNC    GLOBAL DEFAULT    4 sys_ioctl
-    85: 00412944     0 NOTYPE  GLOBAL DEFAULT    7 __bss_start
-    86: 00401c44   104 FUNC    GLOBAL DEFAULT    4 sys_unlink
-    87: 00401420   104 FUNC    GLOBAL DEFAULT    4 sys_brk
-    88: 00401360   112 FUNC    GLOBAL DEFAULT    4 sys_poll
-    89: 00400ee0   696 FUNC    GLOBAL DEFAULT    4 trace_handler
-    90: 00401e98   120 FUNC    GLOBAL DEFAULT    4 sys_mprotect
-    91: 00412944     0 NOTYPE  GLOBAL DEFAULT    6 _edata
-    92: 00412920     0 OBJECT  GLOBAL HIDDEN     6 _GLOBAL_OFFSET_TABLE_
-    93: 00412a10     0 NOTYPE  GLOBAL DEFAULT    7 _end
-    94: 0040174c   120 FUNC    GLOBAL DEFAULT    4 sys_execve
-    95: 004025b4    64 FUNC    GLOBAL DEFAULT    4 sys_wait
-    96: 00401488    76 FUNC    GLOBAL DEFAULT    4 sys_exit
-    97: 00402480   112 FUNC    GLOBAL DEFAULT    4 sys_gettimeofday
-    98: 00402070   124 FUNC    GLOBAL DEFAULT    4 sys_select
-    99: 00400e80    92 FUNC    GLOBAL DEFAULT    4 strlen
-   100: 004022b8   352 FUNC    GLOBAL DEFAULT    4 sys_stat
-   101: 00401bd4   112 FUNC    GLOBAL DEFAULT    4 sys_symlink
-   102: 004015b4   104 FUNC    GLOBAL DEFAULT    4 sys_chroot
-   103: 004018e8    96 FUNC    GLOBAL DEFAULT    4 sys_getpid
-   104: 004009c8  1036 FUNC    GLOBAL DEFAULT    4 my_vsprintf
-   105: 00401210   112 FUNC    GLOBAL DEFAULT    4 sys_pivot_root
-   106: 004014d4   104 FUNC    GLOBAL DEFAULT    4 sys_chdir
-   107: 00412944     0 NOTYPE  GLOBAL DEFAULT    7 _fbss
-   108: 00402000   108 FUNC    GLOBAL DEFAULT    4 sys_umount2
-   109: 00402240   120 FUNC    GLOBAL DEFAULT    4 sys_mknod
-   110: 00401888    96 FUNC    GLOBAL DEFAULT    4 sys_getpgrp
+    80: 00402480   120 FUNC    GLOBAL DEFAULT    4 sys_wait4
+    81: 00401610   100 FUNC    GLOBAL DEFAULT    4 sys_dup
+    82: 00401210   116 FUNC    GLOBAL DEFAULT    4 sys_reboot
+    83: 004024f8    76 FUNC    GLOBAL DEFAULT    4 sys_waitpid
+    84: 00401cb0   116 FUNC    GLOBAL DEFAULT    4 sys_ioctl
+    85: 004128e4     0 NOTYPE  GLOBAL DEFAULT    8 __bss_start
+    86: 00401bd4   104 FUNC    GLOBAL DEFAULT    4 sys_unlink
+    87: 004013b0   104 FUNC    GLOBAL DEFAULT    4 sys_brk
+    88: 004012f0   112 FUNC    GLOBAL DEFAULT    4 sys_poll
+    89: 00400e70   696 FUNC    GLOBAL DEFAULT    4 trace_handler
+    90: 00401e28   120 FUNC    GLOBAL DEFAULT    4 sys_mprotect
+    91: 004128e4     0 NOTYPE  GLOBAL DEFAULT    7 _edata
+    92: 004128c0     0 OBJECT  GLOBAL HIDDEN     7 _GLOBAL_OFFSET_TABLE_
+    93: 004129b0     0 NOTYPE  GLOBAL DEFAULT    8 _end
+    94: 004016dc   120 FUNC    GLOBAL DEFAULT    4 sys_execve
+    95: 00402544    64 FUNC    GLOBAL DEFAULT    4 sys_wait
+    96: 00401418    76 FUNC    GLOBAL DEFAULT    4 sys_exit
+    97: 00402410   112 FUNC    GLOBAL DEFAULT    4 sys_gettimeofday
+    98: 00402000   124 FUNC    GLOBAL DEFAULT    4 sys_select
+    99: 00400e10    92 FUNC    GLOBAL DEFAULT    4 strlen
+   100: 00402248   352 FUNC    GLOBAL DEFAULT    4 sys_stat
+   101: 00401b64   112 FUNC    GLOBAL DEFAULT    4 sys_symlink
+   102: 00401544   104 FUNC    GLOBAL DEFAULT    4 sys_chroot
+   103: 00401878    96 FUNC    GLOBAL DEFAULT    4 sys_getpid
+   104: 00400958  1036 FUNC    GLOBAL DEFAULT    4 my_vsprintf
+   105: 004011a0   112 FUNC    GLOBAL DEFAULT    4 sys_pivot_root
+   106: 00401464   104 FUNC    GLOBAL DEFAULT    4 sys_chdir
+   107: 004128e4     0 NOTYPE  GLOBAL DEFAULT    8 _fbss
+   108: 00401f90   108 FUNC    GLOBAL DEFAULT    4 sys_umount2
+   109: 004021d0   120 FUNC    GLOBAL DEFAULT    4 sys_mknod
+   110: 00401818    96 FUNC    GLOBAL DEFAULT    4 sys_getpgrp

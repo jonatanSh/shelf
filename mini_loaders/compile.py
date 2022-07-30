@@ -100,6 +100,7 @@ class Compiler(object):
 
         self.readelf(
             '-s',
+            '--wide',
             output_file,
             '>',
             symbol_filename
