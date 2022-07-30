@@ -1,5 +1,5 @@
 #include "./loader_generic.h"
-#include "eshelf/debug.h"
+#include "eshelf/eshelf.h"
 
 /*
     Macro insted of functions:
@@ -128,6 +128,7 @@ void loader_main(
 
 error:
 exit:
+    TEARDOWN(1);
     return;
 }
 

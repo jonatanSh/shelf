@@ -100,9 +100,9 @@ void main(int random) {
     TRACE("Testing global ptr arrays\n");
     test_global_ptr_arrays();
     struct relocation_table * info;
-    TRACE("Calling get elf information, testing dynamic shellcode\n");
 
 #ifdef DYNAMIC_SUPPORT
+    TRACE("Calling get elf information, testing dynamic shellcode\n");
     TRACE("Arch support dynamic relocations, testing dynamic objects\n");
     status=get_elf_information(&info);
     if(status == ERROR) {

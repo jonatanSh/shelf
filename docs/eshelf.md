@@ -22,5 +22,4 @@ just add the following outputing option
 
 ### Supported architectures:
 
-* mips
 * intel x64
