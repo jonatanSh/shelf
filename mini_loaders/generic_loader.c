@@ -103,6 +103,7 @@ void loader_main(
                 goto error;
             }
         }
+        TRACE("Loader set *((size_t*)%x) = %x", f_offset, v_offset);
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;
 
