@@ -32,4 +32,9 @@ class LoaderSupports(object):
         return LoaderSupports.choices[key]
 
 
-OUTPUT_FORMATS = ["eshelf", "shelf"]
+class OUTPUT_FORMAT_MAP(object):
+    eshelf = 'eshelf'
+    shelf = 'shelf'
+
+
+OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]

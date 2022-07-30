@@ -25,7 +25,7 @@ features = {
     '': {'defs': [], 'files': ['generic_loader.c']},
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c']},
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
-    'eshelfs': {'defs': ['ESHELF'],
+    'eshelf': {'defs': ['ESHELF'],
                 'files': ['generic_loader.c'] + LINUX_OSAL_FILES,
                 'cflags': ['-I../osals/linux/', '-I../osals'],
                 'supported': [

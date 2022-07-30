@@ -1,15 +1,19 @@
+import os
+
 from elftools.elf.elffile import ELFFile
-from elf_to_shellcode.resources import get_resource
+from elf_to_shellcode.resources import get_resource, get_resource_path
 import struct
 import sys
 from elf_to_shellcode.lib.utils.address_utils import AddressUtils
-from elf_to_shellcode.lib.consts import StartFiles
+from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 import logging
 from elftools.elf.constants import P_FLAGS
 from elf_to_shellcode.lib import five
+import lief
+import tempfile
 
 PTR_SIZES = {
     4: "I",
@@ -72,12 +76,14 @@ class Shellcode(object):
         if endian == "big":
             self.endian = ">"
             if mini_loader_big_endian:
-                self._loader = get_resource(self.format_loader(mini_loader_big_endian))
+                self.loader_path = self.format_loader(mini_loader_big_endian)
+                self._loader = get_resource(self.loader_path)
                 self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_big_endian),
                                                       loader_size=len(self._loader))
         else:
             if mini_loader_little_endian:
-                self._loader = get_resource(self.format_loader(mini_loader_little_endian))
+                self.loader_path = self.format_loader(mini_loader_little_endian)
+                self._loader = get_resource(self.loader_path)
                 self.loader_symbols = ShellcodeLoader(self.format_loader(mini_loader_little_endian),
                                                       loader_size=len(self._loader))
             self.endian = "<"
@@ -109,7 +115,10 @@ class Shellcode(object):
         loader_additional = "_".join([feature for feature in features_map])
         if loader_additional:
             loader_additional = "_" + loader_additional
+        if self.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
+            loader_additional += "_eshelf"
         ld_name = ld.format(ld_base + loader_additional)
+
         self.logger.info("Using loader: {}".format(ld_name))
         return ld_name
 
@@ -301,6 +310,10 @@ class Shellcode(object):
     def build_shellcode_from_header_and_code(self, header, code):
         return header + code
 
+    @property
+    def args(self):
+        return sys.modules["global_args"]
+
     def get_shellcode(self):
         shellcode_data = self.shellcode_data
         shellcode_header = self.get_shellcode_header()
@@ -311,14 +324,43 @@ class Shellcode(object):
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table
+        if self.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
+            return self.build_eshelf(
+
+                relocation_table=relocation_table,
+                shellcode_header=shellcode_header,
+                shellcode_data=shellcode_data
+            )
 
         full_header = self.loader + relocation_table + shellcode_header
-        args = sys.modules["global_args"]
-        if args.save_without_header:
+        if self.args.save_without_header:
             self.logger.info("Saving without shellcode table")
             return shellcode_data
         else:
             return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
+
+    def build_eshelf(self, relocation_table, shellcode_header, shellcode_data):
+        shellcode_data = relocation_table + shellcode_header + shellcode_data
+        loader = lief.parse(get_resource_path(self.loader_path))
+        segment = lief.ELF.Segment()
+        segment.type = lief.ELF.SEGMENT_TYPES.LOAD
+        rwx = lief.ELF.SEGMENT_FLAGS(lief.ELF.SEGMENT_FLAGS.R | lief.ELF.SEGMENT_FLAGS.W | lief.ELF.SEGMENT_FLAGS.X)
+        segment.flags = rwx
+        segment.content = bytearray(shellcode_data)
+        loader.add(segment)
+        tmp_path = tempfile.mktemp(".out")
+        elf_buffer = None
+        try:
+            loader.write(tmp_path)
+            with open(tmp_path, "rb") as fp:
+                elf_buffer = fp.read()
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        assert elf_buffer is not None, "Error"
+        return elf_buffer
 
     def make_relative(self, address):
         return address - self.linker_base_address
