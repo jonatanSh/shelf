@@ -1,7 +1,5 @@
 #include "./no_libc.h"
 
-typedef unsigned int size_t;
-
 struct elf_information_struct {
     size_t elf_header_size;
 };
@@ -17,7 +15,7 @@ int get_elf_information();
 
 void main() {
     struct elf_information_struct info;
-    print_out("Hello\n", 6);
+    sys_write(1, "Hello\n", 6);
     #ifdef DYNAMIC_SUPPORT
         get_elf_information(&info);
     #endif

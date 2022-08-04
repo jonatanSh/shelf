@@ -1,9 +1,16 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdarg.h>
-#include "sprintf.h"
+#ifndef OSAL_LIBC
+    #include <unistd.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <stdio.h>
+
+#else
+    #include "../osals/linux/syscalls_wrapper/unistd.h"
+    #include "../osals/string.h"
+#endif
+#include "../osals/sprintf.h"
+
 
 #define MAX_DEBUG_BUFFER 0xffff
 #define TRACE_FORMAT "[ELF_FEATURES:INFO] %s %s(line:%u):\x00"
@@ -28,7 +35,11 @@ int get_elf_information(struct relocation_table ** info);
 
 
 void write_out(char * msg) {
+#ifndef OSAL_LIBC
     write(1, msg, strlen(msg));
+#else
+    sys_write(1, msg, strlen(msg));
+#endif
 }
 
 

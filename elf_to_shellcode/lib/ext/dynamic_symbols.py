@@ -13,12 +13,15 @@ class DynamicRelocations(object):
         self.reloc_types = reloc_types
 
         self.entry_handlers = {
-            self.reloc_types[RELOC_TYPES.RELATIVE]: self.reloc_relative_handle,
-            self.reloc_types[RELOC_TYPES.GLOBAL_SYM]: self.global_sym_dat_handle,
-            self.reloc_types[RELOC_TYPES.GLOBAL_DAT]: self.global_sym_dat_handle,
-            self.reloc_types[RELOC_TYPES.JMP_SLOT]: self.jmp_slot_reloc_handle
-
+            self.reloc_types.get(RELOC_TYPES.RELATIVE): self.reloc_relative_handle,
+            self.reloc_types.get(RELOC_TYPES.GLOBAL_SYM): self.global_sym_dat_handle,
+            self.reloc_types.get(RELOC_TYPES.GLOBAL_DAT): self.global_sym_dat_handle,
+            self.reloc_types.get(RELOC_TYPES.JMP_SLOT): self.jmp_slot_reloc_handle,
         }
+
+        self.entry_handlers.update(
+            self.reloc_types.get(RELOC_TYPES.ARCH_SPECIFIC, {})
+        )
 
     def call_entry_handler(self, entry, shellcode, dynsym):
         if entry.r_info_type in self.reloc_types[RELOC_TYPES.DO_NOT_HANDLE]:
@@ -33,7 +36,7 @@ class DynamicRelocations(object):
                 self.entry_handlers.keys()
             ))
             assert False
-
+        logging.info("Calling entry handler: {}".format(entry_handler.__name__))
         entry_handler(entry=entry, shellcode=shellcode, dynsym=dynsym)
 
     def handle(self, shellcode, shellcode_data):
@@ -54,8 +57,9 @@ class DynamicRelocations(object):
                 ))
                 raise Exception("Not supported")
             else:
-                logging.info("Relocation types: {}".format(
-                    relocation_table.keys()
+                logging.info("Handling relocation types: {}, handler: {}".format(
+                    relocation_table.keys(),
+                    handler.__name__
                 ))
                 handler(shellcode=shellcode,
                         table=relocation_table[reloc_type],
@@ -65,7 +69,6 @@ class DynamicRelocations(object):
 
     def handle_other_dynamic_relocations(self, shellcode):
         rel_dyn = shellcode.elffile.get_section_by_name('.rel.dyn')
-        rel_plt = shellcode.elffile.get_section_by_name('.rel.plt')
         if rel_dyn:
             self.handle_rel_dyn(shellcode, rel_dyn)
 
