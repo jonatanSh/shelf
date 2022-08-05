@@ -23,6 +23,7 @@ PTR_SIZES = {
 
 class Shellcode(object):
     def __init__(self, elffile,
+                 path,
                  shellcode_data,
                  endian,
                  arch,
@@ -42,6 +43,8 @@ class Shellcode(object):
         ))
 
         self.elffile = elffile
+        self.path = path
+        self.lief_elf = lief.parse(self.path)
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
@@ -455,7 +458,8 @@ def get_shellcode_class(elf_path, shellcode_cls, endian,
     shellcode = shellcode_cls(elffile=elffile,
                               shellcode_data=shellcode_data,
                               endian=endian,
-                              start_file_method=start_file_method)
+                              start_file_method=start_file_method,
+                              path=elf_path)
     return shellcode, fd
 
 

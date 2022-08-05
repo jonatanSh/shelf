@@ -30,5 +30,13 @@ class MipsShellcode(Shellcode):
             **kwargs
         )
 
+        if self.support_dynamic:
+            self.add_relocation_handler(self.mips_extern_dynamic_handler)
+
+    def mips_extern_dynamic_handler(self, shellcode, shellcode_data):
+        for symbol in self.lief_elf.dynamic_symbols:
+            pass
+        return shellcode_data
+
 
 mips_make_shellcode = create_make_shellcode(MipsShellcode)
