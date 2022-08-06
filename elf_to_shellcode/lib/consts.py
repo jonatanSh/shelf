@@ -12,6 +12,7 @@ class RELOC_TYPES(object):
     GLOBAL_DAT = "GLOBAL_DAT"
     DO_NOT_HANDLE = "DO_NOT_HANDLE",
     ARCH_SPECIFIC = "ARCH_SPECIFIC"
+    PASS = lambda **kwargs: None
 
 
 class StartFiles(object):

@@ -27,7 +27,7 @@ class Disassembler(object):
             ENDIAN[shellcode.endian] | mode
         )
         self.shellcode = shellcode
-        offset = self.shellcode.instruction_offset_after_objdump
+        offset = self.shellcode.linker_base_address
         self.opcodes = self.shellcode.do_objdump(self.shellcode.shellcode_data)[offset:]
         self.instructions = [instruction for instruction in self.cs.disasm(
             five.to_disasm(self.opcodes),

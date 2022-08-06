@@ -9,10 +9,12 @@ from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.lib.ext.reloaciton_handler import ElfRelocationHandler
 import logging
 from elftools.elf.constants import P_FLAGS
 from elf_to_shellcode.lib import five
 import lief
+from lief.ELF import SECTION_FLAGS
 import tempfile
 
 PTR_SIZES = {
@@ -53,10 +55,6 @@ class Shellcode(object):
         self.sections_to_relocate = sections_to_relocate
 
         self.shellcode_data = shellcode_data
-        for segment in self.elffile.iter_segments():
-            if segment.header.p_type in ['PT_LOAD']:
-                self.linker_base_address = segment.header.p_vaddr
-                break
         self.ptr_fmt = ptr_fmt
         self.ptr_signed_fmt = self.ptr_fmt.lower()
         self.relocation_handlers = []
@@ -108,6 +106,21 @@ class Shellcode(object):
         if self.support_dynamic:
             self.dynamic_relocs = DynamicRelocations(reloc_types)
             self.add_relocation_handler(self.dynamic_relocs.handle)
+        self.relocation_handler = ElfRelocationHandler()
+        self.add_relocation_handler(self.relocation_handler.handle)
+
+    def arch_find_relocation_handler(self, relocation_type):
+        raise NotImplementedError()
+
+    def arch_handle_relocation(self, shellcode, shellcode_data, relocation):
+        handler = self.arch_find_relocation_handler(relocation.type)
+        if not handler:
+            raise Exception(
+                "Error relocation handler for: {} not found, extended {}".format(relocation.type, relocation))
+        self.logger.info("Calling relocation handler: {}".format(
+            handler.__name__
+        ))
+        handler(shellcode=shellcode, shellcode_data=shellcode_data, relocation=relocation)
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
@@ -260,6 +273,9 @@ class Shellcode(object):
         return shellcode_data
 
     def do_objdump(self, data):
+        if self.elffile.num_segments() == 0:
+            self.logger.info("No segments found, objdump return all shellcode data")
+            return data[self.linker_base_address:]
         new_binary = five.py_obj()
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
@@ -282,8 +298,51 @@ class Shellcode(object):
                 new_binary = new_binary[:start] + segment_data + new_binary[start + len(segment_data):]
         return new_binary  # TODO check if the elf header is really required
 
+    @staticmethod
+    def aligned(a, b):
+        return a + (a % b)
+
+    def get_section_virtual_address(self, section_name):
+        offset, first_section = self.get_first_executable_section_virtual_address()
+        total_size = self.aligned(first_section.size, first_section.alignment) + offset
+        should_skip = True
+        for section in self.lief_elf.sections:
+            if should_skip:
+                should_skip = not (section.name == first_section.name)
+                continue
+            if section.flags & SECTION_FLAGS.ALLOC:
+                if section.name == section_name:
+                    return total_size
+                else:
+                    total_size += self.aligned(section.size, section.alignment)
+
+        raise Exception("Section: {} is not allocatable".format(
+            section_name
+        ))
+
+    def get_first_executable_section_virtual_address(self):
+        """
+         Trying to locate the first executable section
+         """
+        # calculate all the section size up to the first executable section
+        exclude_sections = [
+            '.reginfo',
+        ]
+        last_section = None
+        for section in self.lief_elf.sections:
+            if section.flags & SECTION_FLAGS.EXECINSTR:
+                last_offset = 0
+                if last_section:
+                    last_offset = last_section.offset + last_section.size
+                return [section.offset - last_offset, section]
+            elif section.name not in exclude_sections and section.flags & SECTION_FLAGS.ALLOC:
+                last_section = section
+
     @property
-    def instruction_offset_after_objdump(self):
+    def linker_base_address(self):
+        if self.elffile.num_segments() == 0:
+            return 0
+
         # This function return the offset for the first executable section
         min_s = 2 ** 32
         for segment in self.elffile.iter_segments():
