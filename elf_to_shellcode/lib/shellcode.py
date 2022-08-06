@@ -106,8 +106,10 @@ class Shellcode(object):
         if self.support_dynamic:
             self.dynamic_relocs = DynamicRelocations(reloc_types)
             self.add_relocation_handler(self.dynamic_relocs.handle)
-        self.relocation_handler = ElfRelocationHandler()
-        self.add_relocation_handler(self.relocation_handler.handle)
+        if False:
+            # TODO this is a specific arch handler, think about it
+            self.relocation_handler = ElfRelocationHandler()
+            self.add_relocation_handler(self.relocation_handler.handle)
 
     def arch_find_relocation_handler(self, relocation_type):
         raise NotImplementedError()
