@@ -20,7 +20,7 @@ class Disassembler(object):
         mode = capstone.CS_MODE_32
         if shellcode.arch in ['x64']:
             mode = capstone.CS_MODE_64
-        if shellcode.arch in ["arm32", 'arm64']:
+        elif shellcode.arch in ["arm32", 'arm64']:
             mode = capstone.CS_MODE_ARM
         self.cs = capstone.Cs(
             ARCHES[shellcode.arch],
@@ -42,3 +42,10 @@ class Disassembler(object):
                 to_off -= self.shellcode.ptr_size
                 addresses.append(instruction.address + to_off)
         return addresses
+
+    def disassemble(self, code):
+        return self.cs.disasm(code, 0)
+
+    @staticmethod
+    def print_instruction(instruction):
+        print("0x%x:\t%s\t%s" % (instruction.address, instruction.mnemonic, instruction.op_str))

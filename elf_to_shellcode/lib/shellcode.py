@@ -38,7 +38,8 @@ class Shellcode(object):
                  sections_to_relocate={},
                  ext_bindings=[],
                  supported_start_methods=[],
-                 reloc_types={}):
+                 reloc_types={},
+                 should_add_specific_arch_handlers=False):
         self.support_dynamic = support_dynamic
         self.logger = logging.getLogger("[{}]".format(
             self.__class__.__name__
@@ -106,8 +107,9 @@ class Shellcode(object):
         if self.support_dynamic:
             self.dynamic_relocs = DynamicRelocations(reloc_types)
             self.add_relocation_handler(self.dynamic_relocs.handle)
-        if False:
-            # TODO this is a specific arch handler, think about it
+
+        self.should_add_specific_arch_handlers = should_add_specific_arch_handlers
+        if should_add_specific_arch_handlers:
             self.relocation_handler = ElfRelocationHandler()
             self.add_relocation_handler(self.relocation_handler.handle)
 
