@@ -4,7 +4,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 include $(SELF_DIR)/compilers.mk
 
 mips_%:
-	$(MIPS_CC) $(CFLAGS) $(C_FILES) -static -BE $(subst mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out
+	$(MIPS_CC) $(CFLAGS) $(C_FILES) -r -static -BE $(subst mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode
 intel_x32_%:
 	$(X32_CC) -DDYNAMIC_SUPPORT $(CFLAGS) $(subst intel_x32_,,$@).c $(C_FILES) -shared /usr/i686-linux-gnu/lib/libc.a -lm -lc -lgcc -lc -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out

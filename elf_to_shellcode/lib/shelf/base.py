@@ -1,4 +1,6 @@
 import struct
+import lief
+import logging
 from elftools.elf.elffile import ELFFile
 from elf_to_shellcode.arguments import ARGUMENTS
 from elf_to_shellcode.lib import five
@@ -19,6 +21,8 @@ class ShellcodeBase(object):
         self._base_address = None
         self.shelf_header = ShelfHeader(shellcode=self,
                                         magic=relocation_table_magic)
+        self.lief_elf = lief.parse(ARGUMENTS.input)
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def pack(self, fmt, n):
         return struct.pack("{}{}".format(self.endian, fmt), n)
@@ -107,5 +111,9 @@ class ShellcodeBase(object):
         Here support other output formats
         :return:
         """
+        self.handle()
         shelf = self.get_shelf()
         return self.loader.bytes + shelf
+
+    def handle(self):
+        raise NotImplementedError()
