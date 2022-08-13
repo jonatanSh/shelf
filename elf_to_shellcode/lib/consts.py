@@ -1,3 +1,30 @@
+class Arches(object):
+    MIPS_32 = "mips"
+    INTEL_X32 = "intel_x32"
+    INTEL_X64 = "intel_x64"
+    ARM_32 = "arm32"
+    ARM_64 = "aarch64"
+    __all__ = [
+        MIPS_32,
+        INTEL_X32,
+        INTEL_X64,
+        ARM_32,
+        ARM_64
+    ]
+
+
+ENDIANS = ["big", "little"]
+ENDIAN_MAP = {
+    "big": ">",
+    "little": "<"
+}
+
+PTR_SIZES = {
+    4: "I",
+    8: "Q"
+}
+
+
 class RelocationAttributes(object):
     call_to_resolve = 1
     relative_to_loader_base = 2

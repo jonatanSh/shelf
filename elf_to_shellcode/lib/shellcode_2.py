@@ -9,12 +9,12 @@ from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.arguments import ARGUMENTS
 import logging
 from elftools.elf.constants import P_FLAGS
 from elf_to_shellcode.lib import five
 import lief
 import tempfile
-from elf_to_shellcode.arguments import ARGUMENTS
 
 PTR_SIZES = {
     4: "I",
@@ -23,101 +23,23 @@ PTR_SIZES = {
 
 
 class Shellcode(object):
-    def __init__(self, elffile,
-                 shellcode_data,
-                 endian,
-                 arch,
-                 start_file_method,
-                 mini_loader_big_endian,
-                 mini_loader_little_endian,
-                 shellcode_table_magic,
-                 ptr_fmt,
-                 support_dynamic=False,
-                 sections_to_relocate={},
-                 ext_bindings=[],
-                 supported_start_methods=[],
-                 reloc_types={}):
-        self.support_dynamic = support_dynamic
+    def __init__(self, *args, **kwargs):
         self.logger = logging.getLogger("[{}]".format(
             self.__class__.__name__
         ))
-
-        self.elffile = elffile
-        self.shellcode_table_magic = shellcode_table_magic
-        # Key is the file offset, value is the offset to correct to
-        self.addresses_to_patch = {}
-        assert endian in ["big", "little"]
-        self._loader = None  # Default No loader is required
-        self.sections_to_relocate = sections_to_relocate
-
-        self.shellcode_data = shellcode_data
-        for segment in self.elffile.iter_segments():
-            if segment.header.p_type in ['PT_LOAD']:
-                self.linker_base_address = segment.header.p_vaddr
-                break
-        self.ptr_fmt = ptr_fmt
-        self.ptr_signed_fmt = self.ptr_fmt.lower()
-        self.relocation_handlers = []
-
-        for binding in ext_bindings:
-            get_binding, arguments = binding[0], binding[1]
-            self.add_relocation_handler(get_binding(*arguments))
-        self.supported_start_methods = supported_start_methods
-        if StartFiles.no_start_files not in self.supported_start_methods:
-            self.supported_start_methods.append(
-                StartFiles.no_start_files
-            )
-        self.start_file_method = start_file_method
-        assert self.start_file_method in self.supported_start_methods, "Error, start method: {} not supported for arch, supported methods: {}".format(
-            self.start_file_method,
-            self.supported_start_methods
-        )
-        self.address_utils = AddressUtils(unpack_size=self.unpack_size)
-
-        if endian == "big":
-            self.endian = ">"
-            if mini_loader_big_endian:
-                self.loader_path = self.format_loader(mini_loader_big_endian)
-        else:
-            if mini_loader_little_endian:
-                self.loader_path = self.format_loader(mini_loader_little_endian)
-
-            self.endian = "<"
-
-        if self.args.loader_path:
-            self.logger.info("Using loader resources from user")
-            self.loader_path = self.args.loader_path
-            self.loader_symbols_path = self.args.loader_symbols_path
-        else:
-            self.loader_path = get_resource_path(self.loader_path)
-            self.loader_symbols_path = self.loader_path + ".symbols"
-
-        assert self.loader_path
-        assert self.loader_symbols_path
-        self._loader = get_resource(self.loader_path, resolve=False)
-        self.loader_symbols = ShellcodeLoader(self.loader_symbols_path,
-                                              loader_size=len(self._loader))
-        self.arch = arch
-        self.debugger_symbols = [
-            "loader_main"
-        ]
-
-        self.disassembler = Disassembler(self)
-        if self.support_dynamic:
-            self.dynamic_relocs = DynamicRelocations(reloc_types)
-            self.add_relocation_handler(self.dynamic_relocs.handle)
+        self._args = args
+        self._kwargs = kwargs
 
     def format_loader(self, ld):
-        if StartFiles.no_start_files == self.start_file_method:
+        if StartFiles.no_start_files == ARGUMENTS.start_file_method:
             ld_base = ""
-        elif StartFiles.glibc == self.start_file_method:
+        elif StartFiles.glibc == ARGUMENTS.start_file_method:
             ld_base = "_glibc"
         else:
             raise Exception("Unknown start method: {}".format(
-                self.start_file_method
+                ARGUMENTS.start_file_method
             ))
-        args = ARGUMENTS
-        features_map = sorted(args.loader_supports, key=lambda lfeature: lfeature[1])
+        features_map = sorted(ARGUMENTS.loader_supports, key=lambda lfeature: lfeature[1])
         for feature in features_map:
             value = getattr(self, "support_{}".format(feature))
             if not value:
@@ -322,7 +244,7 @@ class Shellcode(object):
 
     @property
     def args(self):
-        return ARGUMENTS
+        return sys.modules["global_args"]
 
     def get_shellcode(self):
         shellcode_data = self.shellcode_data
@@ -464,7 +386,7 @@ def make_shellcode(elf_path, shellcode_cls, endian,
                    start_file_method):
     shellcode, fd = get_shellcode_class(elf_path, shellcode_cls, endian,
                                         start_file_method=start_file_method)
-    args = ARGUMENTS
+    args = sys.modules["global_args"]
     if args.interactive:
         print("Opening interactive shell")
         import IPython
