@@ -21,12 +21,12 @@ Symbol table '.symtab' contains 29 entries:
     17: 00400188     0 NOTYPE  LOCAL  DEFAULT    4 get_pc_internal
     18: 00400194     0 NOTYPE  LOCAL  DEFAULT    4 next
     19: 00000000     0 FILE    LOCAL  DEFAULT  ABS 
-    20: 004184d0     0 NOTYPE  LOCAL  DEFAULT    4 _gp
-    21: 004104e0     0 NOTYPE  GLOBAL DEFAULT    4 _fdata
-    22: 00400130   716 FUNC    GLOBAL DEFAULT    4 loader_main
+    20: 004184e0     0 NOTYPE  LOCAL  DEFAULT    4 _gp
+    21: 004104f0     0 NOTYPE  GLOBAL DEFAULT    4 _fdata
+    22: 00400130   736 FUNC    GLOBAL DEFAULT    4 loader_main
     23: 00400130     0 NOTYPE  GLOBAL DEFAULT    4 _ftext
-    24: 004104e0     0 NOTYPE  GLOBAL DEFAULT    4 __bss_start
-    25: 004104e0     0 NOTYPE  GLOBAL DEFAULT    4 _edata
-    26: 004104e0     0 NOTYPE  GLOBAL DEFAULT    4 _end
-    27: 004003fc   216 FUNC    GLOBAL DEFAULT    4 get_elf_information
-    28: 004104e0     0 NOTYPE  GLOBAL DEFAULT    4 _fbss
+    24: 004104f0     0 NOTYPE  GLOBAL DEFAULT    4 __bss_start
+    25: 004104f0     0 NOTYPE  GLOBAL DEFAULT    4 _edata
+    26: 004104f0     0 NOTYPE  GLOBAL DEFAULT    4 _end
+    27: 00400410   216 FUNC    GLOBAL DEFAULT    4 get_elf_information
+    28: 004104f0     0 NOTYPE  GLOBAL DEFAULT    4 _fbss
