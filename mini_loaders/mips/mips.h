@@ -21,9 +21,9 @@ typedef unsigned int size_t;
 
 #define call_main(main_ptr, argc, argv, envp) {                           \
    register size_t t9 asm("t9") = (size_t)(main_ptr);   \
-   register size_t a0 asm("a0") = (size_t)(argc);       \
-   register size_t a1 asm("a1") = (size_t)(argv);       \
-   register size_t a2 asm("a2") = (size_t)(envp);       \
+   register size_t a0 asm("a0") = (size_t)(main_ptr);   \
+   register size_t a1 asm("a1") = (size_t)(argc);       \
+   register size_t a2 asm("a2") = (size_t)(argv);       \
    asm(                                                 \
        "addiu $sp, $sp, -4\n"                           \
        "sw $ra, 0($sp)\n"                               \
