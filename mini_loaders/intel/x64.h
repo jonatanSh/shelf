@@ -24,14 +24,17 @@ typedef unsigned long long size_t;
     );                              \
 }                                   \
 
-#define call_main(main_ptr, argc, argv, envp) {                           \
-   register size_t rax asm("rax") = (size_t)(main_ptr); \
-   asm(                                                 \
-        "call rax\n"                                    \
-       :  :                                             \
-       "r"(rax)                                         \
-   );                                                   \
-}                                                   \
+#define call_main(main_ptr, argc, argv, total_args) {                           \
+   register size_t rdi asm("rdi") = (size_t)(main_ptr);            \
+   register size_t rsi asm("rsi") = (size_t)(argc);                \
+   register size_t rdx asm("rdx") = (size_t)(argv);                \
+   register size_t rcx asm("rcx") = (size_t)((total_args+1) * 4);  \  
+   asm(                                                            \
+        "call rdi\n"                                               \
+       :  :                                                        \
+       "r"(rdi),"r"(rsi),"r"(rdx),"r"(rcx)                         \
+   );                                                              \
+}                                                                  \
 
 
 #endif

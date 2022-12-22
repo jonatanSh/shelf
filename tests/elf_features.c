@@ -102,12 +102,23 @@ void test_global_ptr_arrays() {
 
 
 
-void main(int random) {
+void main(void * main_address, int argc, char ** argv, int total_args) {
     int status;
-
+    TRACE("main address=%x, argc=%x, argv=%x, total_args=%d\n",
+        main_address, argc, argv, total_args);
+#ifndef ESHELF
+    TRACE("Elf in shellcode mode!\n");
+    if(argc != 2) {
+        TRACE("Failure, incorrect argc\n");
+        goto error;
+    }
+    TRACE("Argv[0] = %s, argv[1] = %s\n", argv[0], argv[1]);
+#else
+    TRACE("Elf in eshelf mode !\n");
+#endif
     TRACE("Hello from shellcode!\n");
     TRACE("Testing jump tables\n");
-    test_jump_table(random);
+    test_jump_table((int)main_address);
     TRACE("Testing global ptr arrays\n");
     test_global_ptr_arrays();
     struct relocation_table * info;
@@ -126,6 +137,8 @@ void main(int random) {
     info->elf_information.elf_header_size, 
     info->elf_information.loader_size);
 #endif
+    TRACE("__Test_output_Success\n");
+
 error:
     return;
 }

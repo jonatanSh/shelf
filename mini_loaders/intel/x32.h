@@ -45,10 +45,21 @@ typedef unsigned int size_t;
 
 #define call_main_no_glibc(main_ptr, argc, argv, total_args) {                           \
    register size_t eax asm("eax") = (size_t)(main_ptr); \
-   asm(                                                 \
+   register size_t ebx asm("ebx") = (size_t)(argc);     \
+   register size_t ecx asm("ecx") = (size_t)(argv);     \
+   register size_t esi asm("esi") = (size_t)((total_args+1) * 4);     \
+   asm(                                                             \
+        "push esi\n"                                    \
+        "push ecx\n"                                    \
+        "push ebx\n"                                    \
+        "push eax\n"                                    \
         "call eax\n"                                    \
+        "pop esi\n"                                     \
+        "pop ecx\n"                                     \
+        "pop ebx\n"                                     \
+        "pop eax\n"                                     \
        :  :                                             \
-       "r"(eax)                                         \
+       "r"(eax) , "r"(ebx), "r"(ecx), "r"(esi)          \
    );                                                   \
 }                                                       \
 

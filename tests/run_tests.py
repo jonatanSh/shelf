@@ -15,7 +15,7 @@ QEMUS = {
     "aarch64": "qemu-aarch64-static"
 }
 test_cases = {
-    'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "Hello"],
+    'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "__Test_output_Success"],
     'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
     'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['intel_x64'], 'Hello'],
     'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['mips'], 'Hello']
@@ -50,7 +50,7 @@ def run_arch_tests(arch, case):
         if test_case is not 'eshelf':
             command = "{} {} {} {}".format(qemu, db_arg, loader, test)
         else:
-            command = "{} {} {}".format(qemu, db_arg, test)
+            command = '{} {} {} "First_Argument_for_argv" "Second argument for argv"'.format(qemu, db_arg, test)
         if not args.only_stdout:
             print("-" * 30)
         if args.debug:

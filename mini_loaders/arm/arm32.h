@@ -29,8 +29,11 @@ typedef unsigned int size_t;
 
 #define call_get_pc get_pc
 
-#define call_main(main_ptr, argc, argv, envp) {                           \
+#define call_main(main_ptr, argc, argv, total_args) {                           \
    register size_t r0 asm("r0") = (size_t)(main_ptr); \
+   register size_t r1 asm("r1") = (size_t)(argc); \
+   register size_t r2 asm("r2") = (size_t)(argv); \
+   register size_t r3 asm("r3") = (size_t)((total_args+1) * 4); \
    asm(                                                 \
         "add sp,sp, #-4\n"                              \
         "str lr, [sp]\n"                                \
@@ -38,7 +41,7 @@ typedef unsigned int size_t;
         "ldr lr, [sp]\n"                                \
         "add sp, sp, #4\n"                              \
         :  :                                            \
-        "r"(r0)                                         \
+        "r"(r0), "r"(r1), "r"(r2), "r"(r3)              \
    );                                                   \
 }                                                       \
 
