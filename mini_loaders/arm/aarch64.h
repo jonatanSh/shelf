@@ -19,8 +19,11 @@ typedef unsigned long long size_t;
     );                              \
 }                                   \
 
-#define call_main(main_ptr, argc, argv, envp) {                           \
+#define call_main(main_ptr, argc, argv, total_args) {                           \
    register size_t x0 asm("x0") = (size_t)(main_ptr); \
+   register size_t x1 asm("x1") = (size_t)(argc); \
+   register size_t x2 asm("x2") = (size_t)(argv); \
+   register size_t x3 asm("x3") = (size_t)((total_args+1) * 8); \
    asm(                                                 \
         "add sp,sp, #-8\n"                              \
         "str lr, [sp]\n"                                \
@@ -28,7 +31,7 @@ typedef unsigned long long size_t;
         "ldr lr, [sp]\n"                                \
         "add sp, sp, #8\n"                              \
         :  :                                            \
-        "r"(x0)                                         \
+        "r"(x0), "r"(x1), "r"(x2), "r"(x3)              \
    );                                                   \
 }                                                       \
 
