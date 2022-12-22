@@ -1,5 +1,4 @@
 import sys
-
 version = int(sys.version[0])
 is_python3 = version == 3
 
@@ -39,5 +38,5 @@ def ljust(source, size, by):
     if length < 0:
         raise Exception("Can't ljust data, size: {}, just: {}".format(len(source), by))
     source += by * length
-    assert len(source) == size
+    assert len(source) == size, "Error size: {}, len(source) = {}, by = {}".format(size, len(source), by)
     return source

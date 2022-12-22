@@ -8,7 +8,7 @@ mips_%:
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode
 intel_x32_%:
 	$(X32_CC) -DDYNAMIC_SUPPORT $(CFLAGS) $(subst intel_x32_,,$@).c $(C_FILES) -shared /usr/i686-linux-gnu/lib/libc.a -lm -lc -lgcc -lc -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode --loader-support dynamic
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode --loader-support dynamic --verbose
 
 intel_x64_%:
 	$(X64_CC) $(CFLAGS) $(C_FILES) -static $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out

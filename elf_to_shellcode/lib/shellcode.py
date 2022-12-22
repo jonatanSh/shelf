@@ -158,6 +158,7 @@ class Shellcode(object):
         self.relocation_handlers.append(func)
 
     def pack(self, fmt, n):
+        self.logger.info("Packing: {} to {}{}".format(hex(n), self.endian, fmt))
         return struct.pack("{}{}".format(self.endian, fmt), n)
 
     def pack_pointer(self, n):
@@ -294,7 +295,10 @@ class Shellcode(object):
                     hex(len(data))
                 )
                 # first we make sure this part is already filled
-                new_binary = five.ljust(new_binary, end, b'\x00')
+                if end < 0:
+                    self.logger.warn("Padding returned negative offset !")
+                else:
+                    new_binary = five.ljust(new_binary, end, b'\x00')
                 segment_data = data[f_start:f_end]
 
                 # Now we rewrite the segment data
