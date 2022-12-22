@@ -36,7 +36,6 @@ class MipsShellcode(Shellcode):
     def got_external_functions(self, shellcode, shellcode_data):
         for symbol in self.lief_elf.symbols:
             address = symbol.value
-            print(symbol.name)
             for instruction in self.disassembler.disassemble(shellcode_data[address:address+20]):
                 self.disassembler.print_instruction(instruction)
         return shellcode_data

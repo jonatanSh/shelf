@@ -36,6 +36,8 @@ def ljust(source, size, by):
     length = (size - len(source))
     if length < 0:
         length = 0
+    if length < 0:
+        raise Exception("Can't ljust data, size: {}, just: {}".format(len(source), by))
     source += by * length
     assert len(source) == size
     return source
