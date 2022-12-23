@@ -72,6 +72,21 @@ class MipsShellcode(Shellcode):
             self.can_handle_dynamic_got_relocs = True
 
     def relocation_hook(self, section_name, virtual_offset, sym_offset, index):
+        """
+        There are 3 tags in mips DT_MIPS_GOTSYM which is the index of the first symbol
+        in the .dynsym section of the got entry, eg DT_MIPS_GOTSYM.val = 7
+        means that the first symbol in the got start at index 7 in the .dynsym section
+        DT_MIPS_SYMTABNO number of entries in the got, eg DT_MIPS_SYMTABNO.val = 2
+        meaning there are 2 symbols in the got where the first index is 7 then 8
+        DT_MIPS_LOCAL_GOTNO number of entries in the got before the symbols start eg DT_MIPS_LOCAL_GOTNO.val = 7
+        meaning there are got entries before symbols start and DT_MIPS_GOTSYM is used
+
+        :param section_name:
+        :param virtual_offset:
+        :param sym_offset:
+        :param index:
+        :return:
+        """
         if not self.can_handle_dynamic_got_relocs:
             return virtual_offset, sym_offset
 
