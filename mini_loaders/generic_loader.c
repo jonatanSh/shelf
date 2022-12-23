@@ -139,8 +139,8 @@ int get_elf_information(struct relocation_table **info) {
     size_t magic;
     struct relocation_table * table;
     int status = ERROR;
-    call_get_pc();
     resolve_table_magic();
+    call_get_pc();
     advance_pc_to_magic();
     table = (struct relocation_table *)pc;
     if(table->magic != magic) {

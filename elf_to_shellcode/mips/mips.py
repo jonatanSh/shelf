@@ -1,5 +1,5 @@
 import logging
-
+from elf_to_shellcode.lib.consts import RelocationAttributes
 from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_MIPS
 from elf_to_shellcode.lib.consts import RELOC_TYPES
@@ -101,6 +101,8 @@ class MipsShellcode(Shellcode):
             sym_offset = self.loader_symbols.get_relative_symbol_address(
                 symbol_name=sym.name
             )
+            sym_offset = [sym_offset,
+             RelocationAttributes.relative_to_loader_base]
             was_loader_sym = True
         else:
             was_loader_sym = False

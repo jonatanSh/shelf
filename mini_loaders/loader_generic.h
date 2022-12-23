@@ -66,7 +66,9 @@ typedef void * (*IRELATIVE_T)();
 
 #define advance_pc_to_magic() {                                             \
     for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {          \
-        pc += ARCH_OPCODE_SIZE;                                             \
+        /* Do not write pc+=ARCH_OPCODE_SIZE here, because in some arch \
+            Such as mips it produce buggy code*/  \
+        pc = pc + ARCH_OPCODE_SIZE;                                             \
         if(*((size_t*)pc) == magic) {                                       \
             break;                                                          \
         }                                                                   \
