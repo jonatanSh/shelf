@@ -17,6 +17,6 @@ no_libc_aarch64_%:
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst no_libc_aarch64_,,$@)_aarch64.out --arch aarch64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst no_libc_aarch64_,,$@)_aarch64.out.shellcode
 
 dynamic_mips_%:
-	$(MIPS_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) $(NOLIBC) -static -nolibc -shared -BE $(subst dynamic_mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode --loader-support dynamic
+	$(MIPS_CC) -DOSAL_LIBC -DARCH_MIPS -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) $(NOLIBC) -static -nolibc  -shared -lm -lc -lgcc -lc  -BE $(subst dynamic_mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode --loader-support dynamic --verbose 
 

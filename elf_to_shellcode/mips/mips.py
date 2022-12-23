@@ -1,5 +1,6 @@
+import logging
+
 from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
-from elf_to_shellcode.lib.consts import RELOC_TYPES
 from elftools.elf.enums import ENUM_RELOC_TYPE_MIPS
 from elf_to_shellcode.lib.consts import RELOC_TYPES
 
@@ -30,15 +31,70 @@ class MipsShellcode(Shellcode):
             support_dynamic=True,
             **kwargs
         )
+
+        self.got_sym_start = -1
+        self.got_sym_num_entries = -1
+        self.mips_local_got_ono = -1
+        self.dynsym = self.elffile.get_section_by_name(".dynsym")
+        self.can_handle_dynamic_got_relocs = False
+        self.prepare_got_parsing()
         if self.support_dynamic:
             self.add_relocation_handler(self.got_external_functions)
 
     def got_external_functions(self, shellcode, shellcode_data):
         for symbol in self.lief_elf.symbols:
             address = symbol.value
-            for instruction in self.disassembler.disassemble(shellcode_data[address:address+20]):
+            for instruction in self.disassembler.disassemble(shellcode_data[address:address + 20]):
                 self.disassembler.print_instruction(instruction)
         return shellcode_data
+
+    def prepare_got_parsing(self):
+        dynamic = self.elffile.get_section_by_name(".dynamic")
+        if not dynamic:
+            return
+        for tag in dynamic.iter_tags():
+            if tag.entry['d_tag'] == 'DT_MIPS_GOTSYM':
+                self.got_sym_start = tag.entry['d_val']
+            if tag.entry['d_tag'] == 'DT_MIPS_SYMTABNO':
+                self.got_sym_num_entries = tag.entry['d_val']
+            if tag.entry['d_tag'] == 'DT_MIPS_LOCAL_GOTNO':
+                self.mips_local_got_ono = tag.entry['d_val']
+
+        if self.got_sym_start == -1:
+            return
+        if self.got_sym_num_entries < self.got_sym_start:
+            return
+        if self.mips_local_got_ono == -1:
+            return
+
+            # Now we should start fixing got entries !
+        if self.dynsym:
+            self.can_handle_dynamic_got_relocs = True
+
+    def relocation_hook(self, section_name, virtual_offset, sym_offset, index):
+        if not self.can_handle_dynamic_got_relocs:
+            return virtual_offset, sym_offset
+
+        if index < self.mips_local_got_ono:
+            return virtual_offset, sym_offset
+        sym_index = self.got_sym_start + (index - self.mips_local_got_ono)  # ptr size is 4 bytes
+        if sym_index > self.got_sym_num_entries:
+            logging.warn("Mips .got fallback sym_index > self.got_sym_num_entries")
+            return virtual_offset, sym_offset
+        sym = self.dynsym.get_symbol(sym_index)
+        if self.loader_symbols.has_symbol(sym.name):
+            sym_offset = self.loader_symbols.get_relative_symbol_address(
+                symbol_name=sym.name
+            )
+            was_loader_sym = True
+        else:
+            was_loader_sym = False
+
+        self.logger.info("Handling got symbol: {} at virtual: {}, was_loader_sym={}".format(sym.name,
+                                                                                            hex(virtual_offset),
+                                                                                            was_loader_sym))
+
+        return virtual_offset, sym_offset
 
 
 mips_make_shellcode = create_make_shellcode(MipsShellcode)

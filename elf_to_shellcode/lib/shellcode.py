@@ -105,7 +105,7 @@ class Shellcode(object):
 
         self.disassembler = Disassembler(self)
         if self.support_dynamic:
-            self.dynamic_relocs = DynamicRelocations(reloc_types)
+            self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
             self.add_relocation_handler(self.dynamic_relocs.handle)
 
         self.should_add_specific_arch_handlers = should_add_specific_arch_handlers
@@ -249,7 +249,7 @@ class Shellcode(object):
         original_symbol_addresses = self.get_original_symbols_addresses()
         if data_section:
             data_section_header = data_section.header
-
+            index = 0
             for data_section_start in range(data_section_header.sh_offset,
                                             data_section_header.sh_offset + data_section_header.sh_size,
                                             self.ptr_size):
@@ -273,9 +273,14 @@ class Shellcode(object):
                     hex(self.make_absolute(virtual_offset)),
                     hex(self.make_absolute(sym_offset)),
                 ))
+                virtual_offset, sym_offset = self.relocation_hook(section_name, virtual_offset, sym_offset, index)
                 self.addresses_to_patch[virtual_offset] = sym_offset
+                index += 1
 
         return shellcode_data
+
+    def relocation_hook(self, section_name, virtual_offset, sym_offset, index):
+        return virtual_offset, sym_offset
 
     def do_objdump(self, data):
         if self.elffile.num_segments() == 0:

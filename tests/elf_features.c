@@ -33,7 +33,6 @@ void loader_main(
 
 int get_elf_information(struct relocation_table ** info);
 
-
 void write_out(char * msg) {
 #ifndef OSAL_LIBC
     write(1, msg, strlen(msg));
@@ -126,6 +125,7 @@ void main(void * main_address, int argc, char ** argv, int total_args) {
 #ifdef DYNAMIC_SUPPORT
     TRACE("Calling get elf information, testing dynamic shellcode\n");
     TRACE("Arch support dynamic relocations, testing dynamic objects\n");
+    TRACE("Dynamic function is at %x\n", get_elf_information);
     status=get_elf_information(&info);
     if(status == ERROR) {
         TRACE("Error while calling get elf information\n");

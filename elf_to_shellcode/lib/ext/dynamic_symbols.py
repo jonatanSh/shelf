@@ -4,7 +4,7 @@ import logging
 
 
 class DynamicRelocations(object):
-    def __init__(self, reloc_types):
+    def __init__(self, shellcode, reloc_types):
         self.handlers = {
             'JMPREL': self.handle_jmp_slot_relocs,
             "REL": self.handle_rels
@@ -22,6 +22,7 @@ class DynamicRelocations(object):
         self.entry_handlers.update(
             self.reloc_types.get(RELOC_TYPES.ARCH_SPECIFIC, {})
         )
+        self.shellcode = shellcode
 
     def call_entry_handler(self, entry, shellcode, dynsym):
         if entry.r_info_type in self.reloc_types[RELOC_TYPES.DO_NOT_HANDLE]:
