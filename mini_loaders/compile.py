@@ -6,7 +6,9 @@ TARGET_FILES = [
 ]
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
-
+CFLAGS = ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
+CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic']
+CFLAGS = ' '.join(CFLAGS)
 
 def cfiles(directory):
     return [os.path.join(directory, filename) for filename in os.listdir(directory)
@@ -107,33 +109,33 @@ class Compiler(object):
 
 MipsCompiler = Compiler(
     host=r'mips-linux-gnu',
-    cflags='-g -static -Wno-stack-protector -nolibc -nostartfiles --entry=loader_main',
+    cflags='{} --entry=loader_main'.format(CFLAGS),
     compiler_name="mips"
 )
 MipsCompilerBE = Compiler(
     host=r'mips-linux-gnu',
-    cflags='-g -static -Wno-stack-protector -nolibc -nostartfiles --entry=loader_main -BE',
+    cflags='{} --entry=loader_main -BE'.format(CFLAGS),
     compiler_name="mipsbe"
 )
 IntelX32 = Compiler(
     host=r'i686-linux-gnu',
-    cflags='-static -nolibc -nostartfiles -g -Wno-stack-protector -masm=intel -fno-plt -fno-pic --entry=loader_main',
+    cflags='{} -masm=intel -fno-plt -fno-pic --entry=loader_main'.format(CFLAGS),
     compiler_name="x32"
 )
 IntelX64 = Compiler(
     host=r'i686-linux-gnu',
-    cflags='-static -nolibc -nostartfiles -g -Wno-stack-protector -masm=intel -fno-plt -fno-pic --entry=loader_main -m64',
+    cflags='{} -masm=intel -fno-plt -fno-pic --entry=loader_main -m64'.format(CFLAGS),
     compiler_name="x64"
 )
 
 ArmX32 = Compiler(
     host=r'arm-linux-gnueabi',
-    cflags='--entry=loader_main -static -nolibc -nostartfiles -g -Wno-stack-protector -fno-plt -fno-pic',
+    cflags='--entry=loader_main {}'.format(CFLAGS),
     compiler_name="arm_x32"
 )
 AARCH64 = Compiler(
     host=r'aarch64-linux-gnu',
-    cflags='--entry=loader_main -static -nolibc -nostartfiles -g -Wno-stack-protector -fno-plt -fno-pic',
+    cflags='--entry=loader_main {}'.format(CFLAGS),
     compiler_name="arm_x64"
 )
 

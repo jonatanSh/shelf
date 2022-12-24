@@ -185,4 +185,17 @@ struct stat {
 #define WEXITSTATUS(status)   (((status) & 0xff00) >> 8)
 #define WIFEXITED(status)     (((status) & 0x7f) == 0)
 
+#ifndef __NR_getpgrp
+	#define __NR_getpgrp sys_getpgrp
+#endif
+
+#ifndef __NR_fork
+	#define __NR_fork sys_fork
+#endif
+
+#ifndef __NR_dup2
+	#define __NR_dup2 sys_dup2
+#endif
+
+
 #endif // KERNEL_DEFS_HEADER

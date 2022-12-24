@@ -56,6 +56,8 @@ sys.modules["global_args"] = args
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
     logging.info("Verbose level: DEBUG")
+else:
+    logging.basicConfig(level=logging.CRITICAL)
 if args.output:
     output_file = args.output
 else:

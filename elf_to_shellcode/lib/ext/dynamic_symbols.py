@@ -4,7 +4,7 @@ import logging
 
 
 class DynamicRelocations(object):
-    def __init__(self, reloc_types):
+    def __init__(self, shellcode, reloc_types):
         self.handlers = {
             'JMPREL': self.handle_jmp_slot_relocs,
             "REL": self.handle_rels
@@ -13,12 +13,16 @@ class DynamicRelocations(object):
         self.reloc_types = reloc_types
 
         self.entry_handlers = {
-            self.reloc_types[RELOC_TYPES.RELATIVE]: self.reloc_relative_handle,
-            self.reloc_types[RELOC_TYPES.GLOBAL_SYM]: self.global_sym_dat_handle,
-            self.reloc_types[RELOC_TYPES.GLOBAL_DAT]: self.global_sym_dat_handle,
-            self.reloc_types[RELOC_TYPES.JMP_SLOT]: self.jmp_slot_reloc_handle
-
+            self.reloc_types.get(RELOC_TYPES.RELATIVE): self.reloc_relative_handle,
+            self.reloc_types.get(RELOC_TYPES.GLOBAL_SYM): self.global_sym_dat_handle,
+            self.reloc_types.get(RELOC_TYPES.GLOBAL_DAT): self.global_sym_dat_handle,
+            self.reloc_types.get(RELOC_TYPES.JMP_SLOT): self.jmp_slot_reloc_handle,
         }
+
+        self.entry_handlers.update(
+            self.reloc_types.get(RELOC_TYPES.ARCH_SPECIFIC, {})
+        )
+        self.shellcode = shellcode
 
     def call_entry_handler(self, entry, shellcode, dynsym):
         if entry.r_info_type in self.reloc_types[RELOC_TYPES.DO_NOT_HANDLE]:
@@ -33,7 +37,7 @@ class DynamicRelocations(object):
                 self.entry_handlers.keys()
             ))
             assert False
-
+        logging.info("Calling entry handler: {}".format(entry_handler.__name__))
         entry_handler(entry=entry, shellcode=shellcode, dynsym=dynsym)
 
     def handle(self, shellcode, shellcode_data):
@@ -54,8 +58,9 @@ class DynamicRelocations(object):
                 ))
                 raise Exception("Not supported")
             else:
-                logging.info("Relocation types: {}".format(
-                    relocation_table.keys()
+                logging.info("Handling relocation types: {}, handler: {}".format(
+                    relocation_table.keys(),
+                    handler.__name__
                 ))
                 handler(shellcode=shellcode,
                         table=relocation_table[reloc_type],
@@ -65,7 +70,6 @@ class DynamicRelocations(object):
 
     def handle_other_dynamic_relocations(self, shellcode):
         rel_dyn = shellcode.elffile.get_section_by_name('.rel.dyn')
-        rel_plt = shellcode.elffile.get_section_by_name('.rel.plt')
         if rel_dyn:
             self.handle_rel_dyn(shellcode, rel_dyn)
 
@@ -81,6 +85,13 @@ class DynamicRelocations(object):
         sym = dynsym.get_symbol(entry.r_info_sym)
         offset = shellcode.make_relative(entry.r_offset)
         r_address = shellcode.make_relative(sym.entry.st_value)
+        if shellcode.loader_symbols.has_symbol(sym.name):
+            jmp_slot_address = shellcode.loader_symbols.get_relative_symbol_address(
+                symbol_name=sym.name
+            )
+            shellcode.addresses_to_patch[offset] = [jmp_slot_address,
+                                                    RelocationAttributes.relative_to_loader_base]
+            return
         self.logger.info("[SYM_R|{}] Relative(*{}={}) Absolute(*{}={})".format(
             sym.name,
             hex(offset),
@@ -107,7 +118,6 @@ class DynamicRelocations(object):
         v_offset = shellcode.make_relative(symbol_obj.entry.st_value)
         offset = shellcode.make_relative(entry.r_offset)
         sym_type = symbol_obj.entry.st_info.type
-
         if shellcode.loader_symbols.has_symbol(symbol_obj.name):
             jmp_slot_address = shellcode.loader_symbols.get_relative_symbol_address(
                 symbol_name=symbol_obj.name
@@ -121,7 +131,6 @@ class DynamicRelocations(object):
             shellcode.addresses_to_patch[offset] = [jmp_slot_address,
                                                     RelocationAttributes.relative_to_loader_base]
             return
-
         if not symbol_obj.entry.st_value:
             name = symbol_obj.name
             if name not in [
