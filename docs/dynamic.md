@@ -60,5 +60,6 @@ void main() {
 
 this feature is currently only enabled for:
 * intel x32 shellcodes
+* mips
 
 please take a look at the elf_features test and makefile to fully understand how to use this feature
