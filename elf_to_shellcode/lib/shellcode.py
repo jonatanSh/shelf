@@ -283,16 +283,15 @@ class Shellcode(object):
         return virtual_offset, sym_offset
 
     def do_objdump(self, data):
-        linker_base = self.get_linker_base_address(check_x=True)
-        if self.elffile.num_segments() == 0:
-            self.logger.info("No segments found, objdump return all shellcode data")
-            return data[linker_base:]
+        # We want the first virtual address
+        first_v_addr = self.get_linker_base_address(check_x=False, 
+            attribute='p_vaddr')
         new_binary = five.py_obj()
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
                 segment_size = header.p_memsz
-                start = (header.p_vaddr - linker_base)
+                start = (header.p_vaddr - first_v_addr)
                 end = start + segment_size
                 f_start = header.p_offset
                 f_end = f_start + header.p_filesz
@@ -352,7 +351,7 @@ class Shellcode(object):
             elif section.name not in exclude_sections and section.flags & SECTION_FLAGS.ALLOC:
                 last_section = section
 
-    def get_linker_base_address(self, check_x=True):
+    def get_linker_base_address(self, check_x=True, attribute='p_offset'):
         if self.elffile.num_segments() == 0:
             return 0
 
@@ -362,7 +361,7 @@ class Shellcode(object):
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
                 if (header.p_flags & P_FLAGS.PF_X) or not check_x:
-                    min_s = min(min_s, header.p_offset)
+                    min_s = min(min_s, getattr(header, attribute))
         assert min_s != 2 ** 32
         return min_s
 
