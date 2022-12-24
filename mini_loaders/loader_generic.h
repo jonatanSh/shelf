@@ -93,4 +93,12 @@ typedef void * (*IRELATIVE_T)();
     #define call_get_pc call_get_pc_generic
 #endif
 
+#ifndef ARCH_FUNCTION_ENTER
+    #define ARCH_FUNCTION_ENTER
+#endif
+
+#ifndef ARCH_FUNCTION_EXIT
+    #define ARCH_FUNCTION_EXIT
+#endif
+
 #endif

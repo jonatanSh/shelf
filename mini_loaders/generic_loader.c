@@ -32,7 +32,8 @@ void loader_main(
     size_t magic;
     size_t total_argv_envp_size = 0;
     size_t parsed_entries_size = 0;
-
+    size_t return_address;
+    ARCH_FUNCTION_ENTER(&return_address);
 #ifdef SUPPORT_START_FILES
     TRACE("Loader support: SUPPORT_START_FILES");
 #endif
@@ -129,6 +130,7 @@ void loader_main(
 error:
 exit:
     TEARDOWN(1);
+    ARCH_FUNCTION_EXIT(return_address);
     return;
 }
 
@@ -139,6 +141,9 @@ int get_elf_information(struct relocation_table **info) {
     size_t magic;
     struct relocation_table * table;
     int status = ERROR;
+    size_t return_address;
+    ARCH_FUNCTION_ENTER(&return_address);
+
     resolve_table_magic();
     call_get_pc();
     advance_pc_to_magic();
@@ -150,6 +155,7 @@ int get_elf_information(struct relocation_table **info) {
     *info = table;
     status = OK;
 
+    ARCH_FUNCTION_EXIT(return_address);
 error:
     return status;
 
