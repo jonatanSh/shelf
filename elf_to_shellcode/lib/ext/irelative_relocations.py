@@ -136,7 +136,7 @@ class IrelativeRelocs(object):
                 we must found those references,
                 
             """
-            stop_at = shellcode.loading_virtual_address
+            stop_at = shellcode.linker_base_address
             for index in xrange(0, stop_at, shellcode.ptr_size):
                 entry = shellcode.unpack_ptr(
                     shellcode.shellcode_data[index: index + shellcode.ptr_size])
