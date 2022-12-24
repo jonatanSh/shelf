@@ -152,7 +152,7 @@ class Shellcode(object):
         return ld_name
 
     def make_absolute(self, address):
-        return address + self.linker_base_address
+        return address + self.loading_virtual_address
 
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
@@ -260,11 +260,11 @@ class Shellcode(object):
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     self.logger.info("[R_SKIPPED]{}".format(hex(data_section_value)))
                     continue
-                sym_offset = data_section_value - self.linker_base_address
+                sym_offset = data_section_value - self.loading_virtual_address
                 if sym_offset < 0:
                     continue
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
-                virtual_offset = data_section_header.sh_addr - self.linker_base_address
+                virtual_offset = data_section_header.sh_addr - self.loading_virtual_address
                 virtual_offset += symbol_relative_offset
                 self.logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
                     section_name,
@@ -284,14 +284,12 @@ class Shellcode(object):
 
     def do_objdump(self, data):
         # We want the first virtual address
-        first_v_addr = self.get_linker_base_address(check_x=False, 
-            attribute='p_vaddr')
         new_binary = five.py_obj()
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
                 segment_size = header.p_memsz
-                start = (header.p_vaddr - first_v_addr)
+                start = (header.p_vaddr - self.loading_virtual_address)
                 end = start + segment_size
                 f_start = header.p_offset
                 f_end = f_start + header.p_filesz
@@ -366,6 +364,12 @@ class Shellcode(object):
         return min_s
 
     @property
+    def loading_virtual_address(self):
+        return self.get_linker_base_address(
+            check_x=False,
+            attribute="p_vaddr"
+        )
+    @property
     def linker_base_address(self):
         return self.get_linker_base_address()
 
@@ -374,7 +378,7 @@ class Shellcode(object):
         addresses = []
         for sym in symtab.iter_symbols():
             address = sym.entry.st_value
-            if address >= self.linker_base_address:
+            if address >= self.loading_virtual_address:
                 addresses.append(address)
 
         return addresses
@@ -391,7 +395,7 @@ class Shellcode(object):
 
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
-        new_entry_point = (original_entry_point - self.linker_base_address)
+        new_entry_point = (original_entry_point - self.loading_virtual_address)
         return struct.pack("{}{}".format(self.endian, self.ptr_fmt), new_entry_point)
 
     def build_shellcode_from_header_and_code(self, header, code):
@@ -460,7 +464,7 @@ class Shellcode(object):
         return elf_buffer_with_address
 
     def make_relative(self, address):
-        return address - self.linker_base_address
+        return address - self.loading_virtual_address
 
     def unpack_ptr(self, stream):
         return struct.unpack("{}{}".format(self.endian,

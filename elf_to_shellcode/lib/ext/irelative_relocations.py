@@ -136,7 +136,7 @@ class IrelativeRelocs(object):
                 we must found those references,
                 
             """
-            stop_at = shellcode.linker_base_address
+            stop_at = shellcode.loading_virtual_address
             for index in xrange(0, stop_at, shellcode.ptr_size):
                 entry = shellcode.unpack_ptr(
                     shellcode.shellcode_data[index: index + shellcode.ptr_size])
@@ -149,7 +149,7 @@ class IrelativeRelocs(object):
                         hex(shellcode.make_absolute(relocation_entry_relative))
                     ))
                     shellcode.addresses_to_patch[index] = relocation_entry_relative
-                    address_not_relative = shellcode.linker_base_address + index
+                    address_not_relative = shellcode.loading_virtual_address + index
 
                     self.glibc_irelative_first_reference = min(self.glibc_irelative_first_reference,
                                                                address_not_relative)
