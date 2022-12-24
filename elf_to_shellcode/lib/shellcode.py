@@ -283,15 +283,16 @@ class Shellcode(object):
         return virtual_offset, sym_offset
 
     def do_objdump(self, data):
+        linker_base = self.get_linker_base_address(check_x=True)
         if self.elffile.num_segments() == 0:
             self.logger.info("No segments found, objdump return all shellcode data")
-            return data[self.linker_base_address:]
+            return data[linker_base:]
         new_binary = five.py_obj()
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
                 segment_size = header.p_memsz
-                start = (header.p_vaddr - self.linker_base_address)
+                start = (header.p_vaddr - linker_base)
                 end = start + segment_size
                 f_start = header.p_offset
                 f_end = f_start + header.p_filesz
@@ -351,8 +352,7 @@ class Shellcode(object):
             elif section.name not in exclude_sections and section.flags & SECTION_FLAGS.ALLOC:
                 last_section = section
 
-    @property
-    def linker_base_address(self):
+    def get_linker_base_address(self, check_x=True):
         if self.elffile.num_segments() == 0:
             return 0
 
@@ -361,9 +361,14 @@ class Shellcode(object):
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
-                min_s = min(min_s, header.p_offset)
+                if (header.p_flags & P_FLAGS.PF_X) or not check_x:
+                    min_s = min(min_s, header.p_offset)
         assert min_s != 2 ** 32
         return min_s
+
+    @property
+    def linker_base_address(self):
+        return self.get_linker_base_address()
 
     def get_original_symbols_addresses(self):
         symtab = self.elffile.get_section_by_name(".symtab")

@@ -38,15 +38,7 @@ class MipsShellcode(Shellcode):
         self.dynsym = self.elffile.get_section_by_name(".dynsym")
         self.can_handle_dynamic_got_relocs = False
         self.prepare_got_parsing()
-        if self.support_dynamic:
-            self.add_relocation_handler(self.got_external_functions)
 
-    def got_external_functions(self, shellcode, shellcode_data):
-        for symbol in self.lief_elf.symbols:
-            address = symbol.value
-            for instruction in self.disassembler.disassemble(shellcode_data[address:address + 20]):
-                self.disassembler.print_instruction(instruction)
-        return shellcode_data
 
     def prepare_got_parsing(self):
         dynamic = self.elffile.get_section_by_name(".dynamic")
