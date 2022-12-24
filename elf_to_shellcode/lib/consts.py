@@ -8,8 +8,11 @@ class RELOC_TYPES(object):
     JMP_SLOT = "JMP_SLT"
     RELATIVE = "RELATIVE"
     GLOBAL_SYM = "GLOBAL_SYM"
+    EXTERN = "EXTERN"
     GLOBAL_DAT = "GLOBAL_DAT"
-    DO_NOT_HANDLE = "DO_NOT_HANDLE"
+    DO_NOT_HANDLE = "DO_NOT_HANDLE",
+    ARCH_SPECIFIC = "ARCH_SPECIFIC"
+    PASS = lambda **kwargs: None
 
 
 class StartFiles(object):

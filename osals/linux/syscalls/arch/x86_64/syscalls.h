@@ -19,7 +19,7 @@
 #define my_syscall6(num, arg1, arg2, arg3, arg4, arg5, arg6)                  \
 ({                                                                            \
 	long _ret;                                                            \
-	register long _num  asm("rax") = (num);                               \
+	register long _num  asm("rax") = (long)(num);                               \
 	register long _arg1 asm("rdi") = (long)(arg1);                        \
 	register long _arg2 asm("rsi") = (long)(arg2);                        \
 	register long _arg3 asm("rdx") = (long)(arg3);                        \

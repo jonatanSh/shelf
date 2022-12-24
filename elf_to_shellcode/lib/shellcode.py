@@ -9,10 +9,12 @@ from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.lib.ext.reloaciton_handler import ElfRelocationHandler
 import logging
 from elftools.elf.constants import P_FLAGS
 from elf_to_shellcode.lib import five
 import lief
+from lief.ELF import SECTION_FLAGS
 import tempfile
 
 PTR_SIZES = {
@@ -23,6 +25,7 @@ PTR_SIZES = {
 
 class Shellcode(object):
     def __init__(self, elffile,
+                 path,
                  shellcode_data,
                  endian,
                  arch,
@@ -35,13 +38,16 @@ class Shellcode(object):
                  sections_to_relocate={},
                  ext_bindings=[],
                  supported_start_methods=[],
-                 reloc_types={}):
+                 reloc_types={},
+                 should_add_specific_arch_handlers=False):
         self.support_dynamic = support_dynamic
         self.logger = logging.getLogger("[{}]".format(
             self.__class__.__name__
         ))
 
         self.elffile = elffile
+        self.path = path
+        self.lief_elf = lief.parse(self.path)
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
@@ -50,10 +56,6 @@ class Shellcode(object):
         self.sections_to_relocate = sections_to_relocate
 
         self.shellcode_data = shellcode_data
-        for segment in self.elffile.iter_segments():
-            if segment.header.p_type in ['PT_LOAD']:
-                self.linker_base_address = segment.header.p_vaddr
-                break
         self.ptr_fmt = ptr_fmt
         self.ptr_signed_fmt = self.ptr_fmt.lower()
         self.relocation_handlers = []
@@ -103,8 +105,26 @@ class Shellcode(object):
 
         self.disassembler = Disassembler(self)
         if self.support_dynamic:
-            self.dynamic_relocs = DynamicRelocations(reloc_types)
+            self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
             self.add_relocation_handler(self.dynamic_relocs.handle)
+
+        self.should_add_specific_arch_handlers = should_add_specific_arch_handlers
+        if should_add_specific_arch_handlers:
+            self.relocation_handler = ElfRelocationHandler()
+            self.add_relocation_handler(self.relocation_handler.handle)
+
+    def arch_find_relocation_handler(self, relocation_type):
+        raise NotImplementedError()
+
+    def arch_handle_relocation(self, shellcode, shellcode_data, relocation):
+        handler = self.arch_find_relocation_handler(relocation.type)
+        if not handler:
+            raise Exception(
+                "Error relocation handler for: {} not found, extended {}".format(relocation.type, relocation))
+        self.logger.info("Calling relocation handler: {}".format(
+            handler.__name__
+        ))
+        handler(shellcode=shellcode, shellcode_data=shellcode_data, relocation=relocation)
 
     def format_loader(self, ld):
         if StartFiles.no_start_files == self.start_file_method:
@@ -132,12 +152,13 @@ class Shellcode(object):
         return ld_name
 
     def make_absolute(self, address):
-        return address + self.linker_base_address
+        return address + self.loading_virtual_address
 
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
 
     def pack(self, fmt, n):
+        self.logger.info("Packing: {} to {}{}".format(hex(n), self.endian, fmt))
         return struct.pack("{}{}".format(self.endian, fmt), n)
 
     def pack_pointer(self, n):
@@ -228,7 +249,7 @@ class Shellcode(object):
         original_symbol_addresses = self.get_original_symbols_addresses()
         if data_section:
             data_section_header = data_section.header
-
+            index = 0
             for data_section_start in range(data_section_header.sh_offset,
                                             data_section_header.sh_offset + data_section_header.sh_size,
                                             self.ptr_size):
@@ -239,11 +260,11 @@ class Shellcode(object):
                 if data_section_value not in original_symbol_addresses and not relocate_all:
                     self.logger.info("[R_SKIPPED]{}".format(hex(data_section_value)))
                     continue
-                sym_offset = data_section_value - self.linker_base_address
+                sym_offset = data_section_value - self.loading_virtual_address
                 if sym_offset < 0:
                     continue
                 symbol_relative_offset = data_section_start - data_section_header.sh_offset
-                virtual_offset = data_section_header.sh_addr - self.linker_base_address
+                virtual_offset = data_section_header.sh_addr - self.loading_virtual_address
                 virtual_offset += symbol_relative_offset
                 self.logger.info("|{}| Relative(*{}={}), Absolute(*{}={})".format(
                     section_name,
@@ -252,17 +273,23 @@ class Shellcode(object):
                     hex(self.make_absolute(virtual_offset)),
                     hex(self.make_absolute(sym_offset)),
                 ))
+                virtual_offset, sym_offset = self.relocation_hook(section_name, virtual_offset, sym_offset, index)
                 self.addresses_to_patch[virtual_offset] = sym_offset
+                index += 1
 
         return shellcode_data
 
+    def relocation_hook(self, section_name, virtual_offset, sym_offset, index):
+        return virtual_offset, sym_offset
+
     def do_objdump(self, data):
+        # We want the first virtual address
         new_binary = five.py_obj()
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
                 segment_size = header.p_memsz
-                start = (header.p_vaddr - self.linker_base_address)
+                start = (header.p_vaddr - self.loading_virtual_address)
                 end = start + segment_size
                 f_start = header.p_offset
                 f_end = f_start + header.p_filesz
@@ -271,7 +298,10 @@ class Shellcode(object):
                     hex(len(data))
                 )
                 # first we make sure this part is already filled
-                new_binary = five.ljust(new_binary, end, b'\x00')
+                if end < 0:
+                    self.logger.warn("Padding returned negative offset !")
+                else:
+                    new_binary = five.ljust(new_binary, end, b'\x00')
                 segment_data = data[f_start:f_end]
 
                 # Now we rewrite the segment data
@@ -279,24 +309,76 @@ class Shellcode(object):
                 new_binary = new_binary[:start] + segment_data + new_binary[start + len(segment_data):]
         return new_binary  # TODO check if the elf header is really required
 
-    @property
-    def instruction_offset_after_objdump(self):
+    @staticmethod
+    def aligned(a, b):
+        return a + (a % b)
+
+    def get_section_virtual_address(self, section_name):
+        offset, first_section = self.get_first_executable_section_virtual_address()
+        total_size = self.aligned(first_section.size, first_section.alignment) + offset
+        should_skip = True
+        for section in self.lief_elf.sections:
+            if should_skip:
+                should_skip = not (section.name == first_section.name)
+                continue
+            if section.flags & SECTION_FLAGS.ALLOC:
+                if section.name == section_name:
+                    return total_size
+                else:
+                    total_size += self.aligned(section.size, section.alignment)
+
+        raise Exception("Section: {} is not allocatable".format(
+            section_name
+        ))
+
+    def get_first_executable_section_virtual_address(self):
+        """
+         Trying to locate the first executable section
+         """
+        # calculate all the section size up to the first executable section
+        exclude_sections = [
+            '.reginfo',
+        ]
+        last_section = None
+        for section in self.lief_elf.sections:
+            if section.flags & SECTION_FLAGS.EXECINSTR:
+                last_offset = 0
+                if last_section:
+                    last_offset = last_section.offset + last_section.size
+                return [section.offset - last_offset, section]
+            elif section.name not in exclude_sections and section.flags & SECTION_FLAGS.ALLOC:
+                last_section = section
+
+    def get_linker_base_address(self, check_x=True, attribute='p_offset'):
+        if self.elffile.num_segments() == 0:
+            return 0
+
         # This function return the offset for the first executable section
         min_s = 2 ** 32
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
-                if header.p_flags & P_FLAGS.PF_X:
-                    min_s = min(min_s, header.p_offset)
+                if (header.p_flags & P_FLAGS.PF_X) or not check_x:
+                    min_s = min(min_s, getattr(header, attribute))
         assert min_s != 2 ** 32
         return min_s
+
+    @property
+    def loading_virtual_address(self):
+        return self.get_linker_base_address(
+            check_x=False,
+            attribute="p_vaddr"
+        )
+    @property
+    def linker_base_address(self):
+        return self.get_linker_base_address()
 
     def get_original_symbols_addresses(self):
         symtab = self.elffile.get_section_by_name(".symtab")
         addresses = []
         for sym in symtab.iter_symbols():
             address = sym.entry.st_value
-            if address >= self.linker_base_address:
+            if address >= self.loading_virtual_address:
                 addresses.append(address)
 
         return addresses
@@ -313,7 +395,7 @@ class Shellcode(object):
 
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
-        new_entry_point = (original_entry_point - self.linker_base_address)
+        new_entry_point = (original_entry_point - self.loading_virtual_address)
         return struct.pack("{}{}".format(self.endian, self.ptr_fmt), new_entry_point)
 
     def build_shellcode_from_header_and_code(self, header, code):
@@ -382,7 +464,7 @@ class Shellcode(object):
         return elf_buffer_with_address
 
     def make_relative(self, address):
-        return address - self.linker_base_address
+        return address - self.loading_virtual_address
 
     def unpack_ptr(self, stream):
         return struct.unpack("{}{}".format(self.endian,
@@ -455,7 +537,8 @@ def get_shellcode_class(elf_path, shellcode_cls, endian,
     shellcode = shellcode_cls(elffile=elffile,
                               shellcode_data=shellcode_data,
                               endian=endian,
-                              start_file_method=start_file_method)
+                              start_file_method=start_file_method,
+                              path=elf_path)
     return shellcode, fd
 
 

@@ -37,4 +37,23 @@ typedef unsigned int size_t;
 }                                                               \
 
 
+#define ARCH_FUNCTION_ENTER(ra) {            \
+    register size_t a0 asm("a0");           \
+    asm(                                    \
+        "move $a0, $ra\n"                    \
+        : :                                 \
+        "r"(a0)                             \
+    );                                      \
+    *ra = a0;                               \
+}                                           \
+
+#define ARCH_FUNCTION_EXIT(ra) {             \
+   register size_t a0 asm("a0") = (size_t)(ra);\
+    asm(                                    \
+        "move $ra, $a0\n"                     \
+        : :                                 \
+        "r"(a0)                             \
+    );                                      \
+}                                           \
+
 #endif
