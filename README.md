@@ -19,7 +19,6 @@ Please read the following documentation and view the examples for this project t
 pip install elf_to_shellcode
 ```
 ###### Python version support
-* python3
 * python2
 
 ## How does this work ?

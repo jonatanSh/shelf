@@ -17,14 +17,14 @@ py_specific_req = py_specific_req_2
 if version >= 3:
     py_specific_req = py_specific_req_3
 try:
-    with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'rb') as fp:
+    with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'r') as fp:
         README = str(fp.read())
 except:
     print("Readme error")
 
 setup(
     name='elf_to_shellcode',
-    version='2.2.0',
+    version='2.2.1',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
