@@ -10,6 +10,10 @@ intel_x32_%:
 	$(X32_CC) $(CFLAGS) $(subst intel_x32_,,$@).c $(C_FILES) -static -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode
 
+	$(X32_CC) $(CFLAGS) $(subst intel_x32_,,$@).c $(C_FILES) -static -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32_eshelf.out -DESHELF
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32_eshelf.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode.eshelf --output-format eshelf
+
+
 intel_x64_%:
 	$(X64_CC) $(CFLAGS) $(C_FILES) -static $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
 	$(X64_CC) $(CFLAGS) $(C_FILES) -static $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64_eshelf.out -DESHELF
