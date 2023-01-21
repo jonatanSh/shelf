@@ -48,7 +48,7 @@ def run_arch_tests(arch, case):
             case
         )
         if test_case is not 'eshelf':
-            command = "{} {} {} {}".format(qemu, db_arg, loader, test)
+            command = "{} {} {}".format(qemu, db_arg,  test)
         else:
             command = '{} {} {} "First_Argument_for_argv" "Second argument for argv"'.format(qemu, db_arg, test)
         if not args.only_stdout:
