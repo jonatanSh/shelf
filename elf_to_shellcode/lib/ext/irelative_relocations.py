@@ -117,7 +117,7 @@ class IrelativeRelocs(object):
         hdr = "GLIBC_R"
 
         if shellcode.start_file_method != StartFiles.glibc:
-            hdr = "IRELATIVE"
+            hdr = "IRELATIVE_CALL_TO_RESOLVE"
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
         else:
