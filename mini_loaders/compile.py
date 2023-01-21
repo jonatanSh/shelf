@@ -32,7 +32,9 @@ features = {
                 'cflags': ['-I../osals/linux/', '-I../osals'],
                 'supported': [
                     'x64',
-                    'x32'
+                    'x32',
+                    'mipsbe',
+                    'mips'
                 ],
                 "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded"}
 }
