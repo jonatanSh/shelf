@@ -33,6 +33,7 @@ void loader_main(
     size_t total_argv_envp_size = 0;
     size_t parsed_entries_size = 0;
     size_t return_address;
+    size_t total_header_plus_table_size = 0;
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef SUPPORT_START_FILES
     TRACE("Loader support: SUPPORT_START_FILES");
@@ -63,19 +64,23 @@ void loader_main(
     // If we got here then we found the table
     table = (struct relocation_table *)pc;
     ASSERT(table->magic == magic);
+    total_header_plus_table_size = table->total_size;
+    total_header_plus_table_size += table->header_size;
     // Size of table header + entries + entry point
     base_address = (size_t)(table);
-    base_address += sizeof(struct relocation_table) + table->total_size + sizeof(size_t);
+    base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
     loader_base =(size_t)((void *)(table) - table->elf_information.loader_size);
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     // We consider the table size and the entry point as parsed
-    TRACE("Starting to parse table, total size = %x", table->total_size);
+    TRACE("Starting to parse table, total size = %x", total_header_plus_table_size);
     while(parsed_entries_size < table->total_size) {
         struct table_entry * entry = (struct table_entry *)entry_ptr;
         struct entry_attributes * attributes = (struct entry_attributes*)((void*)entry+sizeof(size_t)*3);
         // Now parsing the entry
         size_t f_offset = entry->f_offset + base_address;
         size_t v_offset = entry->v_offset + base_address; 
+        TRACE("Parssing Entry(size=%x, f_offset=%x, v_offset=%x, first_attribute=%x)",
+            entry->size, entry->f_offset, entry->v_offset, attributes->attribute_1);
         
         /*
             DO NOT USE SWITCH CASE HERE
@@ -87,6 +92,7 @@ void loader_main(
             size_t attribute_val = 0;
             if(attributes->attribute_1 == IRELATIVE) {
                 TRACE("Loader IRELATIVE fix: %x=%x()", v_offset, v_offset);
+                TRACE_ADDRESS(v_offset, 24);
                 attribute_val = (size_t)((IRELATIVE_T)(v_offset))();
                 v_offset = attribute_val;
             }

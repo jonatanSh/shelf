@@ -42,6 +42,7 @@ struct elf_information_struct {
 struct relocation_table {
     size_t magic;
     size_t total_size;
+    size_t header_size;
     struct elf_information_struct elf_information;
 };
 

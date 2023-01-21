@@ -221,8 +221,10 @@ class Shellcode(object):
             relocation_entry = relocation_size + relocation_entry
             table += relocation_entry
 
-        size_encoded = self.pack_pointer(len(table))
-        return self.pack_pointer(self.shellcode_table_magic) + size_encoded + self.pre_table_header + table
+        sizes = self.pack_list_of_pointers([len(table),
+                                            len(self.get_shellcode_header())])
+
+        return self.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header + table
 
     @property
     def pre_table_header(self):
@@ -369,6 +371,7 @@ class Shellcode(object):
             check_x=False,
             attribute="p_vaddr"
         )
+
     @property
     def linker_base_address(self):
         return self.get_linker_base_address()
@@ -457,9 +460,17 @@ class Shellcode(object):
         self.logger.info("Setting shellcode base address at: {}".format(
             hex(segment.virtual_address)
         ))
+        # Offset to where the shellcode starts
         shellcode_start = self.pack_pointer(segment.virtual_address)
+
+        # Offset to the entry point of the loader
         elf_buffer_with_address = elf_buffer[:loader_symbol_address]
+
+        # Setting the eshelf entry point to shellcode_start
+        # Thats because the start of the shellcode is the relocation table
         elf_buffer_with_address += shellcode_start
+        self.logger.info("Setting relocation table address to: {}".format(hex(segment.virtual_address)))
+        # Adding the rest of the shellcode into the buffer
         elf_buffer_with_address += elf_buffer[loader_symbol_address + self.ptr_size:]
         return elf_buffer_with_address
 
@@ -504,6 +515,9 @@ class Shellcode(object):
         current_offset += self.ptr_size  # skipping magic
         table_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
         current_offset += self.ptr_size  # skip ptr size
+        header_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
+        current_offset += self.ptr_size  # skip ptr header size
+
         current_offset += len(self.pre_table_header)
 
         handled_size = 0

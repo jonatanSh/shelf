@@ -65,8 +65,9 @@ def run_arch_tests(arch, case):
         if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
             print("test: {} for: {} ... Success".format(test_case, arch))
         else:
-            print("test: {} for: {} ... Failure, output:".format(test_case, arch))
-            print stdout, stderr
+            print("test: {} for: {} ... Failure, use --verbose-on-failed to see output".format(test_case, arch))
+            if args.verbose_on_failed:
+                print stdout, stderr
         if args.verbose:
             logging.info("Stdout: {}".format(
                 stdout
@@ -96,6 +97,8 @@ parser.add_argument("--debug", default=False, action="store_true", required=Fals
 parser.add_argument("--verbose", default=False, action="store_true", required=False)
 parser.add_argument("--only-stdout", default=False, required=False, action="store_true",
                     help="Run and only display stdout and stderr")
+parser.add_argument("--verbose-on-failed", default=False, action="store_true", required=False)
+
 args = parser.parse_args()
 if args.verbose:
     assert not args.only_stdout, "error --only-stdout and --verbose dont work togther"
