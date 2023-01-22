@@ -1,3 +1,4 @@
+import binascii
 import os
 
 from elftools.elf.elffile import ELFFile
@@ -418,23 +419,31 @@ class Shellcode(object):
         shellcode_data = self.do_objdump(shellcode_data)
         # This must be here !
         relocation_table = self.relocation_table
-        if self.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
-            return self.build_eshelf(
-
-                relocation_table=relocation_table,
-                shellcode_header=shellcode_header,
-                shellcode_data=shellcode_data
-            )
 
         full_header = self.loader + relocation_table + shellcode_header
         if self.args.save_without_header:
             self.logger.info("Saving without shellcode table")
-            return shellcode_data
+            formatted_shellcode = shellcode_data
         else:
-            return self.build_shellcode_from_header_and_code(full_header, shellcode_data)
+            formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
-    def build_eshelf(self, relocation_table, shellcode_header, shellcode_data):
-        shellcode_data = relocation_table + shellcode_header + shellcode_data
+        return self.post_make_shellcode_handle_format(formatted_shellcode)
+
+    def post_make_shellcode_handle_format(self, shellcode):
+        shellcode_with_output_format = shellcode
+        if self.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
+            shellcode_no_loader = self.remove_loader_from_shellcode(shellcode)
+            shellcode_with_output_format = self.build_eshelf(
+                shellcode_data=shellcode_no_loader
+            )
+        return shellcode_with_output_format
+
+    def remove_loader_from_shellcode(self, shellcode):
+        index = shellcode.find(self.loader)
+        assert index != -1
+        return shellcode[:index] + shellcode[index+len(self.loader):]
+
+    def build_eshelf(self, shellcode_data):
         loader = lief.parse(self.loader_path)
         segment = lief.ELF.Segment()
         segment.type = lief.ELF.SEGMENT_TYPES.LOAD

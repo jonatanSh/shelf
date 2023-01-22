@@ -54,15 +54,19 @@ void loader_main(
     if(loader_magic != magic) {
         #ifndef ESHELF
             get_pc();
-            advance_pc_to_magic();
         #else
+            /* 
+                On eshelf mode we set __loader_symbol__shellcode_entry 
+                to point to the start of the relocation table
+            */
             pc = __loader_symbol__shellcode_entry;
         #endif
-        TRACE("Pc at search start: %x", pc);
+        advance_pc_to_magic();
     }
     TRACE("Found table at: %x", pc);
     // If we got here then we found the table
     table = (struct relocation_table *)pc;
+    TRACE("Found table, magic = %x, excpecting %x", table->magic, magic);
     ASSERT(table->magic == magic);
     total_header_plus_table_size = table->total_size;
     total_header_plus_table_size += table->header_size;

@@ -66,14 +66,20 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #define advance_pc_to_magic() {                                             \
-    for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {          \
-        /* Do not write pc+=ARCH_OPCODE_SIZE here, because in some arch \
-            Such as mips it produce buggy code*/  \
-        pc = pc + ARCH_OPCODE_SIZE;                                             \
+    size_t i;                                                               \
+    TRACE("Pc at search start = %x", pc);                                   \
+    for(i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {                 \
         if(*((size_t*)pc) == magic) {                                       \
             break;                                                          \
         }                                                                   \
+        /* Do not write pc+=ARCH_OPCODE_SIZE here, because in some arch \
+        Such as mips it produce buggy code*/  \
+        pc = pc + ARCH_OPCODE_SIZE;                                             \
     }                                                                       \
+    if(i > MAX_SEARCH_DEPTH - 1) {                                          \
+        TRACE("Pc search exceded max limit in advance_pc_to_magic macro");  \
+    }                                                                       \
+    TRACE("Pc at search end = %x", pc);                                     \
 }                                                                           \
 
 #define ERROR -1
