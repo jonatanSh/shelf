@@ -2,6 +2,11 @@
 #define LOADER_INTEL_X32
 typedef unsigned int size_t;
 
+#define ARCH_TEADOWN (v) {  \
+    asm("ret\n",            \
+    ::)                     \
+}                           \
+
 #define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \
     asm(                        \
@@ -58,9 +63,7 @@ typedef unsigned int size_t;
         "pop ecx\n"                                     \
         "pop ebx\n"                                     \
         /*This is important to save the return value*/  \
-        "push eax\n"                                    \
-        "pop eax\n"                                     \
-        "pop eax\n"                                     \
+        "add esp, 4\n"                                  \
        :  :                                             \
        "r"(eax) , "r"(ebx), "r"(ecx), "r"(esi)          \
    );                                                   \

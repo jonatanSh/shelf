@@ -33,6 +33,7 @@ void loader_main(
     size_t total_argv_envp_size = 0;
     size_t parsed_entries_size = 0;
     size_t return_address;
+    size_t _out;
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef SUPPORT_START_FILES
     TRACE("Loader support: SUPPORT_START_FILES");
@@ -126,11 +127,17 @@ void loader_main(
 #endif
     TRACE("Calling shellcode main");
     call_main(entry_point, argc, argv, total_argv_envp_size);
+#ifdef ARCH_GET_FUNCTION_OUT
+    ARCH_GET_FUNCTION_OUT();
+#endif
 
 error:
 exit:
     TEARDOWN(1);
-    ARCH_FUNCTION_EXIT(return_address);
+    ARCH_FUNCTION_EXIT(return_address, _out);
+#ifdef ARCH_GET_FUNCTION_OUT
+    return _out;
+#endif
     return;
 }
 
@@ -155,7 +162,7 @@ int get_elf_information(struct relocation_table **info) {
     *info = table;
     status = OK;
 
-    ARCH_FUNCTION_EXIT(return_address);
+    ARCH_FUNCTION_EXIT(return_address, status);
 error:
     return status;
 

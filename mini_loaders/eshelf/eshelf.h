@@ -1,7 +1,7 @@
 #ifndef ESHELF_DEBUG
 #define ESHELF_DEBUG
 #include "../../osals/debug.h"
-
+#include "../loader_generic.h"
 void sys_exit(int status);
 
 
@@ -11,7 +11,7 @@ void sys_exit(int status);
     #define TEARDOWN sys_exit
 #else
     #define TRACE
-    #define TEARDOWN(status)
+    #define TEARDOWN ARCH_TEARDOWN
 #endif
 
 #define ASSERT(expr) {                          \
