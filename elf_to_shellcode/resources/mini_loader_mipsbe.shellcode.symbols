@@ -1,11 +1,11 @@
 
-Symbol table '.symtab' contains 28 entries:
+Symbol table '.symtab' contains 19 entries:
    Num:    Value  Size Type    Bind   Vis      Ndx Name
      0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
-     1: 004000d8     0 SECTION LOCAL  DEFAULT    1 
-     2: 004000f0     0 SECTION LOCAL  DEFAULT    2 
-     3: 00400108     0 SECTION LOCAL  DEFAULT    3 
-     4: 00400130     0 SECTION LOCAL  DEFAULT    4 
+     1: 00000000     0 SECTION LOCAL  DEFAULT    1 
+     2: 00000030     0 SECTION LOCAL  DEFAULT    2 
+     3: 00000390     0 SECTION LOCAL  DEFAULT    3 
+     4: 000003a8     0 SECTION LOCAL  DEFAULT    4 
      5: 00000000     0 SECTION LOCAL  DEFAULT    5 
      6: 00000000     0 SECTION LOCAL  DEFAULT    6 
      7: 00000000     0 SECTION LOCAL  DEFAULT    7 
@@ -16,16 +16,7 @@ Symbol table '.symtab' contains 28 entries:
     12: 00000000     0 SECTION LOCAL  DEFAULT   12 
     13: 00000000     0 SECTION LOCAL  DEFAULT   13 
     14: 00000000     0 SECTION LOCAL  DEFAULT   14 
-    15: 00000000     0 SECTION LOCAL  DEFAULT   15 
-    16: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
-    17: 00400198     0 NOTYPE  LOCAL  DEFAULT    4 get_pc_internal
-    18: 004001a4     0 NOTYPE  LOCAL  DEFAULT    4 next
-    19: 00000000     0 FILE    LOCAL  DEFAULT  ABS 
-    20: 00418480     0 NOTYPE  LOCAL  DEFAULT    4 _gp
-    21: 00410490     0 NOTYPE  GLOBAL DEFAULT    4 _fdata
-    22: 00400130   852 FUNC    GLOBAL DEFAULT    4 loader_main
-    23: 00400130     0 NOTYPE  GLOBAL DEFAULT    4 _ftext
-    24: 00410490     0 NOTYPE  GLOBAL DEFAULT    4 __bss_start
-    25: 00410490     0 NOTYPE  GLOBAL DEFAULT    4 _edata
-    26: 00410490     0 NOTYPE  GLOBAL DEFAULT    4 _end
-    27: 00410490     0 NOTYPE  GLOBAL DEFAULT    4 _fbss
+    15: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
+    16: 00000098     0 NOTYPE  LOCAL  DEFAULT    2 get_pc_internal
+    17: 000000a4     0 NOTYPE  LOCAL  DEFAULT    2 next
+    18: 00000030   852 FUNC    GLOBAL DEFAULT    2 loader_main

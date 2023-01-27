@@ -450,7 +450,8 @@ class Shellcode(object):
         rwx = lief.ELF.SEGMENT_FLAGS(lief.ELF.SEGMENT_FLAGS.R | lief.ELF.SEGMENT_FLAGS.W | lief.ELF.SEGMENT_FLAGS.X)
         segment.flags = rwx
         segment.content = bytearray(shellcode_data)
-        segment = loader.add(segment)
+        print(hex(self.loading_virtual_address))
+        segment = loader.add(segment, base=self.loading_virtual_address)
         tmp_path = tempfile.mktemp(".out")
         elf_buffer = None
         try:

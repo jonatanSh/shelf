@@ -7,7 +7,7 @@ TARGET_FILES = [
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
 CFLAGS = ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
-CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic']
+CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic', '-Tlinker.lds']
 CFLAGS = ' '.join(CFLAGS)
 
 def cfiles(directory):

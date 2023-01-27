@@ -62,6 +62,7 @@ class IntelX32Shellcode(Shellcode):
         Glibc smybols:
          __environ
          __libc_stack_end
+         _dl_x86_cpu_features
          for some reason doesn't support pic mode.
          therefor we manually relocate them
         :param shellcode: shellcode object

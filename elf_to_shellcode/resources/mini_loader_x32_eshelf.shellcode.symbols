@@ -1,14 +1,14 @@
 
-Symbol table '.symtab' contains 100 entries:
+Symbol table '.symtab' contains 97 entries:
    Num:    Value  Size Type    Bind   Vis      Ndx Name
      0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
-     1: 08048114     0 SECTION LOCAL  DEFAULT    1 
-     2: 08048138     0 SECTION LOCAL  DEFAULT    2 
-     3: 08049000     0 SECTION LOCAL  DEFAULT    3 
-     4: 0804b000     0 SECTION LOCAL  DEFAULT    4 
-     5: 0804b40c     0 SECTION LOCAL  DEFAULT    5 
-     6: 0804d000     0 SECTION LOCAL  DEFAULT    6 
-     7: 0804d004     0 SECTION LOCAL  DEFAULT    7 
+     1: 00000000     0 SECTION LOCAL  DEFAULT    1 
+     2: 00001464     0 SECTION LOCAL  DEFAULT    2 
+     3: 00001870     0 SECTION LOCAL  DEFAULT    3 
+     4: 00002104     0 SECTION LOCAL  DEFAULT    4 
+     5: 00002120     0 SECTION LOCAL  DEFAULT    5 
+     6: 00002144     0 SECTION LOCAL  DEFAULT    6 
+     7: 00002174     0 SECTION LOCAL  DEFAULT    7 
      8: 00000000     0 SECTION LOCAL  DEFAULT    8 
      9: 00000000     0 SECTION LOCAL  DEFAULT    9 
     10: 00000000     0 SECTION LOCAL  DEFAULT   10 
@@ -17,87 +17,84 @@ Symbol table '.symtab' contains 100 entries:
     13: 00000000     0 SECTION LOCAL  DEFAULT   13 
     14: 00000000     0 SECTION LOCAL  DEFAULT   14 
     15: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
-    16: 0804d000     4 OBJECT  LOCAL  DEFAULT    6 __loader_symbol__shellcode_entry
-    17: 0804b2b0    12 OBJECT  LOCAL  DEFAULT    4 __FUNCTION__.1545
+    16: 00002174     4 OBJECT  LOCAL  DEFAULT    7 __loader_symbol__shellcode_entry
+    17: 00001714    12 OBJECT  LOCAL  DEFAULT    2 __FUNCTION__.1545
     18: 00000000     0 FILE    LOCAL  DEFAULT  ABS sprintf.c
-    19: 0804954f   277 FUNC    LOCAL  DEFAULT    3 sitoa
+    19: 0000054f   277 FUNC    LOCAL  DEFAULT    1 sitoa
     20: 00000000     0 FILE    LOCAL  DEFAULT  ABS string.c
     21: 00000000     0 FILE    LOCAL  DEFAULT  ABS debug.c
-    22: 0804d004     4 OBJECT  LOCAL  DEFAULT    7 errno
+    22: 00002144     4 OBJECT  LOCAL  DEFAULT    6 errno
     23: 00000000     0 FILE    LOCAL  DEFAULT  ABS more.c
-    24: 0804d008     4 OBJECT  LOCAL  DEFAULT    7 errno
+    24: 00002148     4 OBJECT  LOCAL  DEFAULT    6 errno
     25: 00000000     0 FILE    LOCAL  DEFAULT  ABS poll.c
-    26: 0804d00c     4 OBJECT  LOCAL  DEFAULT    7 errno
+    26: 0000214c     4 OBJECT  LOCAL  DEFAULT    6 errno
     27: 00000000     0 FILE    LOCAL  DEFAULT  ABS port.c
     28: 00000000     0 FILE    LOCAL  DEFAULT  ABS unistd.c
-    29: 0804d010     4 OBJECT  LOCAL  DEFAULT    7 errno
+    29: 00002150     4 OBJECT  LOCAL  DEFAULT    6 errno
     30: 00000000     0 FILE    LOCAL  DEFAULT  ABS ioctl.c
-    31: 0804d014     4 OBJECT  LOCAL  DEFAULT    7 errno
+    31: 00002154     4 OBJECT  LOCAL  DEFAULT    6 errno
     32: 00000000     0 FILE    LOCAL  DEFAULT  ABS mman.c
-    33: 0804d018     4 OBJECT  LOCAL  DEFAULT    7 errno
+    33: 00002158     4 OBJECT  LOCAL  DEFAULT    6 errno
     34: 00000000     0 FILE    LOCAL  DEFAULT  ABS mount.c
-    35: 0804d01c     4 OBJECT  LOCAL  DEFAULT    7 errno
+    35: 0000215c     4 OBJECT  LOCAL  DEFAULT    6 errno
     36: 00000000     0 FILE    LOCAL  DEFAULT  ABS select.c
-    37: 0804d020     4 OBJECT  LOCAL  DEFAULT    7 errno
+    37: 00002160     4 OBJECT  LOCAL  DEFAULT    6 errno
     38: 00000000     0 FILE    LOCAL  DEFAULT  ABS signal.c
-    39: 0804d024     4 OBJECT  LOCAL  DEFAULT    7 errno
+    39: 00002164     4 OBJECT  LOCAL  DEFAULT    6 errno
     40: 00000000     0 FILE    LOCAL  DEFAULT  ABS stat.c
-    41: 0804d028     4 OBJECT  LOCAL  DEFAULT    7 errno
+    41: 00002168     4 OBJECT  LOCAL  DEFAULT    6 errno
     42: 00000000     0 FILE    LOCAL  DEFAULT  ABS time.c
-    43: 0804d02c     4 OBJECT  LOCAL  DEFAULT    7 errno
+    43: 0000216c     4 OBJECT  LOCAL  DEFAULT    6 errno
     44: 00000000     0 FILE    LOCAL  DEFAULT  ABS wait.c
-    45: 0804d030     4 OBJECT  LOCAL  DEFAULT    7 errno
-    46: 08049c5c    57 FUNC    GLOBAL DEFAULT    3 sys_close
-    47: 08049f3b    59 FUNC    GLOBAL DEFAULT    3 sys_setsid
-    48: 08049f04    55 FUNC    GLOBAL DEFAULT    3 sys_setpgid
-    49: 08049e61    53 FUNC    GLOBAL DEFAULT    3 sys_lseek
-    50: 0804a383    59 FUNC    GLOBAL DEFAULT    3 sys_umask
-    51: 08049b35    10 FUNC    GLOBAL DEFAULT    3 __stack_chk_guard
-    52: 08049d3e    59 FUNC    GLOBAL DEFAULT    3 sys_fork
-    53: 0804a242    57 FUNC    GLOBAL DEFAULT    3 sys_mkdir
-    54: 08049ecd    55 FUNC    GLOBAL DEFAULT    3 sys_read
-    55: 0804a131    53 FUNC    GLOBAL DEFAULT    3 sys_mount
-    56: 0804a0f6    59 FUNC    GLOBAL DEFAULT    3 sys_munmap
-    57: 0804a1d2    55 FUNC    GLOBAL DEFAULT    3 sys_kill
-    58: 0804a058   101 FUNC    GLOBAL DEFAULT    3 sys_mmap
-    59: 080498e9    42 FUNC    GLOBAL DEFAULT    3 my_sprintf
-    60: 0804a209    57 FUNC    GLOBAL DEFAULT    3 sys_chmod
-    61: 08049b2b    10 FUNC    GLOBAL DEFAULT    3 __stack_chk_fail
-    62: 08049e28    57 FUNC    GLOBAL DEFAULT    3 sys_link
-    63: 08049d79    57 FUNC    GLOBAL DEFAULT    3 sys_fsync
-    64: 08049e96    55 FUNC    GLOBAL DEFAULT    3 sys_open
-    65: 08049a14    55 FUNC    GLOBAL DEFAULT    3 sys_getdents64
-    66: 08049bea    55 FUNC    GLOBAL DEFAULT    3 sys_chown
-    67: 08049ab9    59 FUNC    GLOBAL DEFAULT    3 sys_sched_yield
-    68: 08049fea    55 FUNC    GLOBAL DEFAULT    3 sys_write
-    69: 08049cce    55 FUNC    GLOBAL DEFAULT    3 sys_dup2
-    70: 08049000  1359 FUNC    GLOBAL DEFAULT    3 loader_main
-    71: 0804a3f9    53 FUNC    GLOBAL DEFAULT    3 sys_wait4
-    72: 08049c95    57 FUNC    GLOBAL DEFAULT    3 sys_dup
-    73: 08049a86    51 FUNC    GLOBAL DEFAULT    3 sys_reboot
-    74: 0804a42e    28 FUNC    GLOBAL DEFAULT    3 sys_waitpid
-    75: 0804a021    55 FUNC    GLOBAL DEFAULT    3 sys_ioctl
-    76: 0804d004     0 NOTYPE  GLOBAL DEFAULT    7 __bss_start
-    77: 08049faf    59 FUNC    GLOBAL DEFAULT    3 sys_unlink
-    78: 08049b3f    59 FUNC    GLOBAL DEFAULT    3 sys_brk
-    79: 08049af4    55 FUNC    GLOBAL DEFAULT    3 sys_poll
-    80: 0804993d   215 FUNC    GLOBAL DEFAULT    3 trace_handler
-    81: 0804a0bd    57 FUNC    GLOBAL DEFAULT    3 sys_mprotect
-    82: 0804d004     0 NOTYPE  GLOBAL DEFAULT    6 _edata
-    83: 0804d034     0 NOTYPE  GLOBAL DEFAULT    7 _end
-    84: 08049d05    57 FUNC    GLOBAL DEFAULT    3 sys_execve
-    85: 0804a44a    24 FUNC    GLOBAL DEFAULT    3 sys_wait
-    86: 08049b7a    53 FUNC    GLOBAL DEFAULT    3 sys_exit
-    87: 0804a3be    59 FUNC    GLOBAL DEFAULT    3 sys_gettimeofday
-    88: 0804a19f    51 FUNC    GLOBAL DEFAULT    3 sys_select
-    89: 08049913    42 FUNC    GLOBAL DEFAULT    3 strlen
-    90: 0804a2b2   209 FUNC    GLOBAL DEFAULT    3 sys_stat
-    91: 08049f76    57 FUNC    GLOBAL DEFAULT    3 sys_symlink
-    92: 08049c21    59 FUNC    GLOBAL DEFAULT    3 sys_chroot
-    93: 08049ded    59 FUNC    GLOBAL DEFAULT    3 sys_getpid
-    94: 08049664   645 FUNC    GLOBAL DEFAULT    3 my_vsprintf
-    95: 08049a4b    59 FUNC    GLOBAL DEFAULT    3 sys_pivot_root
-    96: 08049baf    59 FUNC    GLOBAL DEFAULT    3 sys_chdir
-    97: 0804a166    57 FUNC    GLOBAL DEFAULT    3 sys_umount2
-    98: 0804a27b    55 FUNC    GLOBAL DEFAULT    3 sys_mknod
-    99: 08049db2    59 FUNC    GLOBAL DEFAULT    3 sys_getpgrp
+    45: 00002170     4 OBJECT  LOCAL  DEFAULT    6 errno
+    46: 00000c5c    57 FUNC    GLOBAL DEFAULT    1 sys_close
+    47: 00000f3b    59 FUNC    GLOBAL DEFAULT    1 sys_setsid
+    48: 00000f04    55 FUNC    GLOBAL DEFAULT    1 sys_setpgid
+    49: 00000e61    53 FUNC    GLOBAL DEFAULT    1 sys_lseek
+    50: 00001383    59 FUNC    GLOBAL DEFAULT    1 sys_umask
+    51: 00000b35    10 FUNC    GLOBAL DEFAULT    1 __stack_chk_guard
+    52: 00000d3e    59 FUNC    GLOBAL DEFAULT    1 sys_fork
+    53: 00001242    57 FUNC    GLOBAL DEFAULT    1 sys_mkdir
+    54: 00000ecd    55 FUNC    GLOBAL DEFAULT    1 sys_read
+    55: 00001131    53 FUNC    GLOBAL DEFAULT    1 sys_mount
+    56: 000010f6    59 FUNC    GLOBAL DEFAULT    1 sys_munmap
+    57: 000011d2    55 FUNC    GLOBAL DEFAULT    1 sys_kill
+    58: 00001058   101 FUNC    GLOBAL DEFAULT    1 sys_mmap
+    59: 000008e9    42 FUNC    GLOBAL DEFAULT    1 my_sprintf
+    60: 00001209    57 FUNC    GLOBAL DEFAULT    1 sys_chmod
+    61: 00000b2b    10 FUNC    GLOBAL DEFAULT    1 __stack_chk_fail
+    62: 00000e28    57 FUNC    GLOBAL DEFAULT    1 sys_link
+    63: 00000d79    57 FUNC    GLOBAL DEFAULT    1 sys_fsync
+    64: 00000e96    55 FUNC    GLOBAL DEFAULT    1 sys_open
+    65: 00000a14    55 FUNC    GLOBAL DEFAULT    1 sys_getdents64
+    66: 00000bea    55 FUNC    GLOBAL DEFAULT    1 sys_chown
+    67: 00000ab9    59 FUNC    GLOBAL DEFAULT    1 sys_sched_yield
+    68: 00000fea    55 FUNC    GLOBAL DEFAULT    1 sys_write
+    69: 00000cce    55 FUNC    GLOBAL DEFAULT    1 sys_dup2
+    70: 00000000  1359 FUNC    GLOBAL DEFAULT    1 loader_main
+    71: 000013f9    53 FUNC    GLOBAL DEFAULT    1 sys_wait4
+    72: 00000c95    57 FUNC    GLOBAL DEFAULT    1 sys_dup
+    73: 00000a86    51 FUNC    GLOBAL DEFAULT    1 sys_reboot
+    74: 0000142e    28 FUNC    GLOBAL DEFAULT    1 sys_waitpid
+    75: 00001021    55 FUNC    GLOBAL DEFAULT    1 sys_ioctl
+    76: 00000faf    59 FUNC    GLOBAL DEFAULT    1 sys_unlink
+    77: 00000b3f    59 FUNC    GLOBAL DEFAULT    1 sys_brk
+    78: 00000af4    55 FUNC    GLOBAL DEFAULT    1 sys_poll
+    79: 0000093d   215 FUNC    GLOBAL DEFAULT    1 trace_handler
+    80: 000010bd    57 FUNC    GLOBAL DEFAULT    1 sys_mprotect
+    81: 00000d05    57 FUNC    GLOBAL DEFAULT    1 sys_execve
+    82: 0000144a    24 FUNC    GLOBAL DEFAULT    1 sys_wait
+    83: 00000b7a    53 FUNC    GLOBAL DEFAULT    1 sys_exit
+    84: 000013be    59 FUNC    GLOBAL DEFAULT    1 sys_gettimeofday
+    85: 0000119f    51 FUNC    GLOBAL DEFAULT    1 sys_select
+    86: 00000913    42 FUNC    GLOBAL DEFAULT    1 strlen
+    87: 000012b2   209 FUNC    GLOBAL DEFAULT    1 sys_stat
+    88: 00000f76    57 FUNC    GLOBAL DEFAULT    1 sys_symlink
+    89: 00000c21    59 FUNC    GLOBAL DEFAULT    1 sys_chroot
+    90: 00000ded    59 FUNC    GLOBAL DEFAULT    1 sys_getpid
+    91: 00000664   645 FUNC    GLOBAL DEFAULT    1 my_vsprintf
+    92: 00000a4b    59 FUNC    GLOBAL DEFAULT    1 sys_pivot_root
+    93: 00000baf    59 FUNC    GLOBAL DEFAULT    1 sys_chdir
+    94: 00001166    57 FUNC    GLOBAL DEFAULT    1 sys_umount2
+    95: 0000127b    55 FUNC    GLOBAL DEFAULT    1 sys_mknod
+    96: 00000db2    59 FUNC    GLOBAL DEFAULT    1 sys_getpgrp
