@@ -81,8 +81,8 @@ int main(int argc, char **argv, char **envp) {
     memcpy(start_address, shellcode_buffer, buff_size);
 
     printf("Jumping to shellcode, address = %p \n", start_address);
-    ((void (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
-
+    long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
+    printf("Shellcode returned: %llx\n", value);
     goto cleanups;
 
 

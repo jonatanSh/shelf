@@ -101,7 +101,7 @@ void test_global_ptr_arrays() {
 
 
 
-void main(void * main_address, int argc, char ** argv, int total_args) {
+long long int main(void * main_address, int argc, char ** argv, int total_args) {
     int status;
     TRACE("main address=%x, argc=%x, argv=%x, total_args=%d\n",
         main_address, argc, argv, total_args);
@@ -140,6 +140,6 @@ void main(void * main_address, int argc, char ** argv, int total_args) {
     TRACE("__Test_output_Success\n");
 
 error:
-    return;
+    return 0x12468;
 }
 

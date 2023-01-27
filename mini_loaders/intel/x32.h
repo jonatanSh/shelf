@@ -57,6 +57,9 @@ typedef unsigned int size_t;
         "pop esi\n"                                     \
         "pop ecx\n"                                     \
         "pop ebx\n"                                     \
+        /*This is important to save the return value*/  \
+        "push eax\n"                                    \
+        "pop eax\n"                                     \
         "pop eax\n"                                     \
        :  :                                             \
        "r"(eax) , "r"(ebx), "r"(ecx), "r"(esi)          \
