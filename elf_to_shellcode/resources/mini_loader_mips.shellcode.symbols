@@ -3,9 +3,9 @@ Symbol table '.symtab' contains 19 entries:
    Num:    Value  Size Type    Bind   Vis      Ndx Name
      0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
      1: 00000000     0 SECTION LOCAL  DEFAULT    1 
-     2: 04000000     0 SECTION LOCAL  DEFAULT    2 
-     3: 04000360     0 SECTION LOCAL  DEFAULT    3 
-     4: 04000378     0 SECTION LOCAL  DEFAULT    4 
+     2: 00000030     0 SECTION LOCAL  DEFAULT    2 
+     3: 00000390     0 SECTION LOCAL  DEFAULT    3 
+     4: 000003a8     0 SECTION LOCAL  DEFAULT    4 
      5: 00000000     0 SECTION LOCAL  DEFAULT    5 
      6: 00000000     0 SECTION LOCAL  DEFAULT    6 
      7: 00000000     0 SECTION LOCAL  DEFAULT    7 
@@ -17,6 +17,6 @@ Symbol table '.symtab' contains 19 entries:
     13: 00000000     0 SECTION LOCAL  DEFAULT   13 
     14: 00000000     0 SECTION LOCAL  DEFAULT   14 
     15: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
-    16: 04000068     0 NOTYPE  LOCAL  DEFAULT    2 get_pc_internal
-    17: 04000074     0 NOTYPE  LOCAL  DEFAULT    2 next
-    18: 04000000   852 FUNC    GLOBAL DEFAULT    2 loader_main
+    16: 00000098     0 NOTYPE  LOCAL  DEFAULT    2 get_pc_internal
+    17: 000000a4     0 NOTYPE  LOCAL  DEFAULT    2 next
+    18: 00000030   864 FUNC    GLOBAL DEFAULT    2 loader_main

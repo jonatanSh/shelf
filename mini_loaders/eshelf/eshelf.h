@@ -4,6 +4,7 @@
 #ifndef NULL
     #define NULL 0
 #endif
+#include "../loader_generic.h"
 void sys_exit(int status);
 
 
@@ -19,6 +20,7 @@ void sys_exit(int status);
     #define TEARDOWN(status)
     #define TRACE_ADDRESS(address, size)
     #define WRITE
+    #define TEARDOWN ARCH_TEARDOWN
 #endif
 
 #define TRACE_ADDRESS(address, size) {                          \

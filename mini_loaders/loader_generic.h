@@ -108,4 +108,8 @@ typedef void * (*IRELATIVE_T)();
     #define ARCH_FUNCTION_EXIT
 #endif
 
+#ifndef ARCH_TEARDOWN
+    #define ARCH_TEARDOWN
+#endif
+
 #endif

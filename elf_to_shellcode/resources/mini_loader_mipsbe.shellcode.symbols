@@ -19,4 +19,4 @@ Symbol table '.symtab' contains 19 entries:
     15: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
     16: 00000098     0 NOTYPE  LOCAL  DEFAULT    2 get_pc_internal
     17: 000000a4     0 NOTYPE  LOCAL  DEFAULT    2 next
-    18: 00000030   852 FUNC    GLOBAL DEFAULT    2 loader_main
+    18: 00000030   864 FUNC    GLOBAL DEFAULT    2 loader_main

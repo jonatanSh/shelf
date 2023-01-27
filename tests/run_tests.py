@@ -63,7 +63,17 @@ def run_arch_tests(arch, case):
             print(stderr)
             continue
         if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
-            print("test: {} for: {} ... Success".format(test_case, arch))
+            key = "Shellcode returned: "
+            index = stdout.find(key)
+            loader_out = "Failure"
+            value = None
+            if index != -1:
+                index += len(key)
+                loader_output = stdout[index:] 
+                value = loader_output[:loader_output.find("\n")+1].strip()
+                value = int(value.strip(), 16)
+                loader_out = "Success" if value == 0x12468 else loader_out
+            print("test: {} for: {}, return value: {} ... (shellcode=Success,loader={})".format(test_case, value, arch, loader_out))
         else:
             print("test: {} for: {} ... Failure, use --verbose-on-failed to see output".format(test_case, arch))
             if args.verbose_on_failed:

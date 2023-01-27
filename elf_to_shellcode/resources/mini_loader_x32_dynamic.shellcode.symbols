@@ -16,5 +16,5 @@ Symbol table '.symtab' contains 17 entries:
     12: 00000000     0 FILE    LOCAL  DEFAULT  ABS generic_loader.c
     13: 00000044     0 NOTYPE  LOCAL  DEFAULT    1 get_pc_internal
     14: 00000048     0 NOTYPE  LOCAL  DEFAULT    1 next
-    15: 00000000   470 FUNC    GLOBAL DEFAULT    1 loader_main
-    16: 000001d6   116 FUNC    GLOBAL DEFAULT    1 get_elf_information
+    15: 00000000   472 FUNC    GLOBAL DEFAULT    1 loader_main
+    16: 000001d8   116 FUNC    GLOBAL DEFAULT    1 get_elf_information
