@@ -7,7 +7,7 @@ TARGET_FILES = [
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
 CFLAGS = ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
-CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic', '-Tlinker.lds']
+CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
 
 def cfiles(directory):
@@ -151,26 +151,34 @@ compilers = [
     AARCH64
 ]
 
-for compiler in compilers:
-    for feature_name, attributes in features.items():
-        supported = attributes.get('supported')
-        flags = attributes.get("cflags", [])
-        if supported:
-            if compiler.compiler_name not in supported:
-                print("Skipping feature: {} for compiler: {}".format(
-                    feature_name,
-                    compiler.compiler_name
-                ))
-                continue
-        target_out = '{}'.format(compiler.compiler_name)
-        if feature_name:
-            target_out = '{}_{}'.format(compiler.compiler_name,
-                                        feature_name)
-        target_out = OUTPUT_BASE.format(target_out)
-        compiler.compile(
-            files=attributes['files'],
-            output_file=target_out,
-            defines=attributes['defs'],
-            flags=flags,
-            strip_flags=attributes.get("strip_flags")
-        )
+def clean():
+    for filename in os.listdir("../outputs"):
+        if "mini_loader" in filename:
+            os.remove(os.path.join("../outputs", filename))
+
+def compile():
+    for compiler in compilers:
+        for feature_name, attributes in features.items():
+            supported = attributes.get('supported')
+            flags = attributes.get("cflags", [])
+            if supported:
+                if compiler.compiler_name not in supported:
+                    print("Skipping feature: {} for compiler: {}".format(
+                        feature_name,
+                        compiler.compiler_name
+                    ))
+                    continue
+            target_out = '{}'.format(compiler.compiler_name)
+            if feature_name:
+                target_out = '{}_{}'.format(compiler.compiler_name,
+                                            feature_name)
+            target_out = OUTPUT_BASE.format(target_out)
+            compiler.compile(
+                files=attributes['files'],
+                output_file=target_out,
+                defines=attributes['defs'],
+                flags=flags,
+                strip_flags=attributes.get("strip_flags")
+            )
+clean()
+compile()

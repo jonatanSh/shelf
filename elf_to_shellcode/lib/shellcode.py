@@ -451,7 +451,7 @@ class Shellcode(object):
         segment.flags = rwx
         segment.content = bytearray(shellcode_data)
         print(hex(self.loading_virtual_address))
-        segment = loader.add(segment, base=self.loading_virtual_address)
+        segment = loader.add(segment)
         tmp_path = tempfile.mktemp(".out")
         elf_buffer = None
         try:
