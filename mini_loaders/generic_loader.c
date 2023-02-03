@@ -34,7 +34,7 @@ void loader_main(
     size_t parsed_entries_size = 0;
     size_t return_address;
     size_t total_header_plus_table_size = 0;
-    size_t _out;
+    long long int _out;
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef SUPPORT_START_FILES
     TRACE("Loader support: SUPPORT_START_FILES");
@@ -143,11 +143,13 @@ void loader_main(
 
 error:
 exit:
-    TEARDOWN(1);
-    ARCH_FUNCTION_EXIT(return_address, _out);
-#ifdef ARCH_GET_FUNCTION_OUT
-    return _out;
+#ifdef ESHELF
+    TRACE("ESHELF exit, RC is irrelevant");
 #endif
+    TRACE("Mini loader exit, _out=%x", _out);
+    TEARDOWN(1);
+    ARCH_FUNCTION_EXIT(return_address);
+    ARCH_RETURN(_out);
     return;
 }
 
@@ -172,7 +174,7 @@ int get_elf_information(struct relocation_table **info) {
     *info = table;
     status = OK;
 
-    ARCH_FUNCTION_EXIT(return_address, status);
+    ARCH_FUNCTION_EXIT(return_address);
 error:
     return status;
 

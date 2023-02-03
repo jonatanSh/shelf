@@ -1,6 +1,6 @@
 import os
 import subprocess
-
+import sys
 TARGET_FILES = [
     'generic_loader.c'
 ]

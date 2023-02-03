@@ -4,6 +4,9 @@
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
 # Node artifact files
+*.out*
+*.bin*
+*.shellcode*
 *.vscode*
 *.egg*
 *lnk*
