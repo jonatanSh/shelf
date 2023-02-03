@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include "tests.h"
 #ifndef OSAL_LIBC
     #include <unistd.h>
     #include <stdlib.h>
@@ -140,6 +141,6 @@ long long int main(void * main_address, int argc, char ** argv, int total_args) 
     TRACE("__Test_output_Success\n");
 
 error:
-    return 0x12468;
+    return TEST_OUT;
 }
 
