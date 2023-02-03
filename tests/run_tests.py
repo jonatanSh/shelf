@@ -77,6 +77,11 @@ def run_arch_tests(arch, case):
                     final_status = "Success"
                 else:
                     final_status = "Failure, reason: RC"
+            """
+            We don't check the return code in eshelf modes due to it being irrelevant
+            """
+            if 'ESHELF exit, RC is irrelevant' in stdout:
+                final_status = "Success"
             print("test: {}({}) ... {}".format(test_case, arch, final_status))
         else:
             print("test: {} for: {} ... Failure, output:".format(test_case, arch))

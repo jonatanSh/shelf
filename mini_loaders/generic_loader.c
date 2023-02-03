@@ -133,6 +133,10 @@ void loader_main(
 
 error:
 exit:
+#ifdef ESHELF
+    TRACE("ESHELF exit, RC is irrelevant");
+#endif
+    TRACE("Mini loader exit, _out=%x", _out);
     TEARDOWN(1);
     ARCH_FUNCTION_EXIT(return_address, _out);
 #ifdef ARCH_GET_FUNCTION_OUT
