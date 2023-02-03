@@ -1,6 +1,5 @@
 #ifndef LOADER_GENERIC
 #define LOADER_GENERIC
-
 #define MAX_SEARCH_DEPTH 0x400
 
 
@@ -35,15 +34,7 @@ struct table_entry {
     loader_off_t f_offset;
     loader_off_t v_offset;
 };
-struct elf_information_struct {
-    size_t elf_header_size;
-    size_t loader_size;
-};
-struct relocation_table {
-    size_t magic;
-    size_t total_size;
-    struct elf_information_struct elf_information;
-};
+
 
 struct entry_attributes {
     size_t attribute_1;
@@ -75,8 +66,6 @@ typedef void * (*IRELATIVE_T)();
     }                                                                       \
 }                                                                           \
 
-#define ERROR -1
-#define OK 1
 
 #ifndef ARCH_CALL_GET_PC
     #define ARCH_CALL_GET_PC "call get_pc_internal\n"
@@ -108,5 +97,8 @@ typedef void * (*IRELATIVE_T)();
 #ifndef ARCH_RETURN
     #define ARCH_RETURN
 #endif
+
+#include "../headers/mini_loader.h"
+
 
 #endif
