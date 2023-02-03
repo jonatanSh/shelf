@@ -8,7 +8,7 @@ typedef unsigned int size_t;
 
 #define ARCH_GET_FUNCTION_OUT() {   \
     asm(                            \
-        "move %0, $v0\n"            \
+        "\n"                        \
         : "=r"(_out)                \
     );                              \
 }                                   \
@@ -54,13 +54,24 @@ typedef unsigned int size_t;
     *ra = a0;                               \
 }                                           \
 
-#define ARCH_FUNCTION_EXIT(ra, _out) {          \
+#define ARCH_FUNCTION_EXIT(ra) {          \
    register size_t a0 asm("a0") = (size_t)(ra); \
-   register size_t v0 asm("v0") = (size_t)(_out); \
     asm(                                        \
         "move $ra, $a0\n"                       \
         : :                                     \
-        "r"(a0),"r"(v0)                       \
+        "r"(a0)                                 \
+    );                                          \
+}                                               \
+
+
+#define ARCH_RETURN(_out) {          \
+   register size_t v0 asm("v0") = (size_t)(_out); \
+   register size_t v1 asm("v1") = (size_t)(*(&_out+sizeof(size_t))); \
+    asm(                                        \
+        "move $v0, %0\n"                       \
+        "move $v1, %1\n"                       \
+        : :                                     \
+        "r"(v0),"r"(v1)                         \
     );                                          \
 }                                               \
 

@@ -65,7 +65,6 @@ def run_arch_tests(arch, case):
         if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
             key = "Shellcode returned: "
             index = stdout.find(key)
-            value = None
             final_status = "Failure, reason: RC"
 
             if index != -1:
