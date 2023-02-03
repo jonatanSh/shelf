@@ -17,7 +17,6 @@ void sys_exit(int status);
     #define TEARDOWN sys_exit
 #else
     #define TRACE
-    #define TEARDOWN(status)
     #define TRACE_ADDRESS(address, size)
     #define WRITE
     #define TEARDOWN ARCH_TEARDOWN
