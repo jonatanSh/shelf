@@ -65,15 +65,23 @@ def run_arch_tests(arch, case):
         if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
             key = "Shellcode returned: "
             index = stdout.find(key)
-            loader_out = "Failure"
-            value = None
+            final_status = "Failure, reason: RC"
+
             if index != -1:
                 index += len(key)
                 loader_output = stdout[index:] 
                 value = loader_output[:loader_output.find("\n")+1].strip()
                 value = int(value.strip(), 16)
-                loader_out = "Success" if value == 0x12468 else loader_out
-            print("test: {} for: {}, return value: {} ... (shellcode=Success,loader={})".format(test_case, value, arch, loader_out))
+                if value == 0x12468:
+                    final_status = "Success"
+                else:
+                    final_status = "Failure, reason: RC"
+            """
+            We don't check the return code in eshelf modes due to it being irrelevant
+            """
+            if 'ESHELF exit, RC is irrelevant' in stdout:
+                final_status = "Success"
+            print("test: {}({}) ... {}".format(test_case, arch, final_status))
         else:
             print("test: {} for: {} ... Failure, output:".format(test_case, arch))
             print stdout, stderr

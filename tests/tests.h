@@ -1,0 +1,6 @@
+#ifndef TESTS_HEADER
+#define TESTS_HEADER
+
+#define TEST_OUT 0x12468
+
+#endif // TESTS_HEADER
