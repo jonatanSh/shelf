@@ -7,6 +7,8 @@ import logging
 
 parser = ArgumentParser("testRunner")
 
+arch = os.uname()[-1]
+
 QEMUS = {
     "mips": "qemu-mips-static",
     "intel_x32": "qemu-i386-static",
@@ -14,6 +16,10 @@ QEMUS = {
     "arm32": "qemu-arm-static",
     "aarch64": "qemu-aarch64-static"
 }
+# Prefer no emulation if running on x64 host !
+if arch == 'x86_64':
+    QEMUS['intel_x64'] = ""
+
 test_cases = {
     'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "__Test_output_Success"],
     'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
@@ -69,8 +75,8 @@ def run_arch_tests(arch, case):
 
             if index != -1:
                 index += len(key)
-                loader_output = stdout[index:] 
-                value = loader_output[:loader_output.find("\n")+1].strip()
+                loader_output = stdout[index:]
+                value = loader_output[:loader_output.find("\n") + 1].strip()
                 value = int(value.strip(), 16)
                 if value == 0x12468:
                     final_status = "Success"
