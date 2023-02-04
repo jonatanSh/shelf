@@ -18,7 +18,7 @@
     static size_t __loader_symbol__shellcode_entry = 0xdeadbeff;
 #endif
 
-void loader_main(
+long long int loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
@@ -36,7 +36,7 @@ void loader_main(
     size_t total_header_plus_table_size = 0;
     long long int _out;
 #ifdef DEBUG
-    int mini_loader_status = 0;
+    long long int mini_loader_status = 0;
 #endif
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef SUPPORT_START_FILES
@@ -153,7 +153,8 @@ void loader_main(
 
 error:
 #ifdef DEBUG
-    return mini_loader_status;
+    // This will set the mini loader status as the exit code
+    _out = mini_loader_status;
 #endif
 exit:
 #ifdef ESHELF
@@ -163,7 +164,11 @@ exit:
     TEARDOWN(1);
     ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
+#ifndef DEBUG
     return;
+#else
+    return _out;
+#endif
 }
 
 #ifdef SUPPORT_DYNAMIC_LOADER
