@@ -56,7 +56,8 @@ features = {
                    'x64',
                    'x32',
                    'mipsbe',
-                   'mips'
+                   'mips',
+                   'arm_x32',
                ],
                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
                'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}

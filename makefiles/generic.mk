@@ -29,6 +29,10 @@ intel_x64_%:
 arm32_%:
 	$(ARM_CC) $(CFLAGS) $(C_FILES) -static $(subst arm32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode
+
+	$(ARM_CC) $(CFLAGS) $(C_FILES) -static $(subst arm32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32_eshelf.out -DESHELF
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32_eshelf.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode.eshelf --output-format eshelf
+
 aarch64_%:
 	$(AARCH64_CC) $(CFLAGS) $(C_FILES) -static $(subst aarch64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out --arch aarch64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out.shellcode
