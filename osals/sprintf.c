@@ -46,7 +46,7 @@ static char * sitoa(char * buf, unsigned int num, int width, enum flag_itoa flag
     return buf;
 }
 
-int my_vsprintf(char * buf, const char * fmt, va_list va)
+int vsprintf(char * buf, const char * fmt, va_list va)
 {
     char c;
     const char *save = buf;
@@ -125,11 +125,11 @@ int my_vsprintf(char * buf, const char * fmt, va_list va)
     return buf - save;
 }
 
-int my_sprintf(char * buf, const char * fmt, ...)
+int sprintf(char * buf, const char * fmt, ...)
 {
     va_list va;
     va_start(va,fmt);
-    int ret = my_vsprintf(buf, fmt, va);
+    int ret = vsprintf(buf, fmt, va);
     va_end(va);
     return ret;
 }

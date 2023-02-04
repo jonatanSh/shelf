@@ -10,7 +10,7 @@ shellcode_loader:
 	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm32
 	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch64
 mini_loaders:
-	cd mini_loaders && python compile.py
+	cd mini_loaders && python compile.py release
 
 examples:
 	cd examples && $(MAKE)

@@ -1,6 +1,7 @@
 #ifndef LOADER_GENERIC
 #define LOADER_GENERIC
-#define MAX_SEARCH_DEPTH 0x400
+// I should check this more carfually.
+#define MAX_SEARCH_DEPTH 0x800
 
 
 #if defined(__x86_64__) || defined(_M_X64)
@@ -34,8 +35,6 @@ struct table_entry {
     loader_off_t f_offset;
     loader_off_t v_offset;
 };
-
-
 struct entry_attributes {
     size_t attribute_1;
 };
@@ -56,14 +55,20 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #define advance_pc_to_magic() {                                             \
-    for(size_t i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {          \
-        /* Do not write pc+=ARCH_OPCODE_SIZE here, because in some arch \
-            Such as mips it produce buggy code*/  \
-        pc = pc + ARCH_OPCODE_SIZE;                                             \
+    size_t i;                                                               \
+    TRACE("Pc at search start = %x", pc);                                   \
+    for(i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {                 \
         if(*((size_t*)pc) == magic) {                                       \
             break;                                                          \
         }                                                                   \
+        /* Do not write pc+=ARCH_OPCODE_SIZE here, because in some arch \
+        Such as mips it produce buggy code*/  \
+        pc = pc + ARCH_OPCODE_SIZE;                                             \
     }                                                                       \
+    if(i > MAX_SEARCH_DEPTH - 1) {                                          \
+        TRACE("Pc search exceded max limit in advance_pc_to_magic macro");  \
+    }                                                                       \
+    TRACE("Pc at search end = %x", pc);                                     \
 }                                                                           \
 
 
@@ -99,6 +104,18 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #include "../headers/mini_loader.h"
+
+
+#define _SET_STATUS(status) {           \
+    mini_loader_status = status;        \
+}                                       \
+
+#ifdef DEBUG
+    #define SET_STATUS _SET_STATUS
+#else
+    #define SET_STATUS
+#endif
+
 
 
 #endif

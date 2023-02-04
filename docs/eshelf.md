@@ -23,3 +23,6 @@ just add the following outputing option
 ### Supported architectures:
 
 * intel x64
+* intel x32
+* mips
+* arm32

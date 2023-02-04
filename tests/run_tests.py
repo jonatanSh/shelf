@@ -7,6 +7,8 @@ import logging
 
 parser = ArgumentParser("testRunner")
 
+arch = os.uname()[-1]
+
 QEMUS = {
     "mips": "qemu-mips-static",
     "intel_x32": "qemu-i386-static",
@@ -14,10 +16,14 @@ QEMUS = {
     "arm32": "qemu-arm-static",
     "aarch64": "qemu-aarch64-static"
 }
+# Prefer no emulation if running on x64 host !
+if arch == 'x86_64':
+    QEMUS['intel_x64'] = ""
+
 test_cases = {
     'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "__Test_output_Success"],
     'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
-    'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['intel_x64'], 'Hello'],
+    'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['intel_x64', 'intel_x32', 'mips', 'arm32'], 'Hello'],
     'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['mips', 'intel_x32'], 'Hello']
 }
 
@@ -69,8 +75,8 @@ def run_arch_tests(arch, case):
 
             if index != -1:
                 index += len(key)
-                loader_output = stdout[index:] 
-                value = loader_output[:loader_output.find("\n")+1].strip()
+                loader_output = stdout[index:]
+                value = loader_output[:loader_output.find("\n") + 1].strip()
                 value = int(value.strip(), 16)
                 if value == 0x12468:
                     final_status = "Success"
@@ -83,8 +89,9 @@ def run_arch_tests(arch, case):
                 final_status = "Success"
             print("test: {}({}) ... {}".format(test_case, arch, final_status))
         else:
-            print("test: {} for: {} ... Failure, output:".format(test_case, arch))
-            print stdout, stderr
+            print("test: {} for: {} ... Failure, use --verbose-on-failed to see output".format(test_case, arch))
+            if args.verbose_on_failed:
+                print stdout, stderr
         if args.verbose:
             logging.info("Stdout: {}".format(
                 stdout
@@ -114,6 +121,8 @@ parser.add_argument("--debug", default=False, action="store_true", required=Fals
 parser.add_argument("--verbose", default=False, action="store_true", required=False)
 parser.add_argument("--only-stdout", default=False, required=False, action="store_true",
                     help="Run and only display stdout and stderr")
+parser.add_argument("--verbose-on-failed", default=False, action="store_true", required=False)
+
 args = parser.parse_args()
 if args.verbose:
     assert not args.only_stdout, "error --only-stdout and --verbose dont work togther"
