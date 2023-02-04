@@ -15,7 +15,7 @@ struct relocation_table {
     size_t header_size;
     struct elf_information_struct elf_information;
 };
-long long int loader_main(
+void loader_main(
     int argc,
     char ** argv,
     char ** envp,

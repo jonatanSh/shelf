@@ -18,7 +18,7 @@
     static size_t __loader_symbol__shellcode_entry = 0xdeadbeff;
 #endif
 
-long long int loader_main(
+void loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
@@ -164,9 +164,7 @@ exit:
     TEARDOWN(1);
     ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
-#ifndef DEBUG
-    return;
-#else
+#ifdef DEBUG
     return _out;
 #endif
 }

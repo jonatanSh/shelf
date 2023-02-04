@@ -1,16 +1,25 @@
 import os
 import subprocess
 import sys
+import time
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
 ]
+def print_header(message):
+    padding = (40 - len(message))/2
+    print("@" * 40)
+    print("{}{}{}".format("@" * padding, message, "@"*padding))
+    print("@" * 40)
+
 if len(sys.argv) < 2:
     print("Usage compile.py <release|debug>")
     sys.exit(1)
 
-if sys.argv[1] == 'debug':
-    CFLAGS+= ["-DDEBUG"]
+assert sys.argv[1] not in ['debug', 'release'], 'error got invalid argument: {}'.format(sys.argv[1])
+
+if sys.argv[1].strip() == 'debug':
+    CFLAGS += ["-DDEBUG"]
 
 
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
@@ -18,7 +27,7 @@ RESOURCES = '../elf_to_shellcode/resources'
 CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
 CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
-
+print_header("Compiling mini loaders, cflags={}".format(CFLAGS))
 def cfiles(directory):
     return [os.path.join(directory, filename) for filename in os.listdir(directory)
             if filename.endswith(".c")]
