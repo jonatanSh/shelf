@@ -17,7 +17,14 @@
 #ifdef ESHELF
     static size_t __loader_symbol__shellcode_entry = 0xdeadbeff;
 #endif
-
+#ifdef ESHELF
+void main(int argc, 
+    char ** argv, 
+    char ** envp,
+    size_t loader_magic, size_t pc) {
+    loader_main(argc, argv,envp,loader_magic, pc);
+}
+#endif
 void loader_main(
     int argc, 
     char ** argv, 

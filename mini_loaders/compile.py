@@ -2,32 +2,37 @@ import os
 import subprocess
 import sys
 import time
+
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
 ]
+
+
 def print_header(message):
-    padding = (40 - len(message))/2
+    padding = (40 - len(message)) / 2
     print("@" * 40)
-    print("{}{}{}".format("@" * padding, message, "@"*padding))
+    print("{}{}{}".format("@" * padding, message, "@" * padding))
     print("@" * 40)
+
 
 if len(sys.argv) < 2:
     print("Usage compile.py <release|debug>")
     sys.exit(1)
 
-assert sys.argv[1] not in ['debug', 'release'], 'error got invalid argument: {}'.format(sys.argv[1])
+assert sys.argv[1].strip() in ['debug', 'release'], 'error got invalid argument: {}'.format(sys.argv[1])
 
 if sys.argv[1].strip() == 'debug':
     CFLAGS += ["-DDEBUG"]
 
-
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
 CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
-CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic']
+CFLAGS += ['-nolibc', '--entry=loader_main', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
 print_header("Compiling mini loaders, cflags={}".format(CFLAGS))
+
+
 def cfiles(directory):
     return [os.path.join(directory, filename) for filename in os.listdir(directory)
             if filename.endswith(".c")]
@@ -38,23 +43,23 @@ LINUX_OSAL_FILES = OSAL_BASE
 LINUX_OSAL_FILES += cfiles("../osals/linux/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/sys")
-
+OSAL_DEBUG_FILES = [os.path.join("../osals/linux/debug.c")]
 # should perform cartesian product on the features
 features = {
     # This is just a normal loader keep this
     '': {'defs': [], 'files': ['generic_loader.c']},
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c']},
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
-    'eshelf': {'defs': ['ESHELF'],
-                'files': ['generic_loader.c'] + LINUX_OSAL_FILES,
-                'cflags': ['-I../osals/linux/', '-I../osals'],
-                'supported': [
-                    'x64',
-                    'x32',
-                    'mipsbe',
-                    'mips'
-                ],
-                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded"}
+    'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
+               'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
+               'supported': [
+                   'x64',
+                   'x32',
+                   'mipsbe',
+                   'mips'
+               ],
+               "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
+               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
 }
 
 
@@ -72,10 +77,14 @@ class Compiler(object):
         print(cmd_fmt)
         subprocess.check_call(cmd_fmt, shell=True)
 
-    def gcc(self, flags, *options):
+    def gcc(self, flags, remove_flags, *options):
+        flags = (self.cflags + flags)
+        for flag in remove_flags:
+            if flag in flags:
+                flags.remove(flag)
         return self.execute(
             self._gcc,
-            *(self.cflags + flags + list(options))
+            *(flags + list(options))
         )
 
     def objcopy(self, *options):
@@ -96,12 +105,12 @@ class Compiler(object):
             *options
         )
 
-    def compile(self, files, output_file, defines, flags, strip_flags):
+    def compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
         args = ['-D{}'.format(d) for d in defines]
         args += files
         args += ['-o', output_file]
-        self.gcc(flags, *args)
+        self.gcc(flags, remove_flags, *args)
         resource_out = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode")))
         symbol_filename = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode.symbols")))
 
@@ -130,33 +139,33 @@ class Compiler(object):
 
 MipsCompiler = Compiler(
     host=r'mips-linux-gnu',
-    cflags='{} --entry=loader_main'.format(CFLAGS),
+    cflags='{}'.format(CFLAGS),
     compiler_name="mips"
 )
 MipsCompilerBE = Compiler(
     host=r'mips-linux-gnu',
-    cflags='{} --entry=loader_main -BE'.format(CFLAGS),
+    cflags='{} -BE'.format(CFLAGS),
     compiler_name="mipsbe"
 )
 IntelX32 = Compiler(
     host=r'i686-linux-gnu',
-    cflags='{} -masm=intel -fno-plt -fno-pic --entry=loader_main'.format(CFLAGS),
+    cflags='{} -masm=intel -fno-plt -fno-pic'.format(CFLAGS),
     compiler_name="x32"
 )
 IntelX64 = Compiler(
     host=r'i686-linux-gnu',
-    cflags='{} -masm=intel -fno-plt -fno-pic --entry=loader_main -m64'.format(CFLAGS),
+    cflags='{} -masm=intel -fno-plt -fno-pic -m64'.format(CFLAGS),
     compiler_name="x64"
 )
 
 ArmX32 = Compiler(
     host=r'arm-linux-gnueabi',
-    cflags='--entry=loader_main {}'.format(CFLAGS),
+    cflags='{}'.format(CFLAGS),
     compiler_name="arm_x32"
 )
 AARCH64 = Compiler(
     host=r'aarch64-linux-gnu',
-    cflags='--entry=loader_main {}'.format(CFLAGS),
+    cflags='{}'.format(CFLAGS),
     compiler_name="arm_x64"
 )
 
@@ -169,16 +178,19 @@ compilers = [
     AARCH64
 ]
 
+
 def clean():
     for filename in os.listdir("../outputs"):
         if "mini_loader" in filename:
             os.remove(os.path.join("../outputs", filename))
+
 
 def compile():
     for compiler in compilers:
         for feature_name, attributes in features.items():
             supported = attributes.get('supported')
             flags = attributes.get("cflags", [])
+            remove_flags = attributes.get("remove_cflags", [])
             if supported:
                 if compiler.compiler_name not in supported:
                     print("Skipping feature: {} for compiler: {}".format(
@@ -196,9 +208,10 @@ def compile():
                 output_file=target_out,
                 defines=attributes['defs'],
                 flags=flags,
-                strip_flags=attributes.get("strip_flags")
+                strip_flags=attributes.get("strip_flags"),
+                remove_flags=remove_flags
             )
 
-    
+
 clean()
 compile()

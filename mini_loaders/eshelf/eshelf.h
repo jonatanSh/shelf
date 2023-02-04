@@ -5,7 +5,6 @@
     #define NULL 0
 #endif
 #include "../loader_generic.h"
-void sys_exit(int status);
 
 
 #ifdef ESHELF
@@ -14,7 +13,7 @@ void sys_exit(int status);
     #define TRACE(fmt, ...) trace_handler(TRACE_TERMINATOR,__FILE__, __FUNCTION__ ,__LINE__, TRACE_FORMAT, fmt, ##__VA_ARGS__)
     #define WRITE(fmt, ...) trace_handler(NULL,__FILE__, __FUNCTION__ ,__LINE__, NULL, fmt, ##__VA_ARGS__)
     
-    #define TEARDOWN sys_exit
+    #define TEARDOWN exit
 #else
     #define TRACE
     #define WRITE

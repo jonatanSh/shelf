@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include "tests.h"
-#ifndef OSAL_LIBC
+#if defined(WITH_LIBC) || !defined(OSAL_LIBC)
     #include <unistd.h>
     #include <stdlib.h>
     #include <string.h>
@@ -9,8 +9,8 @@
 #else
     #include "../osals/linux/syscalls_wrapper/unistd.h"
     #include "../osals/string.h"
+    #include "../osals/sprintf.h"
 #endif
-#include "../osals/sprintf.h"
 #include "../headers/mini_loader.h"
 
 
@@ -31,14 +31,14 @@ void trace_handler(const char * file, const char * func, unsigned int line, char
 	char debug_buffer[MAX_DEBUG_BUFFER];
 
 
-    my_sprintf(debug_buffer, 
+    sprintf(debug_buffer,
         trace_format,
         file,
         func,
         line);
 
     va_start (ap, fmt);
-    my_vsprintf(debug_buffer + strlen(debug_buffer),
+    vsprintf(debug_buffer + strlen(debug_buffer),
         fmt,
         ap);
     va_end (ap);
