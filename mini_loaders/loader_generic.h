@@ -1,6 +1,7 @@
 #ifndef LOADER_GENERIC
 #define LOADER_GENERIC
-#define MAX_SEARCH_DEPTH 0x400
+// I should check this more carfually.
+#define MAX_SEARCH_DEPTH 0x800
 
 
 #if defined(__x86_64__) || defined(_M_X64)
