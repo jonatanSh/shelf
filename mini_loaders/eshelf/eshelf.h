@@ -17,7 +17,6 @@ void sys_exit(int status);
     #define TEARDOWN sys_exit
 #else
     #define TRACE
-    #define TRACE_ADDRESS(address, size)
     #define WRITE
     #define TEARDOWN ARCH_TEARDOWN
 #endif
@@ -31,11 +30,12 @@ void sys_exit(int status);
 }                                                               \
 
 
-#define ASSERT(expr) {                          \
-    if(!(expr)) {                               \
-        TRACE("Asseration failed: %s", #expr);  \
-        goto error;                             \
-    }                                           \
-}                                               \
+#define ASSERT(expr, status) {                          \
+    if(!(expr)) {                                       \
+        TRACE("Asseration failed: %s", #expr);          \
+        SET_STATUS(status);                             \
+        goto error;                                     \
+    }                                                   \
+}                                                       \
 
 #endif

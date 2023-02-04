@@ -18,7 +18,7 @@
     static size_t __loader_symbol__shellcode_entry = 0xdeadbeff;
 #endif
 
-int loader_main(
+void loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
@@ -71,7 +71,7 @@ int loader_main(
     // If we got here then we found the table
     table = (struct relocation_table *)pc;
     TRACE("Found table, magic = %x, excpecting %x", table->magic, magic);
-    ASSERT(table->magic == magic);
+    ASSERT(table->magic == magic, INVALID_MAGIC);
     total_header_plus_table_size = table->total_size;
     total_header_plus_table_size += table->header_size;
     // Size of table header + entries + entry point
@@ -115,7 +115,7 @@ int loader_main(
                 v_offset = attribute_val;
             }
             else {
-                mini_loader_status = INVALID_ATTRIBUTE;
+                SET_STATUS(INVALID_ATTRIBUTE);
                 goto error;
             }
         }
@@ -181,7 +181,6 @@ int get_elf_information(struct relocation_table **info) {
     advance_pc_to_magic();
     table = (struct relocation_table *)pc;
     if(table->magic != magic) {
-        mini_loader_error = INVALID_MAGIC;
         goto error;
     }
 

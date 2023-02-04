@@ -111,6 +111,9 @@ typedef void * (*IRELATIVE_T)();
 
 #ifdef DEBUG
     #define SET_STATUS _SET_STATUS
+#else
+    #define SET_STATUS
+#endif
 
 
 
