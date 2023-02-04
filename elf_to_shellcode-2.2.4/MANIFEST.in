@@ -1,3 +1,0 @@
-recursive-include elf_to_shellcode/resources/ *.shellcode
-recursive-include elf_to_shellcode/resources/ *.symbols
-global-exclude *.pyc
