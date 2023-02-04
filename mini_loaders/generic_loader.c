@@ -18,7 +18,7 @@
     static size_t __loader_symbol__shellcode_entry = 0xdeadbeff;
 #endif
 
-void loader_main(
+int loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
@@ -35,6 +35,9 @@ void loader_main(
     size_t return_address;
     size_t total_header_plus_table_size = 0;
     long long int _out;
+#ifdef DEBUG
+    int mini_loader_status = 0;
+#endif
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef SUPPORT_START_FILES
     TRACE("Loader support: SUPPORT_START_FILES");
@@ -112,6 +115,7 @@ void loader_main(
                 v_offset = attribute_val;
             }
             else {
+                mini_loader_status = INVALID_ATTRIBUTE;
                 goto error;
             }
         }
@@ -141,7 +145,16 @@ void loader_main(
     ARCH_GET_FUNCTION_OUT();
 #endif
 
+// We ifdef everything here for compact loader
+#ifdef DEBUG
+    // If we got here then just exit normaly, and do not set error code
+    goto exit;
+#endif 
+
 error:
+#ifdef DEBUG
+    return mini_loader_status;
+#endif
 exit:
 #ifdef ESHELF
     TRACE("ESHELF exit, RC is irrelevant");
@@ -168,6 +181,7 @@ int get_elf_information(struct relocation_table **info) {
     advance_pc_to_magic();
     table = (struct relocation_table *)pc;
     if(table->magic != magic) {
+        mini_loader_error = INVALID_MAGIC;
         goto error;
     }
 

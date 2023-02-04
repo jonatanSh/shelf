@@ -105,4 +105,13 @@ typedef void * (*IRELATIVE_T)();
 #include "../headers/mini_loader.h"
 
 
+#define _SET_STATUS(status) {           \
+    mini_loader_status = status;        \
+}                                       \
+
+#ifdef DEBUG
+    #define SET_STATUS _SET_STATUS
+
+
+
 #endif

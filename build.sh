@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-
+set -e
+cd mini_loaders && python compile.py release
+cd ..
 # building current version
 python3 setup.py sdist
 

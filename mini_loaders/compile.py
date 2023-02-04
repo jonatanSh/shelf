@@ -1,12 +1,21 @@
 import os
 import subprocess
 import sys
+CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
 ]
+if len(sys.argv) < 2:
+    print("Usage compile.py <release|debug>")
+    sys.exit(1)
+
+if sys.argv[1] == 'debug':
+    CFLAGS+= ["-DDEBUG"]
+
+
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
-CFLAGS = ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
+CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
 CFLAGS += ['-nolibc', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
 
@@ -180,5 +189,7 @@ def compile():
                 flags=flags,
                 strip_flags=attributes.get("strip_flags")
             )
+
+    
 clean()
 compile()
