@@ -33,7 +33,8 @@ class Shellcode(object):
                  sections_to_relocate=None,
                  supported_start_methods=None,
                  reloc_types=None,
-                 support_dynamic=False):
+                 support_dynamic=False,
+                 **kwargs):
 
         if reloc_types is None:
             reloc_types = {}
