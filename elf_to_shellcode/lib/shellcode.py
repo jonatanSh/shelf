@@ -486,15 +486,15 @@ def get_shellcode_class(args, shellcode_cls):
 
 
 def make_shellcode(args, shellcode_cls):
-    shellcode, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
+    shellcode_handler, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
     args = sys.modules["global_args"]
     if args.interactive:
         print("Opening interactive shell")
         import IPython
         IPython.embed()
         sys.exit(1)
-    shellcode_repr = repr(shellcode)
-    shellcode = shellcode.get_shellcode()
+    shellcode = shellcode_handler.get_shellcode()
+    shellcode_repr = repr(shellcode_handler)
 
     fd.close()
     return shellcode, shellcode_repr
