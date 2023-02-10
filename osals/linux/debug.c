@@ -2,9 +2,13 @@
 #include "../debug.h"
 
 #ifndef WITH_LIBC
-#include "./syscalls_wrapper/unistd.h"
-#include "../sprintf.h"
-#include "../string.h"
+    #include "./syscalls_wrapper/unistd.h"
+    #include "../sprintf.h"
+    #include "../string.h"
+#else
+    #include <string.h>
+    #include <stdio.h>
+    #include <unistd.h>
 #endif
 
 void trace_handler(const char * terminator,const char * file, const char * func, unsigned int line, char * trace_format, const char* fmt, ...) {

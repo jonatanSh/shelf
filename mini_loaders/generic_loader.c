@@ -171,9 +171,13 @@ exit:
     TEARDOWN(1);
     ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
+/*
+Some arches still doesn't support ARCH_RETURN
+Think about how to fix this, currently it triggers compiler errors
 #ifdef DEBUG
     return _out;
 #endif
+*/
 }
 
 #ifdef SUPPORT_DYNAMIC_LOADER

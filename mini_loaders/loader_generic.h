@@ -1,5 +1,6 @@
 #ifndef LOADER_GENERIC
 #define LOADER_GENERIC
+#include <stddef.h>
 // I should check this more carfually.
 #define MAX_SEARCH_DEPTH 0x800
 
