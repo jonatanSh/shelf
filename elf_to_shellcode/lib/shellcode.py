@@ -34,7 +34,7 @@ class Shellcode(object):
                  supported_start_methods=None,
                  reloc_types=None,
                  support_dynamic=False):
-        
+
         if reloc_types is None:
             reloc_types = {}
         if supported_start_methods is None:
@@ -164,13 +164,12 @@ class Shellcode(object):
         for section, attributes in self.sections_to_relocate.items():
             self.section_build_relocations_table(
                 section_name=section,
-                align_attr=attributes['align_by'],
                 relocate_all=attributes.get("relocate_all", False),
                 shellcode_data=shellcode_data
             )
         return shellcode_data
 
-    def section_build_relocations_table(self, section_name, align_attr, relocate_all, shellcode_data):
+    def section_build_relocations_table(self, section_name, relocate_all, shellcode_data):
         data_section = self.elffile.get_section_by_name(section_name)
         original_symbol_addresses = self.get_original_symbols_addresses()
         if data_section:
@@ -471,6 +470,9 @@ class Shellcode(object):
         header = header[:current_offset] + entry_point + header[current_offset + self.ptr_size:]
         return header
 
+    def __repr__(self):
+        return "Shellcode(table_size={})".format(len(self.relocation_table))
+
 
 def get_shellcode_class(args, shellcode_cls):
     fd = open(args.input, 'rb')
@@ -491,10 +493,11 @@ def make_shellcode(args, shellcode_cls):
         import IPython
         IPython.embed()
         sys.exit(1)
+    shellcode_repr = repr(shellcode)
     shellcode = shellcode.get_shellcode()
 
     fd.close()
-    return shellcode
+    return shellcode, shellcode_repr
 
 
 def create_make_shellcode(shellcode_cls):
