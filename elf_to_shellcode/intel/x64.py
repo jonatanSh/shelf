@@ -4,11 +4,11 @@ from elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 
 
 class IntelX64Shellcode(Shellcode):
-    def __init__(self, elffile, shellcode_data, endian, **kwargs):
+    def __init__(self, elffile, shellcode_data, args, **kwargs):
         super(IntelX64Shellcode, self).__init__(
             elffile=elffile,
             shellcode_data=shellcode_data,
-            endian=endian,
+            args=args,
             arch="x64",
             mini_loader_little_endian="mini_loader_x64{}.shellcode",
             mini_loader_big_endian=None,

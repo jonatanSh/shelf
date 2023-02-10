@@ -64,8 +64,8 @@ else:
     output_file = args.input + "{0}.out.shell".format(args.arch)
 
 with open(output_file, "wb") as fp:
-    shellcode = make_shellcode(args.input, arch=args.arch, endian=args.endian,
-                               start_file_method=args.start_method)
+    shellcode = make_shellcode(arch=args.arch, endian=args.endian,
+                               start_file_method=args.start_method, args=args)
     fp.write(five.to_file(shellcode))
     st = os.stat(output_file)
     os.chmod(output_file, st.st_mode | stat.S_IEXEC)

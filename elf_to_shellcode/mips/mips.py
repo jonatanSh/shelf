@@ -6,11 +6,11 @@ from elf_to_shellcode.lib.consts import RELOC_TYPES
 
 
 class MipsShellcode(Shellcode):
-    def __init__(self, elffile, shellcode_data, endian, **kwargs):
+    def __init__(self, elffile, shellcode_data, args, **kwargs):
         super(MipsShellcode, self).__init__(
             elffile=elffile,
             shellcode_data=shellcode_data,
-            endian=endian,
+            args=args,
             arch="mips",
             mini_loader_little_endian="mini_loader_mips{}.shellcode",
             mini_loader_big_endian="mini_loader_mipsbe{}.shellcode",
@@ -38,7 +38,6 @@ class MipsShellcode(Shellcode):
         self.dynsym = self.elffile.get_section_by_name(".dynsym")
         self.can_handle_dynamic_got_relocs = False
         self.prepare_got_parsing()
-
 
     def prepare_got_parsing(self):
         dynamic = self.elffile.get_section_by_name(".dynamic")
@@ -89,12 +88,12 @@ class MipsShellcode(Shellcode):
             logging.warn("Mips .got fallback sym_index > self.got_sym_num_entries")
             return virtual_offset, sym_offset
         sym = self.dynsym.get_symbol(sym_index)
-        if self.loader_symbols.has_symbol(sym.name):
-            sym_offset = self.loader_symbols.get_relative_symbol_address(
+        if self.mini_loader.symbols.has_symbol(sym.name):
+            sym_offset = self.mini_loader.symbols.get_relative_symbol_address(
                 symbol_name=sym.name
             )
             sym_offset = [sym_offset,
-             RelocationAttributes.relative_to_loader_base]
+                          RelocationAttributes.relative_to_loader_base]
             was_loader_sym = True
         else:
             was_loader_sym = False

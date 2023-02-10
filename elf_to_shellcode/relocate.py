@@ -32,11 +32,11 @@ shellcode_handlers = {
 }
 
 
-def make_shellcode(binary_path, arch, endian, start_file_method):
+def make_shellcode(arch, endian, start_file_method, args):
     assert endian in ENDIANS, 'Chose endain from: {}'.format(ENDIANS)
-    assert arch in shellcode_handlers, 'Chose arch from: {}'.format(
-        shellcode_handlers.keys()
+    assert arch in shellcode_handlers, 'Chose arch from: {}, got arch: {}'.format(
+        shellcode_handlers.keys(),
+        arch
     )
     assert start_file_method in StartFiles.__all__
-    return shellcode_handlers[arch](binary_path, endian=endian,
-                                    start_file_method=start_file_method)
+    return shellcode_handlers[arch](args=args)

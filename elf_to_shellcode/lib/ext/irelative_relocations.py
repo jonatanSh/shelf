@@ -80,7 +80,7 @@ class IrelativeRelocs(object):
         return shellcode_data
 
     def fix_glibc_references(self, shellcode):
-        if shellcode.start_file_method != StartFiles.glibc:
+        if shellcode.args.start_method != StartFiles.glibc:
             return
 
         assert self.glibc_irelative_first_reference != 2 ** 32
@@ -116,7 +116,7 @@ class IrelativeRelocs(object):
 
         hdr = "GLIBC_R"
 
-        if shellcode.start_file_method != StartFiles.glibc:
+        if shellcode.args.start_method != StartFiles.glibc:
             hdr = "IRELATIVE_CALL_TO_RESOLVE"
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
@@ -130,7 +130,7 @@ class IrelativeRelocs(object):
             hex(shellcode.address_utils.make_absolute(virtual_offset)),
             hex(shellcode.address_utils.make_absolute(function_offset))
         ))
-        if shellcode.start_file_method == StartFiles.glibc:
+        if shellcode.args.start_method == StartFiles.glibc:
             """
                 If so the elf header contain references to those function, 
                 we must found those references,
