@@ -3,6 +3,7 @@ import subprocess
 import sys
 from multiprocessing import Process
 from time import sleep
+import itertools
 
 CFLAGS = []
 TARGET_FILES = [
@@ -17,9 +18,12 @@ def print_header(message):
     print("@" * 40)
 
 
+jobs_count = 16
 if len(sys.argv) < 2:
-    print("Usage compile.py <release|debug>")
+    print("Usage compile.py <release|debug> <optional|jobs>")
     sys.exit(1)
+if len(sys.argv) > 2:
+    jobs_count = int(sys.argv[2])
 
 assert sys.argv[1].strip() in ['debug', 'release'], 'error got invalid argument: {}'.format(sys.argv[1])
 
@@ -45,24 +49,27 @@ LINUX_OSAL_FILES += cfiles("../osals/linux/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/sys")
 OSAL_DEBUG_FILES = [os.path.join("../osals/linux/debug.c")]
-# should perform cartesian product on the features
-features = {
-    # This is just a normal loader keep this
-    '': {'defs': [], 'files': ['generic_loader.c']},
-    'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c']},
-    'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
-    'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
-               'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
-               'supported': [
-                   'x64',
-                   'x32',
-                   'mipsbe',
-                   'mips',
-                   'arm_x32',
-               ],
-               "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
-               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
-}
+
+
+def merge_features(first_dict, second_dict):
+    for key in second_dict:
+        # Special key, drop support for features
+        if key == 'supported':
+            s1 = set(first_dict.get('supported', set()))
+            s2 = set(second_dict.get('supported', set()))
+            supported = s1 & s2
+            first_dict['supported'] = supported
+        elif key not in first_dict:
+            first_dict[key] = second_dict[key]
+        else:
+            if type(first_dict[key]) is str:
+                first_dict[key] += " " + second_dict[key]
+            elif type(first_dict[key]) is list:
+                first_dict[key] = list(set(first_dict[key]) | set(second_dict[key]))
+            else:
+                raise Exception("No Merge for type: {}".format(
+                    type(first_dict[key])
+                ))
 
 
 class Compiler(Process):
@@ -148,7 +155,7 @@ class Compiler(Process):
         self._compile(
             **self.compile_kwargs
         )
-    
+
     def start(self):
         self.is_running = True
         super(Compiler, self).start()
@@ -199,6 +206,33 @@ compilers = [
     AARCH64
 ]
 
+arches = [compiler.compiler_name for compiler in compilers]
+
+# should perform cartesian product on the features
+features = {
+    # This is just a normal loader keep this
+    '': {'defs': [], 'files': ['generic_loader.c'], 'supported': arches},
+    'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c'], 'supported': arches},
+    'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
+    'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
+               'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
+               'supported': [
+                   'x64',
+                   'x32',
+                   'mipsbe',
+                   'mips',
+                   'arm_x32',
+               ],
+               "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
+               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
+}
+# Removing generic loader key
+all_feature_keys = [key for key in features.keys() if key]
+all_features = []
+
+for i in range(len(features.keys())):
+    all_features += [feature for feature in itertools.combinations(all_feature_keys, i + 1)]
+
 
 def clean():
     for filename in os.listdir("../outputs"):
@@ -243,17 +277,20 @@ def start_jobs(jobs, max_parallel_jobs=16):
 def prepare_jobs():
     jobs = []
     for compiler in compilers:
-        for feature_name, attributes in features.items():
-            supported = attributes.get('supported')
+        for feature_keys in all_features:
+            feature_name = "_".join(feature_keys)
+            attributes = {'supported': arches}  # Always set all arches to support
+            for key in feature_keys:
+                merge_features(attributes, features[key])
+            supported = attributes.get('supported', [])
             flags = attributes.get("cflags", [])
             remove_flags = attributes.get("remove_cflags", [])
-            if supported:
-                if compiler.compiler_name not in supported:
-                    print("Skipping feature: {} for compiler: {}".format(
-                        feature_name,
-                        compiler.compiler_name
-                    ))
-                    continue
+            if compiler.compiler_name not in supported:
+                print("Skipping feature: {} for compiler: {}".format(
+                    feature_name,
+                    compiler.compiler_name
+                ))
+                continue
             target_out = '{}'.format(compiler.compiler_name)
             if feature_name:
                 target_out = '{}_{}'.format(compiler.compiler_name,
@@ -272,6 +309,7 @@ def prepare_jobs():
 
 
 if __name__ == "__main__":
+    print("Compiling, max parallel jobs = %d" % jobs_count)
     clean()
     jobs = prepare_jobs()
-    start_jobs(jobs)
+    start_jobs(jobs, max_parallel_jobs=jobs_count)
