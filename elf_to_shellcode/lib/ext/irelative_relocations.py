@@ -37,8 +37,8 @@ class IrelativeRelocs(object):
             self.logger.info("| IRELATIVE | Relative(*{}={}()) Absolute(*{}={}())".format(
                 hex(virtual_offset),
                 hex(function_offset),
-                hex(shellcode.make_absolute(virtual_offset)),
-                hex(shellcode.make_absolute(function_offset))
+                hex(shellcode.address_utils.make_absolute(virtual_offset)),
+                hex(shellcode.address_utils.make_absolute(function_offset))
             ))
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
@@ -80,7 +80,7 @@ class IrelativeRelocs(object):
         return shellcode_data
 
     def fix_glibc_references(self, shellcode):
-        if shellcode.start_file_method != StartFiles.glibc:
+        if shellcode.args.start_method != StartFiles.glibc:
             return
 
         assert self.glibc_irelative_first_reference != 2 ** 32
@@ -100,7 +100,7 @@ class IrelativeRelocs(object):
             for address in addresses:
                 self.logger.info("[!GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
                     hex(address),
-                    hex(shellcode.make_absolute(address))
+                    hex(shellcode.address_utils.make_absolute(address))
                 ))
                 shellcode.addresses_to_patch[address] = shellcode.make_relative(entry)
 
@@ -116,7 +116,7 @@ class IrelativeRelocs(object):
 
         hdr = "GLIBC_R"
 
-        if shellcode.start_file_method != StartFiles.glibc:
+        if shellcode.args.start_method != StartFiles.glibc:
             hdr = "IRELATIVE_CALL_TO_RESOLVE"
             shellcode.addresses_to_patch[virtual_offset] = [function_offset,
                                                             RelocationAttributes.call_to_resolve]
@@ -127,10 +127,10 @@ class IrelativeRelocs(object):
             hdr,
             hex(virtual_offset),
             hex(function_offset),
-            hex(shellcode.make_absolute(virtual_offset)),
-            hex(shellcode.make_absolute(function_offset))
+            hex(shellcode.address_utils.make_absolute(virtual_offset)),
+            hex(shellcode.address_utils.make_absolute(function_offset))
         ))
-        if shellcode.start_file_method == StartFiles.glibc:
+        if shellcode.args.start_method == StartFiles.glibc:
             """
                 If so the elf header contain references to those function, 
                 we must found those references,
@@ -145,8 +145,8 @@ class IrelativeRelocs(object):
                     self.logger.info("| HEADER | Relative(*{}={}()) Absolute(*{}={}())".format(
                         hex(index),
                         hex(relocation_entry_relative),
-                        hex(shellcode.make_absolute(index)),
-                        hex(shellcode.make_absolute(relocation_entry_relative))
+                        hex(shellcode.address_utils.make_absolute(index)),
+                        hex(shellcode.address_utils.make_absolute(relocation_entry_relative))
                     ))
                     shellcode.addresses_to_patch[index] = relocation_entry_relative
                     address_not_relative = shellcode.loading_virtual_address + index

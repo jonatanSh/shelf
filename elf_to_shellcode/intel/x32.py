@@ -15,11 +15,11 @@ def get_glibc_instructions_filter(address):
 
 
 class IntelX32Shellcode(Shellcode):
-    def __init__(self, elffile, shellcode_data, endian, **kwargs):
+    def __init__(self, elffile, shellcode_data, args, **kwargs):
         super(IntelX32Shellcode, self).__init__(
             elffile=elffile,
             shellcode_data=shellcode_data,
-            endian=endian,
+            args=args,
             arch="x32",
             mini_loader_little_endian="mini_loader_x32{}.shellcode",
             mini_loader_big_endian=None,
@@ -54,7 +54,7 @@ class IntelX32Shellcode(Shellcode):
         )
         self.add_relocation_handler(self.irelative.relocation_for_rel_plt_got_plt)
 
-        if self.start_file_method == StartFiles.glibc:
+        if self.args.start_method == StartFiles.glibc:
             self.add_relocation_handler(self.glibc_patch_symbols)
 
     def glibc_patch_symbols(self, shellcode, shellcode_data):
@@ -93,7 +93,7 @@ class IntelX32Shellcode(Shellcode):
                 self.logger.info("![GLIBC] |InstructionPatch| Sym({}) Relative({}), Absolute({})".format(
                     sym.name,
                     hex(address),
-                    hex(shellcode.make_absolute(address))
+                    hex(shellcode.address_utils.make_absolute(address))
                 ))
                 shellcode.addresses_to_patch[address] = self.make_relative(entry_address)
         return shellcode_data

@@ -1,4 +1,4 @@
-unsigned int strlen(const char *s)
+long unsigned int strlen(const char *s)
 {
     unsigned int count = 0;
     while(*s!='\0')

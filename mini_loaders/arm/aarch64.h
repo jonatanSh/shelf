@@ -1,6 +1,5 @@
 #ifndef LOADER_ARM_X64
 #define LOADER_ARM_X64
-typedef unsigned long long size_t;
 
 #define ARCH_OPCODE_SIZE 2
 #define TABLE_MAGIC 0x8899aabbccddeeff

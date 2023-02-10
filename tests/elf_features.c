@@ -62,7 +62,7 @@ static const function_t funcs[] = {
     &say_hello
 };
 
-void test_jump_table(int random) {
+void test_jump_table(size_t random) {
 
     switch(random) {
         case 1:
@@ -101,7 +101,7 @@ long long int main(void * main_address, int argc, char ** argv, int total_args) 
 #endif
     TRACE("Hello from shellcode!\n");
     TRACE("Testing jump tables\n");
-    test_jump_table((int)main_address);
+    test_jump_table((size_t)main_address);
     TRACE("Testing global ptr arrays\n");
     test_global_ptr_arrays();
     struct relocation_table * info;

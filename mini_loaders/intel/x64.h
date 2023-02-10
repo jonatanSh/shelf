@@ -1,6 +1,5 @@
 #ifndef LOADER_INTEL_X64
 #define LOADER_INTEL_X64
-typedef unsigned long long size_t;
 
 #define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \
@@ -28,7 +27,7 @@ typedef unsigned long long size_t;
    register size_t rdi asm("rdi") = (size_t)(main_ptr);            \
    register size_t rsi asm("rsi") = (size_t)(argc);                \
    register size_t rdx asm("rdx") = (size_t)(argv);                \
-   register size_t rcx asm("rcx") = (size_t)((total_args+1) * 4);  \  
+   register size_t rcx asm("rcx") = (size_t)((total_args+1) * 4);  \
    asm(                                                            \
         "call rdi\n"                                               \
        :  :                                                        \

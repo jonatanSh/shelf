@@ -77,7 +77,7 @@ class DynamicRelocations(object):
         offset = shellcode.make_relative(entry.r_offset)
         self.logger.info("[REL_RELATIVE] Relative({}) Absolute({})".format(
             hex(offset),
-            hex(shellcode.make_absolute(offset)),
+            hex(shellcode.address_utils.make_absolute(offset)),
         ))
         shellcode.addresses_to_patch[offset] = [0, RelocationAttributes.relative]
 
@@ -85,8 +85,8 @@ class DynamicRelocations(object):
         sym = dynsym.get_symbol(entry.r_info_sym)
         offset = shellcode.make_relative(entry.r_offset)
         r_address = shellcode.make_relative(sym.entry.st_value)
-        if shellcode.loader_symbols.has_symbol(sym.name):
-            jmp_slot_address = shellcode.loader_symbols.get_relative_symbol_address(
+        if shellcode.mini_loader.symbols.has_symbol(sym.name):
+            jmp_slot_address = shellcode.mini_loader.symbols.get_relative_symbol_address(
                 symbol_name=sym.name
             )
             shellcode.addresses_to_patch[offset] = [jmp_slot_address,
@@ -96,8 +96,8 @@ class DynamicRelocations(object):
             sym.name,
             hex(offset),
             hex(r_address),
-            hex(shellcode.make_absolute(offset)),
-            hex(shellcode.make_absolute(r_address))
+            hex(shellcode.address_utils.make_absolute(offset)),
+            hex(shellcode.address_utils.make_absolute(r_address))
         ))
         shellcode.addresses_to_patch[offset] = r_address
 
@@ -118,15 +118,15 @@ class DynamicRelocations(object):
         v_offset = shellcode.make_relative(symbol_obj.entry.st_value)
         offset = shellcode.make_relative(entry.r_offset)
         sym_type = symbol_obj.entry.st_info.type
-        if shellcode.loader_symbols.has_symbol(symbol_obj.name):
-            jmp_slot_address = shellcode.loader_symbols.get_relative_symbol_address(
+        if shellcode.mini_loader.symbols.has_symbol(symbol_obj.name):
+            jmp_slot_address = shellcode.mini_loader.symbols.get_relative_symbol_address(
                 symbol_name=symbol_obj.name
             )
             self.logger.info("[JMP_SL] Relative(*{}={}()) Absolute(*{}={}())".format(
                 hex(offset),
                 hex(jmp_slot_address),
-                hex(shellcode.make_absolute(offset)),
-                hex(shellcode.make_absolute(jmp_slot_address))
+                hex(shellcode.address_utils.make_absolute(offset)),
+                hex(shellcode.address_utils.make_absolute(jmp_slot_address))
             ))
             shellcode.addresses_to_patch[offset] = [jmp_slot_address,
                                                     RelocationAttributes.relative_to_loader_base]
@@ -156,8 +156,8 @@ class DynamicRelocations(object):
             sym_type,
             hex(offset),
             hex(v_offset),
-            hex(shellcode.make_absolute(offset)),
-            hex(shellcode.make_absolute(v_offset))
+            hex(shellcode.address_utils.make_absolute(offset)),
+            hex(shellcode.address_utils.make_absolute(v_offset))
         ))
 
     def handle_jmp_slot_relocs(self, shellcode,
