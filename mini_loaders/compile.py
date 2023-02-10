@@ -1,7 +1,8 @@
 import os
 import subprocess
 import sys
-import time
+from multiprocessing import Process
+from time import sleep
 
 CFLAGS = []
 TARGET_FILES = [
@@ -64,13 +65,16 @@ features = {
 }
 
 
-class Compiler(object):
+class Compiler(Process):
     def __init__(self, host, cflags, compiler_name):
         self._gcc = "{}-gcc".format(host)
         self._objcopy = "{}-objcopy".format(host)
         self._strip = "{}-strip".format(host)
         self.cflags = cflags.split(" ")
         self.compiler_name = compiler_name
+        self.compile_kwargs = None
+        self.is_running = False
+        super(Compiler, self).__init__()
 
     @staticmethod
     def execute(*cmd):
@@ -106,7 +110,7 @@ class Compiler(object):
             *options
         )
 
-    def compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
+    def _compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
         args = ['-D{}'.format(d) for d in defines]
         args += files
@@ -136,6 +140,22 @@ class Compiler(object):
             '>',
             symbol_filename
         )
+
+    def prepare_compile_kwargs(self, **kwargs):
+        self.compile_kwargs = kwargs
+
+    def run(self):
+        self._compile(
+            **self.compile_kwargs
+        )
+    
+    def start(self):
+        self.is_running = True
+        super(Compiler, self).start()
+
+    @property
+    def terminated(self):
+        return self.exitcode is not None
 
 
 MipsCompiler = Compiler(
@@ -186,7 +206,42 @@ def clean():
             os.remove(os.path.join("../outputs", filename))
 
 
-def compile():
+def terminate_all(jobs):
+    for job in jobs:
+        job.terminate()
+
+
+def start_jobs(jobs, max_parallel_jobs=16):
+    exit_code = 0
+    while len(jobs) > 0:
+        try:
+            started_jobs = 0
+            jobs_to_remove = []
+            for job in jobs:
+                if job.terminated:
+                    max_parallel_jobs -= 1
+                    exit_code = job.exitcode
+                    jobs_to_remove.append(job)
+                    if exit_code != 0:
+                        terminate_all(jobs)
+                        return exit_code
+
+                elif started_jobs < max_parallel_jobs:
+                    if not job.is_running:
+                        job.start()
+                        max_parallel_jobs += 1
+                sleep(0.1)
+            for job in jobs_to_remove:
+                if job in jobs:
+                    jobs.remove(job)
+        except KeyboardInterrupt:
+            terminate_all(jobs)
+            return -1
+    return exit_code
+
+
+def prepare_jobs():
+    jobs = []
     for compiler in compilers:
         for feature_name, attributes in features.items():
             supported = attributes.get('supported')
@@ -204,7 +259,7 @@ def compile():
                 target_out = '{}_{}'.format(compiler.compiler_name,
                                             feature_name)
             target_out = OUTPUT_BASE.format(target_out)
-            compiler.compile(
+            compiler.prepare_compile_kwargs(
                 files=attributes['files'],
                 output_file=target_out,
                 defines=attributes['defs'],
@@ -212,7 +267,11 @@ def compile():
                 strip_flags=attributes.get("strip_flags"),
                 remove_flags=remove_flags
             )
+            jobs.append(compiler)
+    return jobs
 
 
-clean()
-compile()
+if __name__ == "__main__":
+    clean()
+    jobs = prepare_jobs()
+    start_jobs(jobs)
