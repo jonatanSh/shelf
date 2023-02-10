@@ -74,7 +74,6 @@ class Shellcode(object):
             self.start_file_method,
             self.supported_start_methods
         )
-        self.address_utils = AddressUtils(unpack_size=self.unpack_size)
 
         if endian == "big":
             self.endian = ">"
@@ -100,9 +99,6 @@ class Shellcode(object):
         self.loader_symbols = ShellcodeLoader(self.loader_symbols_path,
                                               loader_size=len(self._loader))
         self.arch = arch
-        self.debugger_symbols = [
-            "loader_main"
-        ]
 
         self.disassembler = Disassembler(self)
         if self.support_dynamic:
@@ -114,10 +110,24 @@ class Shellcode(object):
             self.relocation_handler = ElfRelocationHandler()
             self.add_relocation_handler(self.relocation_handler.handle)
 
+        self.address_utils = AddressUtils(shellcode=self)
+
     def arch_find_relocation_handler(self, relocation_type):
+        """
+        Hook for specific arch relocation handler
+        :param relocation_type: the
+        :return: Function relocation handler(shellcode, shellcode_data, relocation) -> None
+        """
         raise NotImplementedError()
 
     def arch_handle_relocation(self, shellcode, shellcode_data, relocation):
+        """
+        Helper to find arch relocation handler
+        :param shellcode: processing shellcode
+        :param shellcode_data: the current shellcode data
+        :param relocation: the object
+        :return: None
+        """
         handler = self.arch_find_relocation_handler(relocation.type)
         if not handler:
             raise Exception(
@@ -128,6 +138,13 @@ class Shellcode(object):
         handler(shellcode=shellcode, shellcode_data=shellcode_data, relocation=relocation)
 
     def format_loader(self, ld):
+        """
+        Decide what is the name of the loader it can vary depending on the features enabled.
+        eg ...
+        --support-dynamic uses different loader
+        :param ld: The loader base name
+        :return:
+        """
         if StartFiles.no_start_files == self.start_file_method:
             ld_base = ""
         elif StartFiles.glibc == self.start_file_method:
@@ -152,37 +169,8 @@ class Shellcode(object):
         self.logger.info("Using loader: {}".format(ld_name))
         return ld_name
 
-    def make_absolute(self, address):
-        return address + self.loading_virtual_address
-
     def add_relocation_handler(self, func):
         self.relocation_handlers.append(func)
-
-    def pack(self, fmt, n):
-        self.logger.info("Packing: {} to {}{}".format(hex(n), self.endian, fmt))
-        return struct.pack("{}{}".format(self.endian, fmt), n)
-
-    def pack_pointer(self, n):
-        return self.pack(self.ptr_fmt, n)
-
-    def pack_list_of(self, lst, fmt):
-        packed = five.py_obj()
-        for item in lst:
-            packed += self.pack(fmt, item)
-        return packed
-
-    def pack_list_of_pointers(self, lst):
-        packed = five.py_obj()
-        for item in lst:
-            packed += self.pack_pointer(item)
-        return packed
-
-    def unpack_size(self, data, size):
-        ptr_size = PTR_SIZES[size]
-        return struct.unpack("{}{}".format(
-            self.endian,
-            ptr_size
-        ), data)[0]
 
     @property
     def ptr_size(self):
@@ -202,7 +190,7 @@ class Shellcode(object):
     def loader(self):
         if not self._loader:
             raise Exception("No loader for arch+endianes")
-        assert self.pack_pointer(self.shellcode_table_magic) not in self._loader
+        assert self.address_utils.pack_pointer(self.shellcode_table_magic) not in self._loader
         return self._loader
 
     @property
@@ -213,28 +201,27 @@ class Shellcode(object):
             if type(value) is not list:
                 value = [value]
 
-            value_packed = self.pack_list_of_pointers(value)
+            value_packed = self.address_utils.pack_pointers(*value)
 
-            relocation_entry = self.pack_pointer(key)
+            relocation_entry = self.address_utils.pack_pointer(key)
             relocation_entry += value_packed
 
-            relocation_size = self.pack_pointer(len(relocation_entry) + self.ptr_size)
+            relocation_size = self.address_utils.pack_pointer(len(relocation_entry) + self.ptr_size)
             relocation_entry = relocation_size + relocation_entry
             table += relocation_entry
 
-        sizes = self.pack_list_of_pointers([len(table),
-                                            len(self.get_shellcode_header())])
+        sizes = self.address_utils.pack_pointers(len(table), len(self.get_shellcode_header()))
 
-        return self.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header + table
+        return self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header + table
 
     @property
     def pre_table_header(self):
         header = five.py_obj()
         sht_entry_header_size = 2 * self.sizeof("short")  # two shorts
-        header += self.pack_pointer(
+        header += self.address_utils.pack_pointer(
             self.elffile.header.e_ehsize + sht_entry_header_size
         )
-        header += self.pack_pointer(len(self.loader))
+        header += self.address_utils.pack_pointer(len(self.loader))
         return header
 
     def correct_symbols(self, shellcode_data):
@@ -273,8 +260,8 @@ class Shellcode(object):
                     section_name,
                     hex(virtual_offset),
                     hex(sym_offset),
-                    hex(self.make_absolute(virtual_offset)),
-                    hex(self.make_absolute(sym_offset)),
+                    hex(self.address_utils.make_absolute(virtual_offset)),
+                    hex(self.address_utils.make_absolute(sym_offset)),
                 ))
                 virtual_offset, sym_offset = self.relocation_hook(section_name, virtual_offset, sym_offset, index)
                 self.addresses_to_patch[virtual_offset] = sym_offset
@@ -441,7 +428,7 @@ class Shellcode(object):
     def remove_loader_from_shellcode(self, shellcode):
         index = shellcode.find(self.loader)
         assert index != -1
-        return shellcode[:index] + shellcode[index+len(self.loader):]
+        return shellcode[:index] + shellcode[index + len(self.loader):]
 
     def build_eshelf(self, shellcode_data):
         loader = lief.parse(self.loader_path)
@@ -463,14 +450,15 @@ class Shellcode(object):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
         assert elf_buffer is not None, "Error"
-        loader_symbol_address = self.loader.find(self.pack_pointer(0xdeadbeff))
-        assert loader_symbol_address == self.loader.rfind(self.pack_pointer(0xdeadbeff)), "Error found more then one " \
-                                                                                          "occurrence"
+        loader_symbol_address = self.loader.find(self.address_utils.pack_pointer(0xdeadbeff))
+        assert loader_symbol_address == self.loader.rfind(
+            self.address_utils.pack_pointer(0xdeadbeff)), "Error found more then one " \
+                                                          "occurrence"
         self.logger.info("Setting shellcode base address at: {}".format(
             hex(segment.virtual_address)
         ))
         # Offset to where the shellcode starts
-        shellcode_start = self.pack_pointer(segment.virtual_address)
+        shellcode_start = self.address_utils.pack_pointer(segment.virtual_address)
 
         # Offset to the entry point of the loader
         elf_buffer_with_address = elf_buffer[:loader_symbol_address]
@@ -504,7 +492,8 @@ class Shellcode(object):
         loader_size = len(self.loader)
         table_length = len(self.relocation_table)
         offset = loader_size + table_length
-        shellcode = shellcode[:offset] + self.pack_pointer(new_base_address) + shellcode[offset + self.ptr_size:]
+        shellcode = shellcode[:offset] + self.address_utils.pack_pointer(new_base_address) + shellcode[
+                                                                                             offset + self.ptr_size:]
         return shellcode
 
     def move_header_by_offset(self, header, offset):
@@ -537,8 +526,8 @@ class Shellcode(object):
             )
             voff1 += offset
             voff2 += offset
-            voff1 = self.pack_pointer(voff1)
-            voff2 = self.pack_pointer(voff2)
+            voff1 = self.address_utils.pack_pointer(voff1)
+            voff2 = self.address_utils.pack_pointer(voff2)
             header_next = header[current_offset + self.ptr_size * 3:]
             header = header[:current_offset + self.ptr_size] + voff1 + voff2 + header_next
 
@@ -546,7 +535,7 @@ class Shellcode(object):
             handled_size += size
         entry_point = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
         entry_point += offset
-        entry_point = self.pack_pointer(entry_point)
+        entry_point = self.address_utils.pack_pointer(entry_point)
         header = header[:current_offset] + entry_point + header[current_offset + self.ptr_size:]
         return header
 

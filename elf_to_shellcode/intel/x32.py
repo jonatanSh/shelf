@@ -93,7 +93,7 @@ class IntelX32Shellcode(Shellcode):
                 self.logger.info("![GLIBC] |InstructionPatch| Sym({}) Relative({}), Absolute({})".format(
                     sym.name,
                     hex(address),
-                    hex(shellcode.make_absolute(address))
+                    hex(shellcode.address_utils.make_absolute(address))
                 ))
                 shellcode.addresses_to_patch[address] = self.make_relative(entry_address)
         return shellcode_data
