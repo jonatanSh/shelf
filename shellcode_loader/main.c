@@ -8,6 +8,7 @@
 #include <sys/mman.h>
 #include <limits.h>
 #include <errno.h>
+#include <pthread.h>
 
 int main(int argc, char **argv, char **envp) {
     struct stat stat_buffer;
@@ -69,9 +70,16 @@ int main(int argc, char **argv, char **envp) {
     }
     printf("Mapping new memory, size = %d\n", buff_size);
 
-    start_address = (void *) mmap(NULL, buff_size, PROT_WRITE | PROT_READ, MAP_ANON | MAP_PRIVATE, -1,
-                                  0);
 
+    int map_flags = MAP_ANON | MAP_PRIVATE;
+    #ifdef __APPLE__
+        printf("Using MAP_JIT, probably compiled on M1 mac\n");
+        map_flags |= MAP_JIT;
+    #endif
+    start_address = mmap(NULL, buff_size, PROT_WRITE | PROT_EXEC | PROT_READ, map_flags, -1, 0);
+    #ifdef __APPLE__
+        pthread_jit_write_protect_np(0);
+    #endif
     if (start_address == (void *) -1) {
         printf("Error in mprotect errcode=%d\n", errno);
         exit_code = -1;
@@ -79,7 +87,6 @@ int main(int argc, char **argv, char **envp) {
     }
 
     memcpy(start_address, shellcode_buffer, buff_size);
-    mprotect(start_address, buff_size, PROT_EXEC | PROT_READ);
     printf("Jumping to shellcode, address = %p \n", start_address);
     long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
     printf("Shellcode returned: %llx\n", value);
