@@ -112,3 +112,4 @@ for following links only work on the github page
 * [Optimizations](docs/optimizations.md)
 * [Output formats](docs/output_formats.md)
 * [Development](docs/develop.md)
+* [Apple and their mitigations](docs/apple_mitigations.md)

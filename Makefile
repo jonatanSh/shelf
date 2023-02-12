@@ -4,8 +4,8 @@ EXTRA_FLAGS=-static
 
 all: clean shellcode_loader mini_loaders examples
 
-shellcode_loader_m1:
-	cd shellcode_loader && $(MAKE) CC=gcc ARCH=m1
+shellcode_loader_apple:
+	cd shellcode_loader && $(MAKE) CC=gcc ARCH=apple
 	codesign --sign "-" --verbose=4 --options=runtime --entitlements=./mac_entitlements.plist ./outputs/shellcode_loader_m1.out
 
 shellcode_loader:
