@@ -69,7 +69,7 @@ int main(int argc, char **argv, char **envp) {
     }
     printf("Mapping new memory, size = %d\n", buff_size);
 
-    start_address = (void *) mmap(NULL, buff_size, PROT_WRITE | PROT_EXEC | PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1,
+    start_address = (void *) mmap(NULL, buff_size, PROT_WRITE | PROT_READ, MAP_ANON | MAP_PRIVATE, -1,
                                   0);
 
     if (start_address == (void *) -1) {
@@ -79,7 +79,7 @@ int main(int argc, char **argv, char **envp) {
     }
 
     memcpy(start_address, shellcode_buffer, buff_size);
-
+    mprotect(start_address, buff_size, PROT_EXEC | PROT_READ);
     printf("Jumping to shellcode, address = %p \n", start_address);
     long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
     printf("Shellcode returned: %llx\n", value);

@@ -1,14 +1,18 @@
 include ./makefiles/compilers.mk
 .PHONY: all clean shellcode_loader mini_loaders examples
+EXTRA_FLAGS=-static
 
 all: clean shellcode_loader mini_loaders examples
 
+shellcode_loader_local:
+	cd shellcode_loader && $(MAKE) CC=gcc ARCH=local
+
 shellcode_loader:
-	cd shellcode_loader && $(MAKE) CC=$(MIPS_CC) ARCH=mips
-	cd shellcode_loader && $(MAKE) CC=$(X32_CC) ARCH=intel_x32
-	cd shellcode_loader && $(MAKE) CC="$(X64_CC)" ARCH=intel_x64
-	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm32
-	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch64
+	cd shellcode_loader && $(MAKE) CC=$(MIPS_CC) ARCH=mips EXTRA_FLAGS=$(EXTRA_FLAGS)
+	cd shellcode_loader && $(MAKE) CC=$(X32_CC) ARCH=intel_x32 EXTRA_FLAGS=$(EXTRA_FLAGS)
+	cd shellcode_loader && $(MAKE) CC="$(X64_CC)" ARCH=intel_x64 EXTRA_FLAGS=$(EXTRA_FLAGS)
+	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm32 EXTRA_FLAGS=$(EXTRA_FLAGS)
+	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch64 EXTRA_FLAGS=$(EXTRA_FLAGS)
 mini_loaders:
 	cd mini_loaders && python compile.py release
 
