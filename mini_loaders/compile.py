@@ -242,8 +242,10 @@ def clean():
 
 def terminate_all(jobs):
     for job in jobs:
-        job.terminate()
-
+        try:
+            job.terminate()
+        except:
+            pass
 
 def start_jobs(jobs, max_parallel_jobs=16):
     exit_code = 0
@@ -271,6 +273,7 @@ def start_jobs(jobs, max_parallel_jobs=16):
         except KeyboardInterrupt:
             terminate_all(jobs)
             return -1
+    terminate_all(jobs)
     return exit_code
 
 
