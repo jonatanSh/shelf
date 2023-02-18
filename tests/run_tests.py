@@ -46,7 +46,7 @@ def run_arch_tests(arch, case):
     for test_case in tests:
         case, supported_arches, success = test_cases[test_case][:3]
         attribute = test_cases[test_case]
-        if attribute[3]:
+        if len(attribute) > 3:
             is_eshelf = attribute[3]
         else:
             is_eshelf = False
