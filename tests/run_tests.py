@@ -23,7 +23,8 @@ test_cases = {
     'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "__Test_output_Success"],
     'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
     'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['intel_x64', 'intel_x32', 'mips', 'arm32'], 'Hello'],
-    'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['mips', 'intel_x32'], 'Hello']
+    'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['mips', 'intel_x32'], 'Hello'],
+
 }
 
 

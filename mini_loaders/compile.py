@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 import itertools
-import time
 
 from parallel_api.api import execute_jobs_in_parallel
 

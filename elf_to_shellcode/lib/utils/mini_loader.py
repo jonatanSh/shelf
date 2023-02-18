@@ -3,6 +3,7 @@ from logging import getLogger
 from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.resources import get_resource_path, get_resource
 from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
+import itertools
 
 
 class MiniLoader(object):
@@ -18,28 +19,37 @@ class MiniLoader(object):
         :param ld: The loader base name
         :return:
         """
-        if StartFiles.no_start_files == self.shellcode.args.start_method:
-            ld_base = ""
-        elif StartFiles.glibc == self.shellcode.args.start_method:
-            ld_base = "_glibc"
-        else:
-            raise Exception("Unknown start method: {}".format(
-                self.shellcode.args.start_method
-            ))
+        loader_path = None
+        found_loader = None
         features_map = sorted(self.shellcode.args.loader_supports, key=lambda lfeature: lfeature[1])
+        features = features_map
+
+        if StartFiles.glibc == self.shellcode.args.start_method:
+            features.append("glibc")
         for feature in features_map:
             value = getattr(self.shellcode, "support_{}".format(feature))
             if not value:
                 raise Exception("Arch does not support: {}".format(feature))
-        loader_additional = "_".join([feature for feature in features_map])
-        if loader_additional:
-            loader_additional = "_" + loader_additional
         if self.shellcode.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
-            loader_additional += "_eshelf"
-        ld_name = ld.format(ld_base + loader_additional)
+            features.append("eshelf")
 
-        self.logger.info("Using loader: {}".format(ld_name))
-        return ld_name
+        all_features = [feature for feature in itertools.permutations(features, len(features))]
+        for permutation in all_features:
+            permutation = "_" + "_".join(permutation)
+            loader_path = ld.format(permutation)
+            loader_full_path = get_resource_path(loader_path)
+            if os.path.exists(loader_full_path):
+                found_loader = True
+                break
+        if not features:
+            loader_path = ld.format("")
+            loader_full_path = get_resource_path(loader_path)
+            if os.path.exists(loader_full_path):
+                found_loader = True
+        if not found_loader:
+            raise Exception("Loader for features: {} not found".format(features))
+        self.logger.info("Using loader: {}".format(loader_path))
+        return loader_path
 
     @property
     def path(self):
