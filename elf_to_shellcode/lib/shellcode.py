@@ -88,7 +88,10 @@ class Shellcode(object):
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
-        self.hooks = ShellcodeHooks(shellcode=self)
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            self.hooks = ShellcodeHooks(shellcode=self)
+        else:
+            self.hooks = None
 
     def arch_find_relocation_handler(self, relocation_type):
         """
@@ -338,8 +341,8 @@ class Shellcode(object):
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
-        hooks = self.hooks.get_hooks_data()
         if LoaderSupports.HOOKS in self.args.loader_supports:
+            hooks = self.hooks.get_hooks_data()
             shellcode_data = hooks + shellcode_data
         # This must be here !
         relocation_table = self.relocation_table

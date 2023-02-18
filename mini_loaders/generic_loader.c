@@ -137,6 +137,9 @@ void loader_main(
         entry_ptr += entry->size;
     }
     void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
+#ifdef SUPPORT_HOOKS
+    entry_point += table->hook_descriptor.size_of_hook_shellcode_data;
+#endif
     TRACE("Shellcode entry point = %x", entry_point);
 #ifdef SUPPORT_START_FILES
         int looking_at_argv = 0;

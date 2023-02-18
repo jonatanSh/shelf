@@ -35,17 +35,17 @@ class ShellcodeHooks(object):
             assert type(shellcode_data) is bytes
         self._add_hook(shellcode_data, HookTypes.STARTUP_HOOKS)
 
-    def _pad_list(self, plst):
+    def _pad_list(self, plst, cls):
         lst = deepcopy(plst)
         while len(lst) < self.number_of_hooks_per_descriptor:
-            lst.append(0x0)
+            lst.append(cls())
         if self.number_of_hooks_per_descriptor:
             return lst[0]
         return lst
 
     @property
     def startup_hooks(self):
-        return self._pad_list(self._startup_hooks)
+        return self._pad_list(self._startup_hooks, cls=self.shellcode.mini_loader.structs.hook)
 
     @property
     def shellcode_hooks_descriptor(self):

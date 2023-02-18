@@ -25,7 +25,7 @@ struct relocation_table {
     size_t header_size;
     struct elf_information_struct elf_information;
 #ifdef SUPPORT_HOOKS
-    struct mini_loader_hooks_descriptor hooks;
+    struct mini_loader_hooks_descriptor hook_descriptor;
 #endif
 };
 void loader_main(
