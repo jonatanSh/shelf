@@ -61,7 +61,9 @@ class MiniLoader(object):
 
         path = get_resource_path(resource_path)
 
-        assert os.path.exists(path)
+        assert os.path.exists(path), "Mini loader not found in: {}".format(
+            path
+        )
 
         return path
 

@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 import itertools
+import time
+
 from parallel_api.api import execute_jobs_in_parallel
 
 CFLAGS = []
@@ -17,12 +19,9 @@ def print_header(message):
     print("@" * 40)
 
 
-jobs_count = 16
 if len(sys.argv) < 2:
-    print("Usage compile.py <release|debug> <optional|jobs>")
+    print("Usage compile.py <release|debug>")
     sys.exit(1)
-if len(sys.argv) > 2:
-    jobs_count = int(sys.argv[2])
 
 assert sys.argv[1].strip() in ['debug', 'release'], 'error got invalid argument: {}'.format(sys.argv[1])
 
@@ -154,33 +153,44 @@ class Compiler(object):
         )
 
 
-MipsCompiler = Compiler(
+def get_compiler(host, cflags, compiler_name):
+    def cls():
+        return Compiler(
+            host=host,
+            cflags=cflags,
+            compiler_name=compiler_name
+        )
+
+    return cls
+
+
+MipsCompiler = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{}'.format(CFLAGS),
     compiler_name="mips"
 )
-MipsCompilerBE = Compiler(
+MipsCompilerBE = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{} -BE'.format(CFLAGS),
     compiler_name="mipsbe"
 )
-IntelX32 = Compiler(
+IntelX32 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic'.format(CFLAGS),
     compiler_name="x32"
 )
-IntelX64 = Compiler(
+IntelX64 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic -m64'.format(CFLAGS),
     compiler_name="x64"
 )
 
-ArmX32 = Compiler(
+ArmX32 = get_compiler(
     host=r'arm-linux-gnueabi',
     cflags='{}'.format(CFLAGS),
     compiler_name="arm_x32"
 )
-AARCH64 = Compiler(
+AARCH64 = get_compiler(
     host=r'aarch64-linux-gnu',
     cflags='{}'.format(CFLAGS),
     compiler_name="arm_x64"
@@ -195,7 +205,7 @@ compilers = [
     AARCH64
 ]
 
-arches = [compiler.compiler_name for compiler in compilers]
+arches = [_compiler().compiler_name for _compiler in compilers]
 
 # should perform cartesian product on the features
 features = {
@@ -222,6 +232,9 @@ all_features = []
 for i in range(len(features.keys())):
     all_features += [feature for feature in itertools.combinations(all_feature_keys, i + 1)]
 
+all_features.append(("",))  # Normal loaders no features
+print(all_features)
+
 
 def clean():
     for filename in os.listdir("../outputs"):
@@ -231,8 +244,9 @@ def clean():
 
 def prepare_jobs():
     jobs = []
-    for compiler in compilers:
+    for compiler_cls in compilers:
         for feature_keys in all_features:
+            compiler = compiler_cls()
             feature_name = "_".join(feature_keys)
             attributes = {'supported': arches}  # Always set all arches to support
             for key in feature_keys:
@@ -241,11 +255,13 @@ def prepare_jobs():
             flags = attributes.get("cflags", [])
             remove_flags = attributes.get("remove_cflags", [])
             if compiler.compiler_name not in supported:
-                print("Skipping feature: {} for compiler: {}".format(
+                print("[-] Skipping feature: {} - {}".format(
                     feature_name,
                     compiler.compiler_name
                 ))
                 continue
+            else:
+                print("[V] Compiling feature: {} - {}".format(feature_name, compiler.compiler_name))
             target_out = '{}'.format(compiler.compiler_name)
             if feature_name:
                 target_out = '{}_{}'.format(compiler.compiler_name,
@@ -264,7 +280,6 @@ def prepare_jobs():
 
 
 if __name__ == "__main__":
-    print("Compiling, max parallel jobs = %d" % jobs_count)
     clean()
     jobs = prepare_jobs()
     entry_points = []
