@@ -6,7 +6,7 @@ from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
 from elf_to_shellcode.lib import five
 import os
 import stat
-
+from elf_to_shellcode.lib.utils.general import get_json
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
 parser.add_argument("--arch",
@@ -46,11 +46,21 @@ parser.add_argument("--loader-symbols-path",
                     default=None,
                     help="Loader symbols to use while creating the shellcode"
                     )
+parser.add_argument("--hooks-configuration", required=False,
+                    help="Hooks configuration file, must be a valid json, for examples look at hook_configurations")
 args = parser.parse_args()
+
+if args.hooks_configuration:
+    assert os.path.exists(args.hooks_configuration)
+    try:
+        get_json(args.hook_configuration)
+    except:
+        parser.error("--hook-configuration not a valid json")
 
 if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_path, args.loader_symbols_path]):
     parser.error("--loader-path and --loader-symbols-path must be used together")
     sys.exit(1)
+
 
 sys.modules["global_args"] = args
 if args.verbose:

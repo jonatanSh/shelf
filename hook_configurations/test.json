@@ -1,0 +1,7 @@
+{
+  "mipsbe": {
+    "startup_hooks": [
+      "../outputs/simple_hello_hook_mipsbe.hook"
+    ]
+  }
+}
