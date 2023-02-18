@@ -485,8 +485,9 @@ def make_shellcode(args, shellcode_cls):
     shellcode_handler, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
     args = sys.modules["global_args"]
     if args.interactive:
+        # Overriding shellcode for better interactive shell
         shellcode = shellcode_handler
-        print("Opening interactive shell")
+        print("Opening interactive shell, Use shellcode to view the shellcode class")
         import IPython
         IPython.embed()
         sys.exit(1)
