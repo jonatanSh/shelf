@@ -1,9 +1,8 @@
 import os
 import subprocess
 import sys
-from multiprocessing import Process
-from time import sleep
 import itertools
+from parallel_api.api import execute_jobs_in_parallel
 
 CFLAGS = []
 TARGET_FILES = [
@@ -72,7 +71,7 @@ def merge_features(first_dict, second_dict):
                 ))
 
 
-class Compiler(Process):
+class Compiler(object):
     def __init__(self, host, cflags, compiler_name):
         self._gcc = "{}-gcc".format(host)
         self._objcopy = "{}-objcopy".format(host)
@@ -80,8 +79,6 @@ class Compiler(Process):
         self.cflags = cflags.split(" ")
         self.compiler_name = compiler_name
         self.compile_kwargs = None
-        self.is_running = False
-        super(Compiler, self).__init__()
 
     @staticmethod
     def execute(*cmd):
@@ -155,14 +152,6 @@ class Compiler(Process):
         self._compile(
             **self.compile_kwargs
         )
-
-    def start(self):
-        self.is_running = True
-        super(Compiler, self).start()
-
-    @property
-    def terminated(self):
-        return self.exitcode is not None
 
 
 MipsCompiler = Compiler(
@@ -240,43 +229,6 @@ def clean():
             os.remove(os.path.join("../outputs", filename))
 
 
-def terminate_all(jobs):
-    for job in jobs:
-        try:
-            job.terminate()
-        except:
-            pass
-
-def start_jobs(jobs, max_parallel_jobs=16):
-    exit_code = 0
-    while len(jobs) > 0:
-        try:
-            started_jobs = 0
-            jobs_to_remove = []
-            for job in jobs:
-                if job.terminated:
-                    max_parallel_jobs -= 1
-                    exit_code = job.exitcode
-                    jobs_to_remove.append(job)
-                    if exit_code != 0:
-                        terminate_all(jobs)
-                        return exit_code
-
-                elif started_jobs < max_parallel_jobs:
-                    if not job.is_running:
-                        job.start()
-                        max_parallel_jobs += 1
-                sleep(0.1)
-            for job in jobs_to_remove:
-                if job in jobs:
-                    jobs.remove(job)
-        except KeyboardInterrupt:
-            terminate_all(jobs)
-            return -1
-    terminate_all(jobs)
-    return exit_code
-
-
 def prepare_jobs():
     jobs = []
     for compiler in compilers:
@@ -315,4 +267,8 @@ if __name__ == "__main__":
     print("Compiling, max parallel jobs = %d" % jobs_count)
     clean()
     jobs = prepare_jobs()
-    start_jobs(jobs, max_parallel_jobs=jobs_count)
+    entry_points = []
+    for job in jobs:
+        entry_points.append(job.run)
+
+    execute_jobs_in_parallel(entry_points)
