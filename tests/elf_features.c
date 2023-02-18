@@ -18,11 +18,7 @@
 #define TRACE_FORMAT "[ELF_FEATURES:INFO] %s %s(line:%u):\x00"
 
 void write_out(char * msg) {
-#ifndef OSAL_LIBC
     write(1, msg, strlen(msg));
-#else
-    sys_write(1, msg, strlen(msg));
-#endif
 }
 
 
