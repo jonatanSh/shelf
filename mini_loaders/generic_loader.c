@@ -55,6 +55,9 @@ void loader_main(
 #ifdef SUPPORT_DYNAMIC_LOADER
     TRACE("Loader support: SUPPORT_DYNAMIC_LOADER");
 #endif
+#ifdef SUPPORT_HOOKS
+    TRACE("Loader support: SUPPORT_HOOKS");
+#endif
     TRACE("Mini loader loaded");
     resolve_table_magic();
     /*

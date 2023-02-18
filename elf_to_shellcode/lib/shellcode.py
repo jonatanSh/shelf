@@ -35,7 +35,7 @@ class Shellcode(object):
                  reloc_types=None,
                  support_dynamic=False,
                  **kwargs):
-
+        self.support_hooks = True
         if reloc_types is None:
             reloc_types = {}
         if supported_start_methods is None:

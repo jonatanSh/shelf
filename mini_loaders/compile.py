@@ -4,7 +4,7 @@ import sys
 import itertools
 
 from parallel_api.api import execute_jobs_in_parallel
-
+max_parallel_jobs = 4
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
@@ -211,6 +211,8 @@ features = {
     # This is just a normal loader keep this
     '': {'defs': [], 'files': ['generic_loader.c'], 'supported': arches},
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c'], 'supported': arches},
+    'hooks': {'defs': ['SUPPORT_HOOKS'], 'files': ['generic_loader.c'], 'supported': arches},
+
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
     'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
                'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
@@ -285,4 +287,5 @@ if __name__ == "__main__":
     for job in jobs:
         entry_points.append(job.run)
 
-    execute_jobs_in_parallel(entry_points)
+    for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
+        execute_jobs_in_parallel(entry_points[i:i+max_parallel_jobs])

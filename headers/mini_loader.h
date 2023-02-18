@@ -4,16 +4,28 @@
 /*
     This file contain external defines for the mini loader
 */
+#define MAX_NUMBER_OF_HOOKS 1
 
 struct elf_information_struct {
     size_t elf_header_size;
     size_t loader_size;
+};
+
+struct hook {
+    size_t relative_address;
+};
+
+struct mini_loader_hooks_descriptor { 
+    struct hook startup_hooks[MAX_NUMBER_OF_HOOKS];
 };
 struct relocation_table {
     size_t magic;
     size_t total_size;
     size_t header_size;
     struct elf_information_struct elf_information;
+#ifdef SUPPORT_HOOKS
+    struct mini_loader_hooks_descriptor hooks;
+#endif
 };
 void loader_main(
     int argc,

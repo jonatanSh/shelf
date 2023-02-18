@@ -9,6 +9,8 @@ mips_%:
 
 	$(MIPS_CC) $(CFLAGS) $(C_FILES) -static -BE $(subst mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe_eshelf.out -DESHELF
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe_eshelf.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode.eshelf --output-format eshelf
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe_eshelf.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode.hook_support.eshelf --output-format eshelf --loader-supports hooks
+
 
 
 intel_x32_%:
