@@ -118,11 +118,7 @@ class Shellcode(object):
 
     @property
     def ptr_size(self):
-        if self.ptr_fmt == "I":
-            return 4
-        if self.ptr_fmt == "Q":
-            return 8
-        raise Exception("Unknown ptr size")
+        return struct.calcsize(self.ptr_fmt)
 
     def sizeof(self, tp):
         if tp == "short":
