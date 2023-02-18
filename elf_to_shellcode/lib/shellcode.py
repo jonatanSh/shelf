@@ -8,12 +8,14 @@ from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
 from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
 import logging
 from elftools.elf.constants import P_FLAGS
 from elf_to_shellcode.lib import five
 import lief
 from lief.ELF import SECTION_FLAGS
 import tempfile
+
 PTR_SIZES = {
     4: "I",
     8: "Q"
@@ -86,6 +88,7 @@ class Shellcode(object):
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
+        self.hooks = ShellcodeHooks(shellcode=self)
 
     def arch_find_relocation_handler(self, relocation_type):
         """
