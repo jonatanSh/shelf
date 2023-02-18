@@ -16,6 +16,7 @@ struct hook {
 };
 
 struct mini_loader_hooks_descriptor { 
+    size_t size_of_hook_shellcode_data;
     struct hook startup_hooks[MAX_NUMBER_OF_HOOKS];
 };
 struct relocation_table {

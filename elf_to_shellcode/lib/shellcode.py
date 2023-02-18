@@ -5,7 +5,7 @@ import struct
 import sys
 from elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
-from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
+from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
@@ -147,7 +147,11 @@ class Shellcode(object):
 
         sizes = self.address_utils.pack_pointers(len(table), len(self.get_shellcode_header()))
 
-        return self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header + table
+        header = self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            header += self.hooks.get_header()
+        header += table
+        return header
 
     @property
     def pre_table_header(self):
@@ -334,6 +338,9 @@ class Shellcode(object):
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
+        hooks = self.hooks.get_hooks_data()
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            shellcode_data = hooks + shellcode_data
         # This must be here !
         relocation_table = self.relocation_table
 
@@ -345,6 +352,9 @@ class Shellcode(object):
             formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
         return self.post_make_shellcode_handle_format(formatted_shellcode)
+
+    def add_hooks_before_shellcode_data(self, shellcode_data):
+        pass
 
     def post_make_shellcode_handle_format(self, shellcode):
         shellcode_with_output_format = shellcode

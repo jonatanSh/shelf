@@ -1,4 +1,7 @@
 from copy import deepcopy
+from elf_to_shellcode.lib.five import array_join, is_python3
+
+
 class HookTypes(object):
     STARTUP_HOOKS = 1
 
@@ -6,11 +9,20 @@ class HookTypes(object):
 class ShellcodeHooks(object):
     def __init__(self, shellcode):
         self.shellcode = shellcode
+        self.number_of_hooks_per_descriptor = 1
         self._shellcode_hooks_descriptor_cls = self.shellcode.mini_loader.structs.mini_loader_hooks_descriptor
         self._startup_hooks = []
+        self._hooks_shellcode_data = []
 
-    def _add_hook(self, relative_address, hook_type):
-        hook = self.shellcode.mini_loader.structs.hook(relative_address=relative_address)
+    def _add_hook(self, shellcode_data, hook_type):
+        """
+        Adding all hooks relative to the end of the relocations
+        :param shellcode_data:
+        :return:
+        """
+        relative_to_relocation_end = len(self._hooks_shellcode_data)
+        self._hooks_shellcode_data.append(shellcode_data)
+        hook = self.shellcode.mini_loader.structs.hook(relative_address=relative_to_relocation_end)
 
         if hook_type == HookTypes.STARTUP_HOOKS:
             self._startup_hooks.append(hook)
@@ -18,13 +30,17 @@ class ShellcodeHooks(object):
         else:
             raise NotImplementedError("Error hook type: {}".format(hook_type))
 
-    def add_startup_hook(self, relative_address):
-        self._add_hook(relative_address, HookTypes.STARTUP_HOOKS)
+    def add_startup_hook(self, shellcode_data):
+        if is_python3:
+            assert type(shellcode_data) is bytes
+        self._add_hook(shellcode_data, HookTypes.STARTUP_HOOKS)
 
     def _pad_list(self, plst):
         lst = deepcopy(plst)
-        while len(lst) < self._shellcode_hooks_descriptor_cls.size / self.shellcode.ptr_size:
+        while len(lst) < self.number_of_hooks_per_descriptor:
             lst.append(0x0)
+        if self.number_of_hooks_per_descriptor:
+            return lst[0]
         return lst
 
     @property
@@ -34,5 +50,12 @@ class ShellcodeHooks(object):
     @property
     def shellcode_hooks_descriptor(self):
         return self._shellcode_hooks_descriptor_cls(
+            size_of_hook_shellcode_data=len(self.get_hooks_data()),
             startup_hooks=self.startup_hooks
         )
+
+    def get_hooks_data(self):
+        return array_join(self._hooks_shellcode_data)
+
+    def get_header(self):
+        return self.shellcode_hooks_descriptor.pack()

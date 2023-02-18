@@ -1,4 +1,5 @@
 import sys
+
 version = int(sys.version[0])
 is_python3 = version == 3
 
@@ -40,3 +41,4 @@ def ljust(source, size, by):
     source += by * length
     assert len(source) == size, "Error size: {}, len(source) = {}, by = {}".format(size, len(source), by)
     return source
+
