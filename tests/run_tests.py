@@ -1,7 +1,6 @@
 import os
 import subprocess
-from subprocess import Popen, PIPE
-import sys
+from subprocess import PIPE
 from argparse import ArgumentParser
 import logging
 
