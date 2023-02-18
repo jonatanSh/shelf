@@ -95,6 +95,15 @@ Jumping to shellcode, address = 0x7f7ee000
 Hello from shellcode !
 ```
 
+## Extensions - hooks
+Because this project is intended to work on large very of systems
+os independently the hook mechanism enable writing your own assembly code
+and hook loading functions.
+For example in Apple computer in order to allocate RWX you need a specific entitlement
+To bypass this mitigation there's we set a hook at mini loader pre reallocate entry
+the hook then changes the memory protection to write and then we set another hook
+at pre execute shellcode then we set the memory protection to execute
+
 ## Specific architecture limitations
 
 ### AARCH64
@@ -103,7 +112,7 @@ arm in 64 bit mode generate adrl instruction.
 These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
 page aligned to overcome this limitation the shellcode is padded
 
-## Advanced conceptes and features
+## Advanced concepts and features
 
 for following links only work on the github page
 
