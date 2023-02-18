@@ -191,7 +191,14 @@ int get_elf_information(struct relocation_table **info) {
     ARCH_FUNCTION_ENTER(&return_address);
 
     resolve_table_magic();
+/* If eshelf then get pc was never called and
+    there are no such labels as get pc and we must call get_pc
+*/
+#ifndef ESHELF
     call_get_pc();
+#else
+    get_pc();
+#endif
     advance_pc_to_magic();
     table = (struct relocation_table *)pc;
     if(table->magic != magic) {

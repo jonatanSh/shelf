@@ -1,7 +1,9 @@
 import os
 import subprocess
 import sys
-import time
+import itertools
+
+from parallel_api.api import execute_jobs_in_parallel
 
 CFLAGS = []
 TARGET_FILES = [
@@ -44,24 +46,27 @@ LINUX_OSAL_FILES += cfiles("../osals/linux/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/")
 LINUX_OSAL_FILES += cfiles("../osals/linux/syscalls_wrapper/sys")
 OSAL_DEBUG_FILES = [os.path.join("../osals/linux/debug.c")]
-# should perform cartesian product on the features
-features = {
-    # This is just a normal loader keep this
-    '': {'defs': [], 'files': ['generic_loader.c']},
-    'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c']},
-    'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
-    'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
-               'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
-               'supported': [
-                   'x64',
-                   'x32',
-                   'mipsbe',
-                   'mips',
-                   'arm_x32',
-               ],
-               "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
-               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
-}
+
+
+def merge_features(first_dict, second_dict):
+    for key in second_dict:
+        # Special key, drop support for features
+        if key == 'supported':
+            s1 = set(first_dict.get('supported', set()))
+            s2 = set(second_dict.get('supported', set()))
+            supported = s1 & s2
+            first_dict['supported'] = supported
+        elif key not in first_dict:
+            first_dict[key] = second_dict[key]
+        else:
+            if type(first_dict[key]) is str:
+                first_dict[key] += " " + second_dict[key]
+            elif type(first_dict[key]) is list:
+                first_dict[key] = list(set(first_dict[key]) | set(second_dict[key]))
+            else:
+                raise Exception("No Merge for type: {}".format(
+                    type(first_dict[key])
+                ))
 
 
 class Compiler(object):
@@ -71,6 +76,7 @@ class Compiler(object):
         self._strip = "{}-strip".format(host)
         self.cflags = cflags.split(" ")
         self.compiler_name = compiler_name
+        self.compile_kwargs = None
 
     @staticmethod
     def execute(*cmd):
@@ -106,7 +112,7 @@ class Compiler(object):
             *options
         )
 
-    def compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
+    def _compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
         args = ['-D{}'.format(d) for d in defines]
         args += files
@@ -137,34 +143,53 @@ class Compiler(object):
             symbol_filename
         )
 
+    def prepare_compile_kwargs(self, **kwargs):
+        self.compile_kwargs = kwargs
 
-MipsCompiler = Compiler(
+    def run(self):
+        self._compile(
+            **self.compile_kwargs
+        )
+
+
+def get_compiler(host, cflags, compiler_name):
+    def cls():
+        return Compiler(
+            host=host,
+            cflags=cflags,
+            compiler_name=compiler_name
+        )
+
+    return cls
+
+
+MipsCompiler = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{}'.format(CFLAGS),
     compiler_name="mips"
 )
-MipsCompilerBE = Compiler(
+MipsCompilerBE = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{} -BE'.format(CFLAGS),
     compiler_name="mipsbe"
 )
-IntelX32 = Compiler(
+IntelX32 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic'.format(CFLAGS),
     compiler_name="x32"
 )
-IntelX64 = Compiler(
+IntelX64 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic -m64'.format(CFLAGS),
     compiler_name="x64"
 )
 
-ArmX32 = Compiler(
+ArmX32 = get_compiler(
     host=r'arm-linux-gnueabi',
     cflags='{}'.format(CFLAGS),
     compiler_name="arm_x32"
 )
-AARCH64 = Compiler(
+AARCH64 = get_compiler(
     host=r'aarch64-linux-gnu',
     cflags='{}'.format(CFLAGS),
     compiler_name="arm_x64"
@@ -179,6 +204,36 @@ compilers = [
     AARCH64
 ]
 
+arches = [_compiler().compiler_name for _compiler in compilers]
+
+# should perform cartesian product on the features
+features = {
+    # This is just a normal loader keep this
+    '': {'defs': [], 'files': ['generic_loader.c'], 'supported': arches},
+    'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c'], 'supported': arches},
+    'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
+    'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
+               'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
+               'supported': [
+                   'x64',
+                   'x32',
+                   'mipsbe',
+                   'mips',
+                   'arm_x32',
+               ],
+               "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
+               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
+}
+# Removing generic loader key
+all_feature_keys = [key for key in features.keys() if key]
+all_features = []
+
+for i in range(len(features.keys())):
+    all_features += [feature for feature in itertools.combinations(all_feature_keys, i + 1)]
+
+all_features.append(("",))  # Normal loaders no features
+print(all_features)
+
 
 def clean():
     for filename in os.listdir("../outputs"):
@@ -186,25 +241,32 @@ def clean():
             os.remove(os.path.join("../outputs", filename))
 
 
-def compile():
-    for compiler in compilers:
-        for feature_name, attributes in features.items():
-            supported = attributes.get('supported')
+def prepare_jobs():
+    jobs = []
+    for compiler_cls in compilers:
+        for feature_keys in all_features:
+            compiler = compiler_cls()
+            feature_name = "_".join(feature_keys)
+            attributes = {'supported': arches}  # Always set all arches to support
+            for key in feature_keys:
+                merge_features(attributes, features[key])
+            supported = attributes.get('supported', [])
             flags = attributes.get("cflags", [])
             remove_flags = attributes.get("remove_cflags", [])
-            if supported:
-                if compiler.compiler_name not in supported:
-                    print("Skipping feature: {} for compiler: {}".format(
-                        feature_name,
-                        compiler.compiler_name
-                    ))
-                    continue
+            if compiler.compiler_name not in supported:
+                print("[-] Skipping feature: {} - {}".format(
+                    feature_name,
+                    compiler.compiler_name
+                ))
+                continue
+            else:
+                print("[V] Compiling feature: {} - {}".format(feature_name, compiler.compiler_name))
             target_out = '{}'.format(compiler.compiler_name)
             if feature_name:
                 target_out = '{}_{}'.format(compiler.compiler_name,
                                             feature_name)
             target_out = OUTPUT_BASE.format(target_out)
-            compiler.compile(
+            compiler.prepare_compile_kwargs(
                 files=attributes['files'],
                 output_file=target_out,
                 defines=attributes['defs'],
@@ -212,7 +274,15 @@ def compile():
                 strip_flags=attributes.get("strip_flags"),
                 remove_flags=remove_flags
             )
+            jobs.append(compiler)
+    return jobs
 
 
-clean()
-compile()
+if __name__ == "__main__":
+    clean()
+    jobs = prepare_jobs()
+    entry_points = []
+    for job in jobs:
+        entry_points.append(job.run)
+
+    execute_jobs_in_parallel(entry_points)

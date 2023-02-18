@@ -1,0 +1,5 @@
+class CONSTS(object):
+    SELECT_TIMEOUT = 0.1
+    MESSAGE_MAX_SIZE = "I"
+    MAX_SOCK_TIMEOUT = 3  # In seconds
+    MAX_TERMINATION_TIMEOUT = 4 # 4 SECONDS

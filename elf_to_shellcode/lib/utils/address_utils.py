@@ -1,3 +1,4 @@
+import logging
 import struct
 from logging import getLogger
 from elf_to_shellcode.lib import five
@@ -45,7 +46,11 @@ class AddressUtils(object):
         :param n: the value to pack
         :return: Packed value
         """
-        return struct.pack("{}{}".format(self.shellcode.endian, fmt), n)
+        try:
+            return struct.pack("{}{}".format(self.shellcode.endian, fmt), n)
+        except Exception as e:
+            logging.error("Pack exception: {} {} {}".format(self.shellcode.endian, fmt, n))
+            raise e
 
     def pack_pointer(self, n):
         """
