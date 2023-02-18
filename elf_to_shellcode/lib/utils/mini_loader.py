@@ -1,9 +1,10 @@
 import os.path
 from logging import getLogger
+import itertools
 from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from elf_to_shellcode.resources import get_resource_path, get_resource
 from elf_to_shellcode.lib.ext.loader_symbols import ShellcodeLoader
-import itertools
+from py_elf_structs import load_structs
 
 
 class MiniLoader(object):
@@ -93,6 +94,13 @@ class MiniLoader(object):
         return path
 
     @property
+    def structs_file(self):
+        if self.shellcode.args.loader_symbols_path:
+            raise Exception("Not implemented yet !")
+        else:
+            return self.path + ".structs.json"
+
+    @property
     def loader(self):
         """
         Format and return the loader binary
@@ -110,3 +118,7 @@ class MiniLoader(object):
         """
         return ShellcodeLoader(self.symbols_path,
                                loader_size=len(self.loader))
+
+    @property
+    def structs(self):
+        return load_structs(self.structs_file)

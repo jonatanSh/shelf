@@ -4,7 +4,7 @@ import sys
 import itertools
 
 from parallel_api.api import execute_jobs_in_parallel
-max_parallel_jobs = 4
+max_parallel_jobs = 1
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
@@ -111,6 +111,14 @@ class Compiler(object):
             self._strip,
             *options
         )
+    
+    def generate_structs(self, *options):
+        return self.execute(
+            sys.executable,
+            "-m",
+            "py_elf_structs",
+            *options
+        )
 
     def _compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
@@ -120,7 +128,10 @@ class Compiler(object):
         self.gcc(flags, remove_flags, *args)
         resource_out = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode")))
         symbol_filename = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode.symbols")))
-
+        self.generate_structs(
+            output_file,
+            "{}.structs.json".format(resource_out)
+        )
         if not strip_flags:
             self.objcopy(
                 "-j",

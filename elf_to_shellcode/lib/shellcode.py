@@ -14,7 +14,6 @@ from elf_to_shellcode.lib import five
 import lief
 from lief.ELF import SECTION_FLAGS
 import tempfile
-
 PTR_SIZES = {
     4: "I",
     8: "Q"
@@ -486,6 +485,7 @@ def make_shellcode(args, shellcode_cls):
     shellcode_handler, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
     args = sys.modules["global_args"]
     if args.interactive:
+        shellcode = shellcode_handler
         print("Opening interactive shell")
         import IPython
         IPython.embed()
