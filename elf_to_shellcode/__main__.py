@@ -1,11 +1,12 @@
 import sys
-from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
-import logging
-from argparse import ArgumentParser
-from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
-from elf_to_shellcode.lib import five
 import os
 import stat
+import logging
+from argparse import ArgumentParser
+from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
+from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
+from elf_to_shellcode.lib import five
+from elf_to_shellcode.lib.exceptions import InvalidJson, PathDoesNotExists
 from elf_to_shellcode.lib.utils.general import get_json
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
@@ -53,10 +54,15 @@ args = parser.parse_args()
 if args.hooks_configuration:
     assert os.path.exists(args.hooks_configuration)
     try:
-        get_json(args.hook_configuration)
-    except:
-        parser.error("--hook-configuration not a valid json")
-
+        get_json(args.hooks_configuration)
+    except InvalidJson:
+        parser.error("--hook-configuration {} is not a valid json".format(
+            args.hooks_configuration
+        ))
+    except PathDoesNotExists:
+        parser.error("--hook-configuration path: {} does not exists".format(
+            args.hooks_configuration
+        ))
 if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_path, args.loader_symbols_path]):
     parser.error("--loader-path and --loader-symbols-path must be used together")
     sys.exit(1)
