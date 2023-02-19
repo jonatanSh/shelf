@@ -15,7 +15,7 @@ int get_elf_information();
 
 long long int main() {
     struct elf_information_struct info;
-    sys_write(1, "Hello\n", 6);
+    write(1, "Hello\n", 6);
     #ifdef DYNAMIC_SUPPORT
         get_elf_information(&info);
     #endif

@@ -26,8 +26,11 @@ class StartFiles(object):
 
 
 class LoaderSupports(object):
+    DYNAMIC = 'dynamic'
+    HOOKS = 'hooks'
     choices = {
-        "dynamic": ('dynamic', 0)
+        DYNAMIC: ('dynamic', 0),
+        HOOKS: ('hooks', 0)
     }
 
     @staticmethod

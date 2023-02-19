@@ -35,6 +35,7 @@ void loader_main(
     size_t table_size = 0;
     struct relocation_table * table;
     size_t base_address;
+    size_t hooks_base_address;
     size_t loader_base;
     size_t magic;
     size_t total_argv_envp_size = 0;
@@ -43,6 +44,7 @@ void loader_main(
     size_t total_header_plus_table_size = 0;
     long long int _out;
 #ifdef DEBUG
+    TRACE("Loader in debug mode!");
     long long int mini_loader_status = 0;
 #endif
     ARCH_FUNCTION_ENTER(&return_address);
@@ -54,6 +56,9 @@ void loader_main(
 #endif
 #ifdef SUPPORT_DYNAMIC_LOADER
     TRACE("Loader support: SUPPORT_DYNAMIC_LOADER");
+#endif
+#ifdef SUPPORT_HOOKS
+    TRACE("Loader support: SUPPORT_HOOKS");
 #endif
     TRACE("Mini loader loaded");
     resolve_table_magic();
@@ -81,6 +86,20 @@ void loader_main(
     ASSERT(table->magic == magic, INVALID_MAGIC);
     total_header_plus_table_size = table->total_size;
     total_header_plus_table_size += table->header_size;
+#ifdef SUPPORT_HOOKS
+    hooks_base_address = (size_t)(table);
+    hooks_base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
+    TRACE("Adding hooks shellcode sizes to total_header_plus_table_size shellcode size = %x", table->hook_descriptor.size_of_hook_shellcode_data);
+    total_header_plus_table_size += table->hook_descriptor.size_of_hook_shellcode_data;
+    TRACE("Dispatching startup hooks, hooks base address = %x", hooks_base_address);
+    for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {
+        struct hook * hook = &(table->hook_descriptor.startup_hooks[i]);
+        size_t hook_address = hooks_base_address + hook->relative_address;
+        TRACE("Hook relative address = %x, hook address = %x", hook->relative_address, hook_address);
+        TRACE_ADDRESS(hook_address, 24);
+        call_main(hook_address, table, 0, 0);
+    }
+#endif
     // Size of table header + entries + entry point
     base_address = (size_t)(table);
     base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
@@ -94,9 +113,10 @@ void loader_main(
         // Now parsing the entry
         size_t f_offset = entry->f_offset + base_address;
         size_t v_offset = entry->v_offset + base_address; 
-        TRACE("Parssing Entry(size=%x, f_offset=%x, v_offset=%x, first_attribute=%x)",
-            entry->size, entry->f_offset, entry->v_offset, attributes->attribute_1);
-        
+        #ifdef DEBUG
+            TRACE("Parssing Entry(size=%x, f_offset=%x, v_offset=%x, first_attribute=%x)",
+                entry->size, entry->f_offset, entry->v_offset, attributes->attribute_1);
+        #endif    
         /*
             DO NOT USE SWITCH CASE HERE
             it will create a relocatable section
@@ -106,19 +126,25 @@ void loader_main(
             // Can't use jump tables in loader :(
             size_t attribute_val = 0;
             if(attributes->attribute_1 == IRELATIVE) {
-                TRACE("Loader IRELATIVE fix: %x=%x()", v_offset, v_offset);
-                TRACE_ADDRESS(v_offset, 24);
+                #ifdef DEBUG
+                    TRACE("Loader IRELATIVE fix: %x=%x()", v_offset, v_offset);
+                    TRACE_ADDRESS(v_offset, 24);
+                #endif
                 attribute_val = (size_t)((IRELATIVE_T)(v_offset))();
                 v_offset = attribute_val;
             }
             else if(attributes->attribute_1 == RELATIVE_TO_LOADER_BASE) {
                 attribute_val = (size_t)(entry->v_offset + loader_base);
-                TRACE("Loader RELATIVE_TO_LOADER_BASE fix: %x=%x()", v_offset, attribute_val);
+                #ifdef DEBUG
+                    TRACE("Loader RELATIVE_TO_LOADER_BASE fix: %x=%x()", v_offset, attribute_val);
+                #endif
                 v_offset = attribute_val;
             }
             else if(attributes->attribute_1 == RELATIVE) {
                 attribute_val = (size_t)(*((size_t*)f_offset)) + base_address;
-                TRACE("Loader RELATIVE fix: %x=%x()", v_offset, attribute_val);
+                #ifdef DEBUG
+                    TRACE("Loader RELATIVE fix: %x=%x()", v_offset, attribute_val);
+                #endif
                 v_offset = attribute_val;
             }
             else {
@@ -126,7 +152,9 @@ void loader_main(
                 goto error;
             }
         }
-        TRACE("Loader set *((size_t*)%x) = %x", f_offset, v_offset);
+        #ifdef DEBUG
+            TRACE("Loader set *((size_t*)%x) = %x", f_offset, v_offset);
+        #endif
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;
 

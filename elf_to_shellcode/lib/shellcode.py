@@ -1,19 +1,20 @@
 import os
-
-from elftools.elf.elffile import ELFFile
 import struct
 import sys
-from elf_to_shellcode.lib.utils.address_utils import AddressUtils
-from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
-from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
-from elf_to_shellcode.lib.utils.disassembler import Disassembler
-from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 import logging
+import tempfile
 from elftools.elf.constants import P_FLAGS
 from elf_to_shellcode.lib import five
+from elftools.elf.elffile import ELFFile
 import lief
 from lief.ELF import SECTION_FLAGS
-import tempfile
+from elf_to_shellcode.lib.utils.address_utils import AddressUtils
+from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
+from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports
+from elf_to_shellcode.lib.utils.disassembler import Disassembler
+from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
+from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
+from elf_to_shellcode.lib.utils.general import get_json, get_binary
 
 PTR_SIZES = {
     4: "I",
@@ -35,7 +36,7 @@ class Shellcode(object):
                  reloc_types=None,
                  support_dynamic=False,
                  **kwargs):
-
+        self.support_hooks = True
         if reloc_types is None:
             reloc_types = {}
         if supported_start_methods is None:
@@ -87,6 +88,37 @@ class Shellcode(object):
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
+        self.specific_arch_hook_configuration = {}
+        if args.hooks_configuration:
+            if not LoaderSupports.HOOKS in self.args.loader_supports:
+                raise Exception("Error hook configuration must be used with --loader-supports hooks")
+            self.resolve_specific_arch_hook_configuration()
+
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            self.hooks = ShellcodeHooks(shellcode=self)
+        else:
+            self.hooks = None
+
+    def resolve_specific_arch_hook_configuration(self):
+        config = get_json(self.args.hooks_configuration)
+        if self.arch not in config:
+            raise Exception("Missing arch: {} in hook configuration".format(
+                self.arch
+            ))
+        arch_config = config[self.arch]
+        if self.args.endian not in arch_config:
+            raise Exception("Missing endian: {} in arch config, config[{}][{}]".format(
+                self.args.endian,
+                self.arch,
+                self.args.endian
+            ))
+
+        self.specific_arch_hook_configuration = arch_config[self.args.endian]
+
+    def do_hooks(self):
+        self.logger.info("Handling hooks")
+        for hook in self.specific_arch_hook_configuration.get('startup_hooks', []):
+            self.hooks.add_startup_hook(get_binary(hook))
 
     def arch_find_relocation_handler(self, relocation_type):
         """
@@ -145,7 +177,11 @@ class Shellcode(object):
 
         sizes = self.address_utils.pack_pointers(len(table), len(self.get_shellcode_header()))
 
-        return self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header + table
+        header = self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            header += self.hooks.get_header()
+        header += table
+        return header
 
     @property
     def pre_table_header(self):
@@ -332,6 +368,12 @@ class Shellcode(object):
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
+        # Calling the do hooks hook
+        self.do_hooks()
+
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            hooks = self.hooks.get_hooks_data()
+            shellcode_data = hooks + shellcode_data
         # This must be here !
         relocation_table = self.relocation_table
 
@@ -343,6 +385,9 @@ class Shellcode(object):
             formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
         return self.post_make_shellcode_handle_format(formatted_shellcode)
+
+    def add_hooks_before_shellcode_data(self, shellcode_data):
+        pass
 
     def post_make_shellcode_handle_format(self, shellcode):
         shellcode_with_output_format = shellcode
@@ -486,7 +531,9 @@ def make_shellcode(args, shellcode_cls):
     shellcode_handler, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
     args = sys.modules["global_args"]
     if args.interactive:
-        print("Opening interactive shell")
+        # Overriding shellcode for better interactive shell
+        shellcode = shellcode_handler
+        print("Opening interactive shell, Use shellcode to view the shellcode class")
         import IPython
         IPython.embed()
         sys.exit(1)

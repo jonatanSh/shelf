@@ -45,6 +45,6 @@ int sys_symlink(const char *old, const char *new);
 
 int sys_unlink(const char *path);
 
-ssize_t sys_write(int fd, const void *buf, size_t count);
+ssize_t write(int fd, const void *buf, size_t count);
 
 #endif /* !UNISTD_HEADER */

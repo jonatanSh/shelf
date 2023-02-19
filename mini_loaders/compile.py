@@ -5,6 +5,7 @@ import itertools
 
 from parallel_api.api import execute_jobs_in_parallel
 
+max_parallel_jobs = 16
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
@@ -26,7 +27,6 @@ assert sys.argv[1].strip() in ['debug', 'release'], 'error got invalid argument:
 
 if sys.argv[1].strip() == 'debug':
     CFLAGS += ["-DDEBUG"]
-
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
 CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
@@ -82,7 +82,9 @@ class Compiler(object):
     def execute(*cmd):
         cmd_fmt = ' '.join(['{}'.format(arg) for arg in cmd])
         print(cmd_fmt)
-        subprocess.check_call(cmd_fmt, shell=True)
+        return_code = subprocess.check_call(cmd_fmt, shell=True)
+        if return_code != 0:
+            sys.exit(return_code)
 
     def gcc(self, flags, remove_flags, *options):
         flags = (self.cflags + flags)
@@ -112,6 +114,14 @@ class Compiler(object):
             *options
         )
 
+    def generate_structs(self, *options):
+        return self.execute(
+            sys.executable,
+            "-m",
+            "py_elf_structs",
+            *options
+        )
+
     def _compile(self, files, output_file, defines, flags, strip_flags, remove_flags):
         # 	$(CC) $(CFLAGS) $(DEFINES) ../generic_loader.c -o ../../outputs/mini_loader_mips.out
         args = ['-D{}'.format(d) for d in defines]
@@ -120,7 +130,10 @@ class Compiler(object):
         self.gcc(flags, remove_flags, *args)
         resource_out = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode")))
         symbol_filename = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode.symbols")))
-
+        self.generate_structs(
+            output_file,
+            "{}.structs.json".format(resource_out)
+        )
         if not strip_flags:
             self.objcopy(
                 "-j",
@@ -211,6 +224,8 @@ features = {
     # This is just a normal loader keep this
     '': {'defs': [], 'files': ['generic_loader.c'], 'supported': arches},
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c'], 'supported': arches},
+    'hooks': {'defs': ['SUPPORT_HOOKS'], 'files': ['generic_loader.c'], 'supported': arches},
+
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
     'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
                'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
@@ -285,4 +300,5 @@ if __name__ == "__main__":
     for job in jobs:
         entry_points.append(job.run)
 
-    execute_jobs_in_parallel(entry_points)
+    for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
+        execute_jobs_in_parallel(entry_points[i:i + max_parallel_jobs])

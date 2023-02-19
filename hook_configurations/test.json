@@ -1,0 +1,37 @@
+{
+  "mips": {
+    "big": {
+      "startup_hooks": [
+        "../outputs/mips_simple_hello_hook.hook"
+      ]
+    }
+  },
+  "x32": {
+    "little": {
+      "startup_hooks": [
+        "../outputs/intel_x32_simple_hello_hook.hook"
+      ]
+    }
+  },
+  "x64": {
+    "little": {
+      "startup_hooks": [
+        "../outputs/intel_x64_simple_hello_hook.hook"
+      ]
+    }
+  },
+  "arm32": {
+    "little": {
+      "startup_hooks": [
+        "../outputs/arm_simple_hello_hook.hook"
+      ]
+    }
+  },
+  "arm64": {
+    "little": {
+      "startup_hooks": [
+        "../outputs/aarch64_simple_hello_hook.hook"
+      ]
+    }
+  }
+}

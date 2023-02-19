@@ -1,6 +1,12 @@
 import sys
+
 version = int(sys.version[0])
 is_python3 = version == 3
+JSONDecodeError = None
+if is_python3:
+    from json.decoder import JSONDecodeError
+else:
+    JSONDecodeError = ValueError
 
 
 def to_disasm(obj):

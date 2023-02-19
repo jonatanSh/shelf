@@ -21,6 +21,7 @@ pip install elf_to_shellcode
 ###### Python version support
 * python3
 
+
 ## How does this work ?
 The python library parses the elf and create a simple relocatable file format
 Then the mini loader is inserted as the entry point of the elf the mini loader
@@ -95,20 +96,13 @@ Jumping to shellcode, address = 0x7f7ee000
 Hello from shellcode !
 ```
 
-## Specific architecture limitations
 
-### AARCH64
-
-arm in 64 bit mode generate adrl instruction.
-These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
-page aligned to overcome this limitation the shellcode is padded
-
-## Advanced conceptes and features
-
+## Advanced concepts and features
 for following links only work on the github page
-
 * [Compiling with libc](docs/libc.md)
 * [Dynamic shellcode](docs/dynamic.md)
+* [Hooking the mini loader](docs/hooks.md)
 * [Optimizations](docs/optimizations.md)
 * [Output formats](docs/output_formats.md)
 * [Development](docs/develop.md)
+* [Specific architecture limitations](docs/speific_arch_limitations.md)

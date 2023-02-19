@@ -11,6 +11,7 @@
     #include <unistd.h>
 #endif
 
+
 void trace_handler(const char * terminator,const char * file, const char * func, unsigned int line, char * trace_format, const char* fmt, ...) {
 	va_list ap;
 	char debug_buffer[MAX_DEBUG_BUFFER];

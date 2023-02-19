@@ -5,8 +5,10 @@ TESTS+=aarch64_elf_features dynamic_mips_elf_features dynamic_intel_x32_elf_feat
 TESTS+=no_libc_intel_x32_no_relocations no_libc_aarch64_no_relocations
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
-all: $(TESTS)
+all: hooks $(TESTS)
 
+hooks:
+	cd ../hooks && $(MAKE)
 
 no_libc_intel_x32_%:
 	$(X32_CC) -masm=intel -shared -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -nolibc $(subst no_libc_intel_x32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst no_libc_intel_x32_,,$@)_intel_x32.out
