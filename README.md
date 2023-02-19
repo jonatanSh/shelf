@@ -101,8 +101,8 @@ Hello from shellcode !
 for following links only work on the github page
 * [Compiling with libc](docs/libc.md)
 * [Dynamic shellcode](docs/dynamic.md)
+* [Hooking the mini loader](docs/hooks.md)
 * [Optimizations](docs/optimizations.md)
 * [Output formats](docs/output_formats.md)
 * [Development](docs/develop.md)
-* [Hooks](docs/hooks.md)
 * [Specific architecture limitations](docs/speific_arch_limitations.md)
