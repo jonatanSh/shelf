@@ -1,7 +1,10 @@
 include ./makefiles/compilers.mk
-.PHONY: all clean shellcode_loader mini_loaders examples
+.PHONY: all clean shellcode_loader mini_loaders tests examples hooks
 
-all: clean shellcode_loader mini_loaders examples
+all: clean shellcode_loader mini_loaders hooks tests examples
+
+hooks:
+	cd hooks && $(MAKE)
 
 shellcode_loader:
 	cd shellcode_loader && $(MAKE) CC=$(MIPS_CC) ARCH=mips
@@ -12,8 +15,11 @@ shellcode_loader:
 mini_loaders:
 	cd mini_loaders && python compile.py release
 
-examples:
+examples: hooks
 	cd examples && $(MAKE)
+
+test: hooks
+	cd test && $(MAKE)
 
 clean:
 	rm -rf ./outputs/*.out

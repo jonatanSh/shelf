@@ -25,7 +25,9 @@ test_cases = {
     'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['intel_x64', 'intel_x32', 'mips', 'arm32'], 'Hello',
                {'eshelf': True}],
     'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['mips', 'intel_x32'], 'Hello'],
-    'hooks': ['../outputs/elf_features_{}.out.shellcode.hook_support.eshelf', ['mips'], 'Hello', {'eshelf': True}],
+    'hooks': ['../outputs/elf_features_{}.out.hooks.shellcode', ['intel_x32', 'mips'],
+              ['Hello', "hello from hook!"],
+              {'eshelf': False}],
 
 }
 
@@ -45,9 +47,11 @@ def run_arch_tests(arch, case):
         tests = test_cases.keys()
     for test_case in tests:
         case, supported_arches, success = test_cases[test_case][:3]
+        if type(success) is str:
+            success = [success]
         attribute = test_cases[test_case]
         if len(attribute) > 3:
-            is_eshelf = attribute[3]
+            is_eshelf = attribute[3]['eshelf']
         else:
             is_eshelf = False
         if supported_arches != ['all']:
@@ -55,13 +59,14 @@ def run_arch_tests(arch, case):
                 continue
         test = case.format(translate_to_binary_name(arch))
         db_arg = "-g 1234" if args.debug else ""
+        strace_args = "-strace" if args.strace else ""
         assert os.path.exists(loader), "Error loader doesn't exists for: {}".format(arch)
         assert os.path.exists(test), "Error test for: {}_{} does not exists".format(
             arch,
             case
         )
         if not is_eshelf:
-            command = "{} {} {} {}".format(qemu, db_arg, loader, test)
+            command = "{} {} {} {} {}".format(qemu, db_arg, strace_args, loader, test)
         else:
             command = '{} {} {} "First_Argument_for_argv" "Second argument for argv"'.format(qemu, db_arg, test)
         if not args.only_stdout:
@@ -75,7 +80,7 @@ def run_arch_tests(arch, case):
             print(stdout)
             print(stderr)
             continue
-        if success in stdout and ('core dumped' not in stderr and 'core dumped' not in stdout):
+        if all([s in stdout for s in success]) and ('core dumped' not in stderr and 'core dumped' not in stdout):
             key = "Shellcode returned: "
             index = stdout.find(key)
             final_status = "Failure, reason: RC"
@@ -129,6 +134,7 @@ parser.add_argument("--verbose", default=False, action="store_true", required=Fa
 parser.add_argument("--only-stdout", default=False, required=False, action="store_true",
                     help="Run and only display stdout and stderr")
 parser.add_argument("--verbose-on-failed", default=False, action="store_true", required=False)
+parser.add_argument("--strace", default=False, action="store_true", required=False)
 
 args = parser.parse_args()
 if args.verbose:
