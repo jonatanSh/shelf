@@ -1,7 +1,9 @@
 {
-  "mipsbe": {
-    "startup_hooks": [
-      "../outputs/simple_hello_hook_mipsbe.hook"
-    ]
+  "mips": {
+    "big": {
+      "startup_hooks": [
+        "../outputs/simple_hello_hook_mipsbe.hook"
+      ]
+    }
   }
 }

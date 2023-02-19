@@ -1,20 +1,20 @@
 import os
-
-from elftools.elf.elffile import ELFFile
 import struct
 import sys
+import logging
+import tempfile
+from elftools.elf.constants import P_FLAGS
+from elf_to_shellcode.lib import five
+from elftools.elf.elffile import ELFFile
+import lief
+from lief.ELF import SECTION_FLAGS
 from elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
 from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
-import logging
-from elftools.elf.constants import P_FLAGS
-from elf_to_shellcode.lib import five
-import lief
-from lief.ELF import SECTION_FLAGS
-import tempfile
+from elf_to_shellcode.lib.utils.general import get_json, get_binary
 
 PTR_SIZES = {
     4: "I",
@@ -88,10 +88,37 @@ class Shellcode(object):
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
+        self.specific_arch_hook_configuration = {}
+        if args.hooks_configuration:
+            if not LoaderSupports.HOOKS in self.args.loader_supports:
+                raise Exception("Error hook configuration must be used with --loader-supports hooks")
+            self.resolve_specific_arch_hook_configuration()
+
         if LoaderSupports.HOOKS in self.args.loader_supports:
             self.hooks = ShellcodeHooks(shellcode=self)
         else:
             self.hooks = None
+
+    def resolve_specific_arch_hook_configuration(self):
+        config = get_json(self.args.hooks_configuration)
+        if self.arch not in config:
+            raise Exception("Missing arch: {} in hook configuration".format(
+                self.arch
+            ))
+        arch_config = config[self.arch]
+        if self.args.endian not in arch_config:
+            raise Exception("Missing endian: {} in arch config, config[{}][{}]".format(
+                self.args.endian,
+                self.arch,
+                self.args.endian
+            ))
+
+        self.specific_arch_hook_configuration = arch_config[self.args.endian]
+
+    def do_hooks(self):
+        self.logger.info("Handling hooks")
+        for hook in self.specific_arch_hook_configuration.get('startup_hooks', []):
+            self.hooks.add_startup_hook(get_binary(hook))
 
     def arch_find_relocation_handler(self, relocation_type):
         """
@@ -341,6 +368,9 @@ class Shellcode(object):
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
+        # Calling the do hooks hook
+        self.do_hooks()
+
         if LoaderSupports.HOOKS in self.args.loader_supports:
             hooks = self.hooks.get_hooks_data()
             shellcode_data = hooks + shellcode_data

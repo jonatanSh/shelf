@@ -1,5 +1,6 @@
 from copy import deepcopy
 from elf_to_shellcode.lib.five import array_join, is_python3
+import logging
 
 
 class HookTypes(object):
@@ -24,6 +25,10 @@ class ShellcodeHooks(object):
         self._hooks_shellcode_data.append(shellcode_data)
         hook = self.shellcode.mini_loader.structs.hook(relative_address=relative_to_relocation_end)
 
+        logging.info("Adding hook shellcode, type: {} size: {}".format(
+            hook_type,
+            len(shellcode_data)
+        ))
         if hook_type == HookTypes.STARTUP_HOOKS:
             self._startup_hooks.append(hook)
 
