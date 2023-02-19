@@ -96,6 +96,7 @@ void loader_main(
         struct hook * hook = &(table->hook_descriptor.startup_hooks[i]);
         size_t hook_address = hooks_base_address + hook->relative_address;
         TRACE("Hook relative address = %x, hook address = %x", hook->relative_address, hook_address);
+        TRACE_ADDRESS(hook_address, 24);
         call_main(hook_address, table, 0, 0);
     }
 #endif
