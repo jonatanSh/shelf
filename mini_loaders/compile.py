@@ -4,7 +4,8 @@ import sys
 import itertools
 
 from parallel_api.api import execute_jobs_in_parallel
-max_parallel_jobs = 1
+
+max_parallel_jobs = 16
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
@@ -26,7 +27,6 @@ assert sys.argv[1].strip() in ['debug', 'release'], 'error got invalid argument:
 
 if sys.argv[1].strip() == 'debug':
     CFLAGS += ["-DDEBUG"]
-
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
 CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
@@ -82,7 +82,9 @@ class Compiler(object):
     def execute(*cmd):
         cmd_fmt = ' '.join(['{}'.format(arg) for arg in cmd])
         print(cmd_fmt)
-        subprocess.check_call(cmd_fmt, shell=True)
+        return_code = subprocess.check_call(cmd_fmt, shell=True)
+        if return_code != 0:
+            sys.exit(return_code)
 
     def gcc(self, flags, remove_flags, *options):
         flags = (self.cflags + flags)
@@ -111,7 +113,7 @@ class Compiler(object):
             self._strip,
             *options
         )
-    
+
     def generate_structs(self, *options):
         return self.execute(
             sys.executable,
@@ -299,4 +301,4 @@ if __name__ == "__main__":
         entry_points.append(job.run)
 
     for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
-        execute_jobs_in_parallel(entry_points[i:i+max_parallel_jobs])
+        execute_jobs_in_parallel(entry_points[i:i + max_parallel_jobs])
