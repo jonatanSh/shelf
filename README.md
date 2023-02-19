@@ -21,6 +21,7 @@ pip install elf_to_shellcode
 ###### Python version support
 * python3
 
+
 ## How does this work ?
 The python library parses the elf and create a simple relocatable file format
 Then the mini loader is inserted as the entry point of the elf the mini loader
@@ -95,29 +96,13 @@ Jumping to shellcode, address = 0x7f7ee000
 Hello from shellcode !
 ```
 
-## Extensions - hooks
-Because this project is intended to work on large very of systems
-os independently the hook mechanism enable writing your own assembly code
-and hook loading functions.
-For example in Apple computer in order to allocate RWX you need a specific entitlement
-To bypass this mitigation there's we set a hook at mini loader pre reallocate entry
-the hook then changes the memory protection to write and then we set another hook
-at pre execute shellcode then we set the memory protection to execute
-
-## Specific architecture limitations
-
-### AARCH64
-
-arm in 64 bit mode generate adrl instruction.
-These instructions are (2 ** 12) aligned (page) therfore the shellcode should be
-page aligned to overcome this limitation the shellcode is padded
 
 ## Advanced concepts and features
-
 for following links only work on the github page
-
 * [Compiling with libc](docs/libc.md)
 * [Dynamic shellcode](docs/dynamic.md)
 * [Optimizations](docs/optimizations.md)
 * [Output formats](docs/output_formats.md)
 * [Development](docs/develop.md)
+* [Hooks](docs/hooks.md)
+* [Specific architecture limitations](docs/speific_arch_limitations.md)
