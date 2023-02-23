@@ -7,7 +7,8 @@ class DynamicRelocations(object):
     def __init__(self, shellcode, reloc_types):
         self.handlers = {
             'JMPREL': self.handle_jmp_slot_relocs,
-            "REL": self.handle_rels
+            "REL": self.handle_rels,
+            "RELA": self.handle_rels
         }
         self.logger = logging.getLogger(self.__class__.__name__)
         self.reloc_types = reloc_types
@@ -56,7 +57,8 @@ class DynamicRelocations(object):
                 self.logger.error("[HandlerNotFound] {}".format(
                     reloc_type
                 ))
-                raise Exception("Not supported")
+                raise NotImplementedError("Relocation: {} not found for arch,"
+                                          "available: {}".format(reloc_type, self.handlers.keys()))
             else:
                 logging.info("Handling relocation types: {}, handler: {}".format(
                     relocation_table.keys(),
