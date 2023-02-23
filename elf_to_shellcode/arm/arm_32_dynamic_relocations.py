@@ -44,17 +44,20 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
 
     def jmp_slot(self, relocation):
         symbol = relocation.symbol
+        offset = self.shellcode.make_relative(relocation.address)
         if self.shellcode.mini_loader.symbols.has_symbol(symbol.name):
-            self.logger.warn("Symbol: {} should be relocated by the r_arm_glob_dat relocation !".format(
-                symbol.name
-            ))
+            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
+                symbol_name=symbol.name
+            )
+            self.shellcode.addresses_to_patch[offset] = [jmp_slot_address,
+                                                         RelocationAttributes.relative_to_loader_base]
+
             return
         if symbol.value == 0x0:
             self.logger.error("Can't relocate: {}".format(
                 symbol.name
             ))
         relative_sym = self.shellcode.make_relative(symbol.value)
-        offset = self.shellcode.make_relative(relocation.address)
         self.shellcode.addresses_to_patch[offset] = relative_sym
 
     def r_arm_abs32(self, relocation):
