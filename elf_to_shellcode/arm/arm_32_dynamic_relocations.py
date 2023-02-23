@@ -43,7 +43,14 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
             ))
 
     def jmp_slot(self, relocation):
-        pass
+        symbol = relocation.symbol
+        if symbol.value == 0x0:
+            self.logger.error("Can't relocate: {}".format(
+                symbol.name
+            ))
+        relative_sym = self.shellcode.make_relative(symbol.value)
+        offset = self.shellcode.make_relative(relocation.address)
+        self.shellcode.addresses_to_patch[offset] = relative_sym
 
     def r_arm_abs32(self, relocation):
         """

@@ -519,7 +519,8 @@ class Shellcode(object):
             globals()[key] = value
         import IPython
         IPython.embed()
-        sys.exit(1)
+        if not kwargs.get("do_not_exit"):
+            sys.exit(1)
 
     def __repr__(self):
         return "Shellcode(table_size={})".format(len(self.relocation_table))
