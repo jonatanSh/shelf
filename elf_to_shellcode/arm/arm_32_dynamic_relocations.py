@@ -44,6 +44,11 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
 
     def jmp_slot(self, relocation):
         symbol = relocation.symbol
+        if self.shellcode.mini_loader.symbols.has_symbol(symbol.name):
+            self.logger.warn("Symbol: {} should be relocated by the r_arm_glob_dat relocation !".format(
+                symbol.name
+            ))
+            return
         if symbol.value == 0x0:
             self.logger.error("Can't relocate: {}".format(
                 symbol.name
