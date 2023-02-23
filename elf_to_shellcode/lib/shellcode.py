@@ -514,6 +514,13 @@ class Shellcode(object):
         header = header[:current_offset] + entry_point + header[current_offset + self.ptr_size:]
         return header
 
+    def embed(self, **kwargs):
+        for key, value in kwargs.items():
+            globals()[key] = value
+        import IPython
+        IPython.embed()
+        sys.exit(1)
+
     def __repr__(self):
         return "Shellcode(table_size={})".format(len(self.relocation_table))
 
@@ -533,11 +540,8 @@ def make_shellcode(args, shellcode_cls):
     shellcode_handler, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
     args = sys.modules["global_args"]
     if args.interactive:
-        # Overriding shellcode for better interactive shell
-        shellcode = shellcode_handler
         print("Opening interactive shell, Use shellcode to view the shellcode class")
-        import IPython
-        IPython.embed()
+        shellcode_handler.embed(shellcode=shellcode_handler)
         sys.exit(1)
     shellcode = shellcode_handler.get_shellcode()
     shellcode_repr = repr(shellcode_handler)

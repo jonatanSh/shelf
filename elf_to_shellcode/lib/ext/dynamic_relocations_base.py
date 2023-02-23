@@ -10,10 +10,10 @@ class BaseDynamicRelocations(object):
         self.shellcode = shellcode
 
     def call_entry_handler(self, relocation):
-        entry_handler = self.entry_handlers.get(relocation.info, None)
+        entry_handler = self.entry_handlers.get(relocation.type, None)
         if not entry_handler:
             self.logger.error("Entry handler for: {} not found, available: {}".format(
-                relocation.info,
+                relocation.type,
                 self.entry_handlers.keys()
             ))
             assert False
@@ -29,4 +29,6 @@ class BaseDynamicRelocations(object):
 
         return shellcode_data
 
-
+    @property
+    def dynsym(self):
+        return self.shellcode.elffile.get_section_by_name('.dynsym')
