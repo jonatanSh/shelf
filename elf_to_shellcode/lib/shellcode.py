@@ -35,6 +35,7 @@ class Shellcode(object):
                  supported_start_methods=None,
                  reloc_types=None,
                  support_dynamic=False,
+                 add_dynamic_relocation_lib=True,
                  **kwargs):
         self.support_hooks = True
         if reloc_types is None:
@@ -83,8 +84,9 @@ class Shellcode(object):
 
         self.disassembler = Disassembler(self)
         if self.support_dynamic:
-            self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
-            self.add_relocation_handler(self.dynamic_relocs.handle)
+            if add_dynamic_relocation_lib:
+                self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
+                self.add_relocation_handler(self.dynamic_relocs.handle)
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
@@ -512,6 +514,14 @@ class Shellcode(object):
         header = header[:current_offset] + entry_point + header[current_offset + self.ptr_size:]
         return header
 
+    def embed(self, **kwargs):
+        for key, value in kwargs.items():
+            globals()[key] = value
+        import IPython
+        IPython.embed()
+        if not kwargs.get("do_not_exit"):
+            sys.exit(1)
+
     def __repr__(self):
         return "Shellcode(table_size={})".format(len(self.relocation_table))
 
@@ -531,11 +541,8 @@ def make_shellcode(args, shellcode_cls):
     shellcode_handler, fd = get_shellcode_class(args=args, shellcode_cls=shellcode_cls)
     args = sys.modules["global_args"]
     if args.interactive:
-        # Overriding shellcode for better interactive shell
-        shellcode = shellcode_handler
         print("Opening interactive shell, Use shellcode to view the shellcode class")
-        import IPython
-        IPython.embed()
+        shellcode_handler.embed(shellcode=shellcode_handler)
         sys.exit(1)
     shellcode = shellcode_handler.get_shellcode()
     shellcode_repr = repr(shellcode_handler)

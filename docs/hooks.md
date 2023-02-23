@@ -39,4 +39,5 @@ Loading ../outputs/elf_features_mipsbe.out.hooks.shellcode
 
 * mips
 * intel x32
+* arm
 

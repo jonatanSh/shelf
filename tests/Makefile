@@ -3,6 +3,7 @@ OUTPUT_DIRECTORY=../outputs/
 TESTS=mips_elf_features intel_x32_elf_features intel_x64_elf_features arm32_elf_features
 TESTS+=aarch64_elf_features dynamic_mips_elf_features dynamic_intel_x32_elf_features
 TESTS+=no_libc_intel_x32_no_relocations no_libc_aarch64_no_relocations
+TESTS+=dynamic_intel_x64_elf_features dynamic_arm_32_elf_features
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
 all: hooks $(TESTS)
@@ -25,4 +26,12 @@ dynamic_mips_%:
 dynamic_intel_x32_%:
 	$(X32_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_intel_x32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode --loader-support dynamic
+
+dynamic_intel_x64_%:
+	$(X64_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_intel_x64_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out --arch intel_x64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out.shellcode --loader-support dynamic
+
+dynamic_arm32_%:
+	$(ARM_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode --loader-support dynamic
 

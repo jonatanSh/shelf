@@ -11,6 +11,7 @@ class MiniLoader(object):
     def __init__(self, shellcode):
         self.shellcode = shellcode
         self.logger = getLogger(self.__class__.__name__)
+        self._path = None
 
     def format_loader(self, ld):
         """
@@ -52,8 +53,7 @@ class MiniLoader(object):
         self.logger.info("Using loader: {}".format(loader_path))
         return loader_path
 
-    @property
-    def path(self):
+    def _get_path(self):
         """
         Format and return the loader path acorridng to all its features
         :return:
@@ -77,6 +77,12 @@ class MiniLoader(object):
         )
 
         return path
+
+    @property
+    def path(self):
+        if not self._path:
+            self._path = self._get_path()
+        return self._path
 
     @property
     def symbols_path(self):
