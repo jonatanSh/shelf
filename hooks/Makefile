@@ -23,9 +23,9 @@ intel_x64_%:
 	$(X64_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
 
 arm_%:
-	$(X64_CC) $(CFLAGS) -masm=intel -static -BE $(subst arm_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
-	$(X64_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
+	$(ARM_CC) $(CFLAGS) -masm=intel -static -BE $(subst arm_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
+	$(ARM_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
 
 aarch64_%:
-	$(X64_CC) $(CFLAGS) -masm=intel -static -BE $(subst aarch64_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
-	$(X64_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
+	$(AARCH64_CC) $(CFLAGS) -masm=intel -static -BE $(subst aarch64_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
+	$(AARCH64_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
