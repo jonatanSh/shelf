@@ -1,16 +1,19 @@
 from elftools.elf.enums import ENUM_RELOC_TYPE_ARM
 from elf_to_shellcode.lib.ext.dynamic_relocations_base import BaseDynamicRelocations
+from elf_to_shellcode.lib.consts import RelocationAttributes
 
 
 class Arm32DynamicRelocations(BaseDynamicRelocations):
     def __init__(self, shellcode):
         super(Arm32DynamicRelocations, self).__init__(shellcode=shellcode)
         self.entry_handlers = {
-            ENUM_RELOC_TYPE_ARM['R_ARM_PC24']: self.r_arm_pc24,
-            ENUM_RELOC_TYPE_ARM['R_ARM_ABS12']: self.r_arm_abs12,
-            ENUM_RELOC_TYPE_ARM['R_ARM_THM_ABS5']: self.r_arm_thm_abs5,
-            # ENUM_RELOC_TYPE_ARM['R_ARM_JUMP_SLOT']: self.jmp_slot,
-            # ENUM_RELOC_TYPE_ARM['R_ARM_ABS32']: self.r_arm_abs32,
+            ENUM_RELOC_TYPE_ARM['R_ARM_GLOB_DAT']: self.r_arm_glob_dat,
+            ENUM_RELOC_TYPE_ARM['R_ARM_JUMP_SLOT']: self.jmp_slot,
+            ENUM_RELOC_TYPE_ARM['R_ARM_ABS32']: self.r_arm_abs32,
+            # ENUM_RELOC_TYPE_ARM['R_ARM_PC24']: self.r_arm_pc24,
+            # ENUM_RELOC_TYPE_ARM['R_ARM_ABS12']: self.r_arm_abs12,
+            # ENUM_RELOC_TYPE_ARM['R_ARM_THM_ABS5']: self.r_arm_thm_abs5,
+
             # ENUM_RELOC_TYPE_ARM['R_ARM_BASE_PREL']: self.r_arm_base_perl,
             # ENUM_RELOC_TYPE_ARM['R_ARM_JUMP24']: self.r_arm_jump24,
             # ENUM_RELOC_TYPE_ARM['R_ARM_GOT_BREL']: self.r_arm_got_brel,
@@ -22,28 +25,40 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
         }
 
     def r_arm_pc24(self, relocation):
-        """
-        A - denotes the addend used to compute the new value of the storage unit being relocated.
-        P - denotes the place (section offset or address of the storage unit) being re-located.
-        It is the sum of the r_offset field of the relocation directive and the base address of the section being re-located.
-        S - denotes the value of the symbol whose symbol table index is given in the r_info field of the relocation directive.
-        Relocation is S-P+A
-        :param relocation: The relocation
-        :return: None
-        """
-        self.shellcode.embed(me=self, relocation=relocation)
-        symbol = self.dynsym.get_symbol(relocation.info)
-        s = symbol.entry.st_value
-        a = relocation.addend
-        p = self.shellcode.get_section_virtual_address(self.dynsym.name)
-        self.shellcode.addresses_to_patch[]
         pass
+
+    def r_arm_glob_dat(self, relocation):
+        symbol_name = relocation.symbol.name
+        if self.shellcode.mini_loader.symbols.has_symbol(symbol_name):
+            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
+                symbol_name=symbol_name
+            )
+            offset = self.shellcode.make_relative(relocation.address)
+            self.shellcode.addresses_to_patch[offset] = [jmp_slot_address,
+                                                         RelocationAttributes.relative_to_loader_base]
+
+        else:
+            raise Exception("Library dynamic link error against symbol: {}".format(
+                symbol_name
+            ))
 
     def jmp_slot(self, relocation):
         pass
 
     def r_arm_abs32(self, relocation):
-        pass
+        """
+        A - denotes the addend used to compute the new value of the storage unit being relocated.
+        S - denotes the value of the symbol whose symbol table index is given in the r_info field of the relocation directive.
+        Relocation is S-P+A
+        :param relocation: The relocation
+        :return: None
+        """
+        symbol = self.dynsym.get_symbol(relocation.info)
+        s = symbol.entry.st_value
+        a = relocation.addend
+        v_offset = s + a
+        offset = self.shellcode.make_relative(relocation.address)
+        self.shellcode.addresses_to_patch[offset] = v_offset
 
     def r_arm_base_perl(self, relocation):
         pass

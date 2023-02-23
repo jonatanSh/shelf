@@ -32,6 +32,6 @@ dynamic_intel_x64_%:
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out --arch intel_x64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out.shellcode --loader-support dynamic
 
 dynamic_arm32_%:
-	$(X64_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
+	$(ARM_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode --loader-support dynamic
 
