@@ -3,7 +3,7 @@ OUTPUT_DIRECTORY=../outputs/
 TESTS=mips_elf_features intel_x32_elf_features intel_x64_elf_features arm32_elf_features
 TESTS+=aarch64_elf_features dynamic_mips_elf_features dynamic_intel_x32_elf_features
 TESTS+=no_libc_intel_x32_no_relocations no_libc_aarch64_no_relocations
-TESTS+=dynamic_intel_x64_elf_features dynamic_arm_32_elf_features
+TESTS+=dynamic_intel_x64_elf_features dynamic_arm32_elf_features
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
 all: hooks $(TESTS)
