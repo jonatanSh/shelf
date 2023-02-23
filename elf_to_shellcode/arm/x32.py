@@ -1,4 +1,5 @@
 from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
+from elf_to_shellcode.arm.arm_32_dynamic_relocations import Arm32DynamicRelocations
 
 
 class ArmX32Shellcode(Shellcode):
@@ -16,9 +17,12 @@ class ArmX32Shellcode(Shellcode):
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
                 '.got.plt': {'align_by': 'sh_entsize', 'relocate_all': True},
             },
-            support_dynamic=False,
+            support_dynamic=True,
+            add_dynamic_relocation_lib=False,
             **kwargs
         )
+        self.dynamic_handler = Arm32DynamicRelocations(shellcode=self)
+        self.add_relocation_handler(self.dynamic_handler.handle)
 
 
 arm_x32_make_shellcode = create_make_shellcode(ArmX32Shellcode)

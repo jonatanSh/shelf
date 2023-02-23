@@ -35,6 +35,7 @@ class Shellcode(object):
                  supported_start_methods=None,
                  reloc_types=None,
                  support_dynamic=False,
+                 add_dynamic_relocation_lib=True,
                  **kwargs):
         self.support_hooks = True
         if reloc_types is None:
@@ -83,8 +84,9 @@ class Shellcode(object):
 
         self.disassembler = Disassembler(self)
         if self.support_dynamic:
-            self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
-            self.add_relocation_handler(self.dynamic_relocs.handle)
+            if add_dynamic_relocation_lib:
+                self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
+                self.add_relocation_handler(self.dynamic_relocs.handle)
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)

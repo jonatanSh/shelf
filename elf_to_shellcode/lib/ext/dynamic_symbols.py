@@ -26,7 +26,7 @@ class DynamicRelocations(object):
         self.shellcode = shellcode
 
     def call_entry_handler(self, entry, shellcode, dynsym):
-        if entry.r_info_type in self.reloc_types[RELOC_TYPES.DO_NOT_HANDLE]:
+        if entry.r_info_type in self.reloc_types.get(RELOC_TYPES.DO_NOT_HANDLE, []):
             self.logger.warn("Not calling handler for entry: {}, marked as do not handle".format(
                 entry
             ))

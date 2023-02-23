@@ -3,6 +3,7 @@ from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 from elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 from elf_to_shellcode.lib.consts import RELOC_TYPES
 
+
 class IntelX64Shellcode(Shellcode):
     def __init__(self, elffile, shellcode_data, args, **kwargs):
         super(IntelX64Shellcode, self).__init__(
