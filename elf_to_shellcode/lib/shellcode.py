@@ -491,8 +491,9 @@ class Shellcode(object):
         header_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
         current_offset += self.ptr_size  # skip ptr header size
 
-        current_offset += len(self.pre_table_header)
-
+        current_offset += self.mini_loader.structs.elf_information_struct.size
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            current_offset += self.mini_loader.structs.mini_loader_hooks_descriptor.size
         handled_size = 0
         while handled_size < table_size:
             size, voff1, voff2 = self.stream_unpack_pointers(

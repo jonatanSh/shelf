@@ -5,7 +5,7 @@ import itertools
 
 from parallel_api.api import execute_jobs_in_parallel
 
-max_parallel_jobs = 16
+max_parallel_jobs = 4
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
