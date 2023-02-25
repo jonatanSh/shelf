@@ -5,7 +5,7 @@ import itertools
 
 from parallel_api.api import execute_jobs_in_parallel
 
-max_parallel_jobs = 4
+max_parallel_jobs = 16
 CFLAGS = []
 TARGET_FILES = [
     'generic_loader.c'
@@ -33,7 +33,24 @@ CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
 CFLAGS += ['-nolibc', '--entry=loader_main', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
 print_header("Compiling mini loaders, cflags={}".format(CFLAGS))
+skip_features = {
+    'x32': [['hooks', 'glibc']]
+}
 
+
+def should_skip_features(arch, feature):
+    feature = feature.split("_")
+    features_to_skip = skip_features.get(arch, [[]])
+    for f_map in features_to_skip:
+        found = len(f_map) > 0
+        for f in f_map:
+            if f not in feature:
+                found = False
+        if found:
+            print(True)
+            return True
+
+    return False
 
 def cfiles(directory):
     return [os.path.join(directory, filename) for filename in os.listdir(directory)
@@ -250,10 +267,15 @@ all_features.append(("",))  # Normal loaders no features
 print(all_features)
 
 
-def clean():
-    for filename in os.listdir("../outputs"):
+def _clean(directory):
+    for filename in os.listdir(directory):
         if "mini_loader" in filename:
-            os.remove(os.path.join("../outputs", filename))
+            os.remove(os.path.join(directory, filename))
+
+
+def clean():
+    _clean('../outputs')
+    _clean('../elf_to_shellcode/resources')
 
 
 def prepare_jobs():
@@ -268,7 +290,7 @@ def prepare_jobs():
             supported = attributes.get('supported', [])
             flags = attributes.get("cflags", [])
             remove_flags = attributes.get("remove_cflags", [])
-            if compiler.compiler_name not in supported:
+            if compiler.compiler_name not in supported or should_skip_features(compiler.compiler_name, feature_name):
                 print("[-] Skipping feature: {} - {}".format(
                     feature_name,
                     compiler.compiler_name
@@ -299,6 +321,8 @@ if __name__ == "__main__":
     entry_points = []
     for job in jobs:
         entry_points.append(job.run)
-
-    for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
-        execute_jobs_in_parallel(entry_points[i:i + max_parallel_jobs])
+    #
+    for job in jobs:
+        job.run()
+    # for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
+    #    execute_jobs_in_parallel(entry_points[i:i + max_parallel_jobs])

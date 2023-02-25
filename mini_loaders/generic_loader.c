@@ -103,6 +103,8 @@ void loader_main(
     // Size of table header + entries + entry point
     base_address = (size_t)(table);
     base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
+    TRACE("Padding of base address = %x", table->padding);
+    base_address += table->padding; // Add aditional padding to the base address
     loader_base =(size_t)((void *)(table) - table->elf_information.loader_size);
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     // We consider the table size and the entry point as parsed

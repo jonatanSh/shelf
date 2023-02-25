@@ -25,19 +25,18 @@ class ArmX64Shellcode(Shellcode):
         self.irelative = IrelativeRelocs(ENUM_RELOC_TYPE_AARCH64['R_AARCH64_TLS_DTPMOD32'])
         self.add_relocation_handler(self.irelative.relocation_for_rela_plt_got_plt)
 
-    def build_shellcode_from_header_and_code(self, header, code):
+    def shellcode_handle_padding(self, shellcode_data):
+        dummy_header = self.shellcode_get_full_header(padding=0x0)
+
         # Now we are going to align our shellcode
         aarch64_alignment = (2 << 12)
-        if len(header) > aarch64_alignment:
-            alignment = len(header) % aarch64_alignment
+        if len(dummy_header) > aarch64_alignment:
+            alignment = len(dummy_header) % aarch64_alignment
         else:
-            alignment = aarch64_alignment - len(header)
+            alignment = aarch64_alignment - len(dummy_header)
         padding = b'\x00' * alignment
-        header_moved = self.move_header_by_offset(header,
-                                                  offset=len(padding))
 
-        constructed = header_moved + padding + code
-        return constructed
+        return alignment, padding + shellcode_data
 
 
 arm_x64_make_shellcode = create_make_shellcode(ArmX64Shellcode)

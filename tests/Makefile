@@ -6,7 +6,10 @@ TESTS+=no_libc_intel_x32_no_relocations no_libc_aarch64_no_relocations
 TESTS+=dynamic_intel_x64_elf_features dynamic_arm32_elf_features
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
-all: hooks $(TESTS)
+
+.PHONY: clean all
+
+all: clean hooks $(TESTS)
 
 hooks:
 	cd ../hooks && $(MAKE)
@@ -35,3 +38,6 @@ dynamic_arm32_%:
 	$(ARM_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode --loader-support dynamic
 
+clean:
+	rm -rf ../outputs/*elf_features*.out*
+	rm -rf ../outputs/*no_relocations*.out*

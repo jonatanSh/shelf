@@ -22,8 +22,6 @@ parser.add_argument("--output", default=None, help="Output file path")
 parser.add_argument("--start-method", default=StartFiles.no_start_files,
                     choices=StartFiles.__all__, help="Start method required for full glibc usage")
 parser.add_argument("--verbose", default=False, action="store_true", help="Verbose output")
-parser.add_argument("--save-without-header", default=False, action="store_true",
-                    help="Debug option, use only to store the elf without the mini loader and the relocation table")
 parser.add_argument("--loader-supports",
                     choices=LoaderSupports.choices.keys(),
                     nargs="+",
