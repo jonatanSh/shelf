@@ -26,7 +26,7 @@ test_cases = {
                {'eshelf': True}],
     'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['mips', 'intel_x32', 'intel_x64',
                                                                                   'arm32'], 'Hello'],
-    'hooks': ['../outputs/elf_features_{}.out.hooks.shellcode', ['intel_x32', 'mips', 'arm32', 'aarch64'],
+    'hooks': ['../outputs/elf_features_{}.out.hooks.shellcode', ['intel_x32', 'mips', 'arm32', 'aarch64', 'intel_x64'],
               ['Hello', "hello from hook!"],
               {'eshelf': False}],
 
