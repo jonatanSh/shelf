@@ -378,16 +378,15 @@ class Shellcode(object):
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
-        # Calling the do hooks hook
+        # Calling the do hooks
         self.do_hooks()
-
-        if LoaderSupports.HOOKS in self.args.loader_supports:
-            hooks = self.hooks.get_hooks_data()
-            shellcode_data = hooks + shellcode_data
 
         # This must be here !
         padding, shellcode_data = self.shellcode_handle_padding(shellcode_data)
         full_header = self.shellcode_get_full_header(padding=padding)
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            hooks = self.hooks.get_hooks_data()
+            full_header += hooks
         formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
         return self.post_make_shellcode_handle_format(formatted_shellcode)

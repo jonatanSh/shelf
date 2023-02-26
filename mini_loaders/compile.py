@@ -52,6 +52,7 @@ def should_skip_features(arch, feature):
 
     return False
 
+
 def cfiles(directory):
     return [os.path.join(directory, filename) for filename in os.listdir(directory)
             if filename.endswith(".c")]
