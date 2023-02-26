@@ -247,13 +247,7 @@ features = {
     'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
     'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
                'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
-               'supported': [
-                   'x64',
-                   'x32',
-                   'mipsbe',
-                   'mips',
-                   'arm_x32',
-               ],
+               'supported': arches,
                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
                'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
 }
