@@ -84,13 +84,6 @@
     #define HOOK_CALL_EXIT()
 #endif
 
-#define ARCH_GET_FUNCTION_OUT() {   \
-    asm(                            \
-        "\n"                        \
-        : "=r"(_out)                \
-    );                              \
-}                                   \
-
 #define get_pc() {      \
     asm(                            \
         "bal get_pc_internal\n"     \

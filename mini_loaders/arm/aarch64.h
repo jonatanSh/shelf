@@ -18,6 +18,38 @@
     #define HOOK_CALL_EXIT()
 #endif
 
+#define ARCH_FUNCTION_ENTER(ra) {            \
+    register size_t x30 asm("x30");           \
+    asm(                                    \
+        "mov %0, x30\n"                    \
+        : :                                 \
+        "r"(x30)                             \
+    );                                      \
+    *ra = x30;                               \
+}                                           \
+
+#define ARCH_FUNCTION_EXIT(ra) {          \
+   register size_t x30 asm("x30") = (size_t)(ra); \
+    asm(                                        \
+        "mov x30, %0\n"                       \
+        : :                                     \
+        "r"(x30)                                 \
+    );                                          \
+}                                               \
+
+
+#define ARCH_RETURN(_out) {          \
+   register size_t x0 asm("x0") = (size_t)(_out); \
+   register size_t x1 asm("x1") = (size_t)(*(size_t*)(((char*)&_out)+sizeof(size_t))); \
+    asm(                                        \
+        "mov x0, %0\n"                       \
+        "mov x1, %1\n"                       \
+        : :                                     \
+        "r"(x0),"r"(x1)                         \
+    );                                          \
+}                                               \
+
+
 #define ARCH_STORE_REGS() {             \
     asm(                                \
        "add sp,sp, #-80\n"               \
@@ -85,6 +117,8 @@
    );                                                   \
    HOOK_CALL_EXIT();                                    \
 }                                                       \
+
+
 
 
 #endif

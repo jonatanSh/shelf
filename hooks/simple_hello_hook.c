@@ -6,6 +6,7 @@
 __attribute__((section( ".init" )))
 void hook_main() {
     size_t return_address;
+    size_t rt = 0x0;
     ARCH_FUNCTION_ENTER(&return_address);
     char buffer[18];
     buffer[0] = 'h';
@@ -28,4 +29,5 @@ void hook_main() {
     buffer[17] = 0x0;
 	my_syscall3(__NR_write, 1, buffer, 17);
     ARCH_FUNCTION_EXIT(return_address);
+    ARCH_RETURN(rt);
 }
