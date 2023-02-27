@@ -80,8 +80,6 @@ void test_global_ptr_arrays() {
 #define ERROR -1
 #define SUCCESS 1
 
-
-
 long long int main(void * main_address, int argc, char ** argv, int total_args) {
     int status;
     TRACE("main address=%x, argc=%x, argv=%x, total_args=%d\n",

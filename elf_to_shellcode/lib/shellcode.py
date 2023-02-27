@@ -164,10 +164,16 @@ class Shellcode(object):
         table = five.py_obj()
 
         for key, value in self.addresses_to_patch.items():
+            value_packed = five.py_obj()
             if type(value) is not list:
                 value = [value]
+            for i, v in enumerate(value):
+                if i == 0:
+                    # value_packed += self.address_utils.signed_pack_pointer(v)
+                    value_packed += self.address_utils.pack_pointer(v)
 
-            value_packed = self.address_utils.pack_pointers(*value)
+                else:
+                    value_packed += self.address_utils.pack_pointer(v)
 
             relocation_entry = self.address_utils.pack_pointer(key)
             relocation_entry += value_packed

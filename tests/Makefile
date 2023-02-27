@@ -4,6 +4,7 @@ TESTS=mips_elf_features intel_x32_elf_features intel_x64_elf_features arm32_elf_
 TESTS+=aarch64_elf_features dynamic_mips_elf_features dynamic_intel_x32_elf_features
 TESTS+=no_libc_intel_x32_no_relocations no_libc_aarch64_no_relocations
 TESTS+=dynamic_intel_x64_elf_features dynamic_arm32_elf_features
+TESTS+=dynamic_aarch64_elf_features
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
 
@@ -37,6 +38,11 @@ dynamic_intel_x64_%:
 dynamic_arm32_%:
 	$(ARM_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
 	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode --loader-support dynamic
+
+dynamic_aarch64_%:
+	$(AARCH64_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_aarch64_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out --arch aarch64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out.shellcode --loader-support dynamic
+
 
 clean:
 	rm -rf ../outputs/*elf_features*.out*
