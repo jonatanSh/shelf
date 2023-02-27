@@ -28,19 +28,7 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
         pass
 
     def r_arm_glob_dat(self, relocation):
-        symbol_name = relocation.symbol.name
-        if self.shellcode.mini_loader.symbols.has_symbol(symbol_name):
-            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
-                symbol_name=symbol_name
-            )
-            offset = self.shellcode.make_relative(relocation.address)
-            self.shellcode.addresses_to_patch[offset] = [jmp_slot_address,
-                                                         RelocationAttributes.relative_to_loader_base]
-
-        else:
-            raise Exception("Library dynamic link error against symbol: {}".format(
-                symbol_name
-            ))
+        return self.jmp_slot(relocation)
 
     def jmp_slot(self, relocation):
         symbol = relocation.symbol
