@@ -44,5 +44,6 @@ this feature is currently only enabled for:
 * intel x64
 * mips
 * arm 32
+* aarch64
 
 please take a look at the elf_features test and makefile to fully understand how to use this feature
