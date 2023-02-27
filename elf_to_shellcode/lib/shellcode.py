@@ -371,7 +371,12 @@ class Shellcode(object):
 
         if self.args.output_format != OUTPUT_FORMAT_MAP.eshelf:
             full_header = self.mini_loader.loader + full_header
-
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            hooks = self.hooks.get_hooks_data()
+            logging.info("Adding hook shellcodes, size: {}".format(
+                hex(len(hooks))
+            ))
+            full_header += hooks
         return full_header
 
     def get_shellcode(self):
@@ -387,12 +392,7 @@ class Shellcode(object):
         # This must be here !
         padding, shellcode_data = self.shellcode_handle_padding(shellcode_data)
         full_header = self.shellcode_get_full_header(padding=padding)
-        if LoaderSupports.HOOKS in self.args.loader_supports:
-            hooks = self.hooks.get_hooks_data()
-            logging.info("Adding hook shellcodes, size: {}".format(
-                hex(len(hooks))
-            ))
-            full_header += hooks
+
         formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
         return self.post_make_shellcode_handle_format(formatted_shellcode)
