@@ -60,6 +60,14 @@ class AddressUtils(object):
         """
         return self.pack(self.shellcode.ptr_fmt, n)
 
+    def signed_pack_pointer(self, n):
+        """
+        Pack a pointer
+        :param n: The value of pack
+        :return: packed pointer
+        """
+        return self.pack(self.shellcode.ptr_fmt.lower(), n)
+
     def pack_list_of(self, fmt, *args):
         """
         Pack list of arguments

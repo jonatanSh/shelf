@@ -4,6 +4,7 @@ from elf_to_shellcode.lib.shellcode import Shellcode, create_make_shellcode
 from elf_to_shellcode.arm.aarch64_dynamic_relocations import AArch64DynamicRelocations
 from elf_to_shellcode.lib.ext.irelative_relocations import IrelativeRelocs
 from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
+from elf_to_shellcode.lib.consts import LoaderSupports
 
 
 # Refernce: https://static1.squarespace.com/static/59c4375b8a02c798d1cce06f/t/59d55a7bf5e2319471bb94a4/1507154557709/ELF+for+ARM64.pdf
@@ -27,7 +28,11 @@ class ArmX64Shellcode(Shellcode):
             **kwargs
         )
         self.dynamic_handler = AArch64DynamicRelocations(shellcode=self)
-        self.add_relocation_handler(self.dynamic_handler.handle)
+        if LoaderSupports.DYNAMIC in self.args.loader_supports:
+            self.add_relocation_handler(self.dynamic_handler.handle)
+        else:
+            self.irelative_helper = IrelativeRelocs(ENUM_RELOC_TYPE_AARCH64['R_AARCH64_TLS_DTPMOD32'])
+            self.add_relocation_handler(self.irelative_helper.relocation_for_rela_plt_got_plt)
 
     def shellcode_handle_padding(self, shellcode_data):
         dummy_header = self.shellcode_get_full_header(padding=0x0)
