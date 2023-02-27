@@ -17,30 +17,32 @@ class AArch64DynamicRelocations(BaseDynamicRelocations):
         }
 
     def r_aarch64_tls_dtpmod32(self, relocation):
-        f_offset_r = self.shellcode.make_relative(relocation.address)
-        symbol_name = relocation.symbol.name
-        if self.shellcode.mini_loader.symbols.has_symbol(symbol_name):
-            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
-                symbol_name=symbol_name
-            )
-            self.shellcode.addresses_to_patch[f_offset_r] = [jmp_slot_address,
-                                                             RelocationAttributes.relative_to_loader_base]
-        else:
-            s = relocation.symbol.value
-            a = relocation.addend
-            v_offset = s + a
-            v_offset_r = self.shellcode.make_relative(v_offset)
-
-            self.shellcode.addresses_to_patch[f_offset_r] = [
-                v_offset_r,
-                RelocationAttributes.call_to_resolve
-            ]
-
-    def r_aarch64_abs64(self, relocation):
         s = relocation.symbol.value
         a = relocation.addend
         v_offset = s + a
         f_offset_r = self.shellcode.make_relative(relocation.address)
+        v_offset_r = self.shellcode.make_relative(v_offset)
+
+        self.shellcode.addresses_to_patch[f_offset_r] = [
+            v_offset_r,
+            RelocationAttributes.call_to_resolve
+        ]
+
+    def r_aarch64_abs64(self, relocation):
+        symbol = relocation.symbol
+        f_offset_r = self.shellcode.make_relative(relocation.address)
+
+        if self.shellcode.mini_loader.symbols.has_symbol(symbol.name):
+            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
+                symbol_name=symbol.name
+            )
+            self.shellcode.addresses_to_patch[f_offset_r] = [jmp_slot_address,
+                                                             RelocationAttributes.relative_to_loader_base]
+
+            return
+        s = relocation.symbol.value
+        a = relocation.addend
+        v_offset = s + a
         v_offset_r = self.shellcode.make_relative(v_offset)
 
         self.shellcode.addresses_to_patch[f_offset_r] = v_offset_r
