@@ -108,6 +108,13 @@ typedef void * (*IRELATIVE_T)();
     #define ARCH_RETURN
 #endif
 
+#define ARCH_GET_FUNCTION_OUT() {   \
+    asm(                            \
+        "\n"                        \
+        : "=r"(_out)                \
+    );                              \
+}                                   \
+
 
 #include "../headers/mini_loader.h"
 

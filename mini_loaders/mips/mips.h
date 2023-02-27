@@ -84,13 +84,6 @@
     #define HOOK_CALL_EXIT()
 #endif
 
-#define ARCH_GET_FUNCTION_OUT() {   \
-    asm(                            \
-        "\n"                        \
-        : "=r"(_out)                \
-    );                              \
-}                                   \
-
 #define get_pc() {      \
     asm(                            \
         "bal get_pc_internal\n"     \
@@ -105,12 +98,12 @@
 }                                   \
 
 #define call_main(main_ptr, argc, argv, total_args) {                           \
-   HOOK_CALL_ENTER();                                           \
    register size_t t9 asm("t9") = (size_t)(main_ptr);           \
    register size_t a0 asm("a0") = (size_t)(main_ptr);           \
    register size_t a1 asm("a1") = (size_t)(argc);               \
    register size_t a2 asm("a2") = (size_t)(argv);               \
    register size_t a3 asm("a3") = (size_t)((total_args+1) * 4); \
+   HOOK_CALL_ENTER();                                           \
    asm(                                                         \
        "addiu $sp, $sp, -4\n"                                   \
        "sw $ra, 0($sp)\n"                                       \

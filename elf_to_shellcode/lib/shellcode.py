@@ -160,8 +160,7 @@ class Shellcode(object):
         else:
             raise NotImplementedError()
 
-    @property
-    def relocation_table(self):
+    def relocation_table(self, padding=0x0):
         table = five.py_obj()
 
         for key, value in self.addresses_to_patch.items():
@@ -177,7 +176,10 @@ class Shellcode(object):
             relocation_entry = relocation_size + relocation_entry
             table += relocation_entry
 
-        sizes = self.address_utils.pack_pointers(len(table), len(self.get_shellcode_header()))
+        # Pack the following format: {size_t padding, size_t table_length, size_t header_length}
+        sizes = self.address_utils.pack_pointers(padding,
+                                                 len(table),
+                                                 len(self.get_shellcode_header()))
 
         header = self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header
         if LoaderSupports.HOOKS in self.args.loader_supports:
@@ -362,41 +364,47 @@ class Shellcode(object):
     def build_shellcode_from_header_and_code(self, header, code):
         return header + code
 
+    def shellcode_get_full_header(self, padding=0x0):
+        shellcode_header = self.get_shellcode_header()
+        relocation_table = self.relocation_table(padding=padding)
+        full_header = relocation_table + shellcode_header
+
+        if self.args.output_format != OUTPUT_FORMAT_MAP.eshelf:
+            full_header = self.mini_loader.loader + full_header
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            hooks = self.hooks.get_hooks_data()
+            logging.info("Adding hook shellcodes, size: {}".format(
+                hex(len(hooks))
+            ))
+            full_header += hooks
+        return full_header
+
     def get_shellcode(self):
         shellcode_data = self.shellcode_data
-        shellcode_header = self.get_shellcode_header()
         shellcode_data = self.correct_symbols(shellcode_data)
         for handler in self.relocation_handlers:
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
         shellcode_data = self.do_objdump(shellcode_data)
-        # Calling the do hooks hook
+        # Calling the do hooks
         self.do_hooks()
 
-        if LoaderSupports.HOOKS in self.args.loader_supports:
-            hooks = self.hooks.get_hooks_data()
-            shellcode_data = hooks + shellcode_data
         # This must be here !
-        relocation_table = self.relocation_table
+        padding, shellcode_data = self.shellcode_handle_padding(shellcode_data)
+        full_header = self.shellcode_get_full_header(padding=padding)
 
-        full_header = self.mini_loader.loader + relocation_table + shellcode_header
-        if self.args.save_without_header:
-            self.logger.info("Saving without shellcode table")
-            formatted_shellcode = shellcode_data
-        else:
-            formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
+        formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
         return self.post_make_shellcode_handle_format(formatted_shellcode)
 
-    def add_hooks_before_shellcode_data(self, shellcode_data):
-        pass
+    def shellcode_handle_padding(self, shellcode_data):
+        return 0, shellcode_data
 
     def post_make_shellcode_handle_format(self, shellcode):
         shellcode_with_output_format = shellcode
         if self.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
-            shellcode_no_loader = self.remove_loader_from_shellcode(shellcode)
             shellcode_with_output_format = self.build_eshelf(
-                shellcode_data=shellcode_no_loader
+                shellcode_data=shellcode
             )
         return shellcode_with_output_format
 
@@ -459,60 +467,17 @@ class Shellcode(object):
 
     def get_loader_base_address(self, shellcode):
         loader_size = len(self.mini_loader.loader)
-        table_length = len(self.relocation_table)
+        table_length = len(self.relocation_table(0x0))
         offset = loader_size + table_length
         return self.unpack_ptr(shellcode[offset:offset + self.ptr_size])
 
     def set_loader_base_address(self, shellcode, new_base_address):
         loader_size = len(self.mini_loader.loader)
-        table_length = len(self.relocation_table)
+        table_length = len(self.relocation_table(0x0))
         offset = loader_size + table_length
         shellcode = shellcode[:offset] + self.address_utils.pack_pointer(new_base_address) + shellcode[
                                                                                              offset + self.ptr_size:]
         return shellcode
-
-    def move_header_by_offset(self, header, offset):
-        """
-        This function move the shellcode header by offset.
-        It actually parse the shellcode just like the loader and correct the offsets
-        :param shellcode_data:
-        :param offset:
-        :return:
-        """
-        current_offset = 0
-        loader_size = len(self.mini_loader.loader)
-        # Skipping the loader
-        current_offset += loader_size
-        magic = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
-        assert magic == self.shellcode_table_magic, 'Error reading magic'
-        current_offset += self.ptr_size  # skipping magic
-        table_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
-        current_offset += self.ptr_size  # skip ptr size
-        header_size = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
-        current_offset += self.ptr_size  # skip ptr header size
-
-        current_offset += len(self.pre_table_header)
-
-        handled_size = 0
-        while handled_size < table_size:
-            size, voff1, voff2 = self.stream_unpack_pointers(
-                header[current_offset:],
-                3
-            )
-            voff1 += offset
-            voff2 += offset
-            voff1 = self.address_utils.pack_pointer(voff1)
-            voff2 = self.address_utils.pack_pointer(voff2)
-            header_next = header[current_offset + self.ptr_size * 3:]
-            header = header[:current_offset + self.ptr_size] + voff1 + voff2 + header_next
-
-            current_offset += size
-            handled_size += size
-        entry_point = self.unpack_ptr(header[current_offset:current_offset + self.ptr_size])
-        entry_point += offset
-        entry_point = self.address_utils.pack_pointer(entry_point)
-        header = header[:current_offset] + entry_point + header[current_offset + self.ptr_size:]
-        return header
 
     def embed(self, **kwargs):
         for key, value in kwargs.items():
@@ -523,7 +488,7 @@ class Shellcode(object):
             sys.exit(1)
 
     def __repr__(self):
-        return "Shellcode(table_size={})".format(len(self.relocation_table))
+        return "Shellcode(table_size={})".format(len(self.relocation_table(0x0)))
 
 
 def get_shellcode_class(args, shellcode_cls):

@@ -30,7 +30,7 @@ setup(
     install_requires=[
                          'pyelftools',
                          'capstone',
-                         'py_elf_structs>=1.3'
+                         'py_elf_structs>=1.4.1'
                      ] + py_specific_req,
     license='MIT License',
     description='Python package to create shellcdoes from elfs supported arch '

@@ -21,6 +21,7 @@ struct mini_loader_hooks_descriptor {
 };
 struct relocation_table {
     size_t magic;
+    size_t padding;
     size_t total_size;
     size_t header_size;
     struct elf_information_struct elf_information;

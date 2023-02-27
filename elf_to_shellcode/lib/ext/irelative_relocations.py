@@ -34,7 +34,7 @@ class IrelativeRelocs(object):
 
             virtual_offset = shellcode.make_relative(relocation.entry.r_offset)
             function_offset = shellcode.make_relative(relocation.entry.r_addend)
-            self.logger.info("| IRELATIVE | Relative(*{}={}()) Absolute(*{}={}())".format(
+            self.logger.info("| IRELATIVE CALL TO RESOLVE | Relative(*{}={}()) Absolute(*{}={}())".format(
                 hex(virtual_offset),
                 hex(function_offset),
                 hex(shellcode.address_utils.make_absolute(virtual_offset)),

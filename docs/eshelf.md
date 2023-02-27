@@ -26,3 +26,4 @@ just add the following outputing option
 * intel x32
 * mips
 * arm32
+* arm64
