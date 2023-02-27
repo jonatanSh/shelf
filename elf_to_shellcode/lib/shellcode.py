@@ -367,7 +367,10 @@ class Shellcode(object):
     def shellcode_get_full_header(self, padding=0x0):
         shellcode_header = self.get_shellcode_header()
         relocation_table = self.relocation_table(padding=padding)
-        full_header = self.mini_loader.loader + relocation_table + shellcode_header
+        full_header = relocation_table + shellcode_header
+
+        if self.args.output_format != OUTPUT_FORMAT_MAP.eshelf:
+            full_header = self.mini_loader.loader + full_header
 
         return full_header
 
@@ -386,6 +389,9 @@ class Shellcode(object):
         full_header = self.shellcode_get_full_header(padding=padding)
         if LoaderSupports.HOOKS in self.args.loader_supports:
             hooks = self.hooks.get_hooks_data()
+            logging.info("Adding hook shellcodes, size: {}".format(
+                hex(len(hooks))
+            ))
             full_header += hooks
         formatted_shellcode = self.build_shellcode_from_header_and_code(full_header, shellcode_data)
 
@@ -394,15 +400,11 @@ class Shellcode(object):
     def shellcode_handle_padding(self, shellcode_data):
         return 0, shellcode_data
 
-    def add_hooks_before_shellcode_data(self, shellcode_data):
-        pass
-
     def post_make_shellcode_handle_format(self, shellcode):
         shellcode_with_output_format = shellcode
         if self.args.output_format == OUTPUT_FORMAT_MAP.eshelf:
-            shellcode_no_loader = self.remove_loader_from_shellcode(shellcode)
             shellcode_with_output_format = self.build_eshelf(
-                shellcode_data=shellcode_no_loader
+                shellcode_data=shellcode
             )
         return shellcode_with_output_format
 

@@ -65,7 +65,7 @@ void loader_main(
     /*
         Otherwise loader has be called with pc
     */
-    TRACE("Loader magic is %x, required table magic is %x",
+    TRACE("Loader magic is 0x%x, required table magic is 0x%x",
     loader_magic, magic);
     if(loader_magic != magic) {
         #ifndef ESHELF
@@ -79,23 +79,23 @@ void loader_main(
         #endif
         advance_pc_to_magic();
     }
-    TRACE("Found table at: %x", pc);
+    TRACE("Found table at: 0x%x", pc);
     // If we got here then we found the table
     table = (struct relocation_table *)pc;
-    TRACE("Found table, magic = %x, excpecting %x", table->magic, magic);
+    TRACE("Found table, magic = 0x%x, excpecting 0x%x", table->magic, magic);
     ASSERT(table->magic == magic, INVALID_MAGIC);
     total_header_plus_table_size = table->total_size;
     total_header_plus_table_size += table->header_size;
 #ifdef SUPPORT_HOOKS
     hooks_base_address = (size_t)(table);
     hooks_base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
-    TRACE("Adding hooks shellcode sizes to total_header_plus_table_size shellcode size = %x", table->hook_descriptor.size_of_hook_shellcode_data);
+    TRACE("Adding hooks shellcode sizes to total_header_plus_table_size shellcode size = 0x%x", table->hook_descriptor.size_of_hook_shellcode_data);
     total_header_plus_table_size += table->hook_descriptor.size_of_hook_shellcode_data;
-    TRACE("Dispatching startup hooks, hooks base address = %x", hooks_base_address);
+    TRACE("Dispatching startup hooks, hooks base address = 0x%x", hooks_base_address);
     for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {
         struct hook * hook = &(table->hook_descriptor.startup_hooks[i]);
         size_t hook_address = hooks_base_address + hook->relative_address;
-        TRACE("Hook relative address = %x, hook address = %x", hook->relative_address, hook_address);
+        TRACE("Hook relative address = 0x%x, hook address = 0x%x", hook->relative_address, hook_address);
         TRACE_ADDRESS(hook_address, 24);
         call_main(hook_address, table, 0, 0);
     }
@@ -107,7 +107,7 @@ void loader_main(
     loader_base =(size_t)((void *)(table) - table->elf_information.loader_size);
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     // We consider the table size and the entry point as parsed
-    TRACE("Starting to parse table, total size = %x", total_header_plus_table_size);
+    TRACE("Starting to parse table, total size = 0x%x", total_header_plus_table_size);
     while(parsed_entries_size < table->total_size) {
         struct table_entry * entry = (struct table_entry *)entry_ptr;
         struct entry_attributes * attributes = (struct entry_attributes*)((void*)entry+sizeof(size_t)*3);
@@ -115,7 +115,7 @@ void loader_main(
         size_t f_offset = entry->f_offset + base_address;
         size_t v_offset = entry->v_offset + base_address; 
         #ifdef DEBUG
-            TRACE("Parssing Entry(size=%x, f_offset=%x, v_offset=%x, first_attribute=%x)",
+            TRACE("Parssing Entry(size=0x%x, f_offset=0x%x, v_offset=0x%x, first_attribute=0x%x)",
                 entry->size, entry->f_offset, entry->v_offset, attributes->attribute_1);
         #endif    
         /*
@@ -128,23 +128,26 @@ void loader_main(
             size_t attribute_val = 0;
             if(attributes->attribute_1 == IRELATIVE) {
                 #ifdef DEBUG
-                    TRACE("Loader IRELATIVE fix: %x=%x()", v_offset, v_offset);
+                    TRACE("Loader IRELATIVE fix: 0x%x=0x%x()", v_offset, v_offset);
                     TRACE_ADDRESS(v_offset, 24);
                 #endif
                 attribute_val = (size_t)((IRELATIVE_T)(v_offset))();
+                #ifdef DEBUG
+                    TRACE("Loader IRELATIVE returned: 0x%x", attribute_val);
+                #endif
                 v_offset = attribute_val;
             }
             else if(attributes->attribute_1 == RELATIVE_TO_LOADER_BASE) {
                 attribute_val = (size_t)(entry->v_offset + loader_base);
                 #ifdef DEBUG
-                    TRACE("Loader RELATIVE_TO_LOADER_BASE fix: %x=%x()", v_offset, attribute_val);
+                    TRACE("Loader RELATIVE_TO_LOADER_BASE fix: 0x%x=0x%x()", v_offset, attribute_val);
                 #endif
                 v_offset = attribute_val;
             }
             else if(attributes->attribute_1 == RELATIVE) {
                 attribute_val = (size_t)(*((size_t*)f_offset)) + base_address;
                 #ifdef DEBUG
-                    TRACE("Loader RELATIVE fix: %x=%x()", v_offset, attribute_val);
+                    TRACE("Loader RELATIVE fix: 0x%x=0x%x()", v_offset, attribute_val);
                 #endif
                 v_offset = attribute_val;
             }
@@ -154,7 +157,7 @@ void loader_main(
             }
         }
         #ifdef DEBUG
-            TRACE("Loader set *((size_t*)%x) = %x", f_offset, v_offset);
+            TRACE("Loader set *((size_t*)0x%x) = 0x%x", f_offset, v_offset);
         #endif
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;
@@ -163,7 +166,7 @@ void loader_main(
         entry_ptr += entry->size;
     }
     void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
-    TRACE("Shellcode entry point = %x", entry_point);
+    TRACE("Shellcode entry point = 0x%x", entry_point);
 #ifdef SUPPORT_START_FILES
         int looking_at_argv = 0;
         int index = 0;
@@ -196,7 +199,7 @@ exit:
 #ifdef ESHELF
     TRACE("ESHELF exit, RC is irrelevant");
 #endif
-    TRACE("Mini loader exit, _out=%x", _out);
+    TRACE("Mini loader exit, _out=0x%x", _out);
     TEARDOWN(1);
     ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
