@@ -1,3 +1,4 @@
+import logging
 from elf_to_shellcode.lib.ext.dynamic_relocations_base import BaseDynamicRelocations
 from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
 from elf_to_shellcode.lib.consts import RelocationAttributes
@@ -16,6 +17,7 @@ class AArch64DynamicRelocations(BaseDynamicRelocations):
         a = relocation.addend
         v_offset = s + a
         f_offset = self.shellcode.make_relative(relocation.address)
+        v_offset = self.shellcode.make_relative(v_offset)
         self.shellcode.addresses_to_patch[f_offset] = [
             v_offset,
             RelocationAttributes.call_to_resolve
