@@ -1,7 +1,18 @@
 ## Extensions - hooks
 
 Because this project is intended to work on large very of systems os independently the hook mechanism enable writing
-your own assembly code and hook loading functions.
+your own shellcode code and hook loading functions.
+
+### Use cases
+In macOS for a memory region to have RWX (read write execute) permission.
+The originated binary must have the JIT entitlement.
+The mini loader relocates the shellcode.
+To relocate the shellcode it writes read and execute memory,
+to bypass this entitlement we can create a pre_relocate_write_hook and a pre_relocate_execute hook
+then change the memory permissions accordingly.
+The reason we use hooks instead of implementing this logic inside the loader
+is because this project is intended to support large variety of operating systems
+and if this logic was inside the mini loader the mini loader will be os dependent.
 
 ### How to use
 
