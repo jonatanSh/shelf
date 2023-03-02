@@ -1,3 +1,10 @@
+import enum
+
+
+class HookTypes(enum.Enum):
+    STARTUP_HOOKS = 1
+
+
 class RelocationAttributes(object):
     call_to_resolve = 1
     relative_to_loader_base = 2
@@ -41,6 +48,26 @@ class LoaderSupports(object):
 class OUTPUT_FORMAT_MAP(object):
     eshelf = 'eshelf'
     shelf = 'shelf'
+
+
+class Arches(enum.Enum):
+    mips = "mips"
+    intel_x32 = "intel_x32"
+    intel_x64 = "intel_x64"
+    arm32 = "arm32"
+    aarch64 = "aarch64"
+    __all__ = [
+        mips,
+        intel_x32,
+        intel_x64,
+        arm32,
+        aarch64
+    ]
+
+
+class ArchEndians(enum.Enum):
+    little = 'little'
+    big = 'big'
 
 
 OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]

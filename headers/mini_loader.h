@@ -13,6 +13,8 @@ struct elf_information_struct {
 
 struct hook {
     size_t relative_address;
+    size_t attributes_size;
+    size_t shellcode_size;
 };
 
 struct mini_loader_hooks_descriptor { 

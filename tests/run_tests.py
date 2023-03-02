@@ -26,7 +26,7 @@ test_cases = {
                {'eshelf': True}],
     'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['all'], 'Hello'],
     'hooks': ['../outputs/elf_features_{}.out.hooks.shellcode', ['all'],
-              ['Hello', "hello from hook!"],
+              ['Hello', "Simple hello hook said hello!"],
               {'eshelf': False}],
 
 }

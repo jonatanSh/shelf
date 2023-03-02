@@ -115,3 +115,20 @@ class AddressUtils(object):
             4: "I",
             8: "Q"
         }[size]
+
+    def _align(self, data, direction, padding=b'\x00'):
+        if len(data) % self.shellcode.ptr_size == 0x0:
+            return data
+        alignment = len(data) + (self.shellcode.ptr_size - (len(data) % self.shellcode.ptr_size))
+        if direction == 'left':
+            return data.ljust(alignment, padding)
+        elif direction == 'right':
+            return data.rjust(alignment, padding)
+        else:
+            raise Exception("Padding error")
+
+    def left_align(self, data, padding=b'\x00'):
+        return self._align(data=data, direction="left", padding=padding)
+
+    def right_align(self, data, padding=b'\x00'):
+        return self._align(data=data, direction="right", padding=padding)
