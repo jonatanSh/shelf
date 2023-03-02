@@ -4,21 +4,63 @@ Because this project is intended to work on large very of systems os independent
 your own assembly code and hook loading functions.
 
 ### How to use
+
 A hook must be a shellcode, you can take a look at the simple say hi hook
 
 * [simple_hello_hook](../hooks/simple_hello_hook.c)
-* [simple_hello_hook json](../hook_configurations/test.json)
+* [simple_hello_hook py](../hook_configurations/simple_hello_hook.py)
+
+### The configuration file
+
+The hook configuration file is a python file. The parser will parse this file and create the hooks accordingly. In the
+hook file you can create the hook attributes by overriding the hook_get_attributes function. Then inside the hook (the
+shellcode you can access this attributes)
+
+```python
+"""
+The library parses this file and find all the class inheriting from 
+elf_to_shellcode.hooks import [... hook types (eg .. ShelfStartupHook)]
+Then the library create all the hooks accordingly
+"""
+from elf_to_shellcode.hooks import ShelfStartupHook, Arches, ArchEndians
+
+
+class SimpleSayHiHook(ShelfStartupHook):
+    def hook_get_shellcode_path(self, arch, endian):
+        assert isinstance(arch, Arches)
+        assert isinstance(endian, ArchEndians)
+        return "../outputs/{}_simple_hello_hook.hook".format(arch.value)
+
+    def hook_get_attributes(self):
+        message = b"Hello from shellcode"
+        message_length = len(message) + 1
+        message_length_packed = self.shellcode.address_utils.pack_pointer(
+            message_length
+        )
+        message = self.shellcode.address_utils.pack(
+            "{}s".format(message_length),
+            message
+        )
+
+        packed = message_length_packed + message
+
+        return packed
+
+```
 
 Currently, the following hook types are supported:
+
 * startup_hooks - Hooks that run upon mini_loader initialize
 
 #### Usage
+
 ```bash
 # Add the following arguments
---loader-supports hooks --hooks-configuration ../hook_configurations/test.json
+--loader-supports hooks --hooks-configuration ../hook_configurations/simple_hello_hook.py
 ```
 
 #### Result
+
 ```bash
 INFO:root:Stdout: hello from hook! # This is returned from the hook
 [ELF_FEATURES:INFO] elf_features.c main(line:86):main address=7f6d4734, argc=2, argv=7ffff6b4, total_args=4
@@ -33,7 +75,6 @@ INFO:root:Stdout: hello from hook! # This is returned from the hook
 [ELF_FEATURES:INFO] elf_features.c main(line:120):__Test_output_Success
 Loading ../outputs/elf_features_mipsbe.out.hooks.shellcode
 ```
-
 
 #### Supported architectures
 

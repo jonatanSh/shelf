@@ -3,9 +3,10 @@ include $(SELF_DIR)/../makefiles/compilers.mk
 
 CFLAGS=-fno-stack-protector -g -static -Wno-stack-protector
 CFLAGS+=-nolibc --entry=hook_main -nostartfiles -fno-plt
+CFLAGS+=-DSUPPORT_HOOKS
 OUTPUT_DIRECTORY=../outputs/
 TARGETS=mips_simple_hello_hook intel_x32_simple_hello_hook intel_x64_simple_hello_hook
-TARGETS+=arm_simple_hello_hook aarch64_simple_hello_hook
+TARGETS+=arm32_simple_hello_hook aarch64_simple_hello_hook
 
 
 all: $(TARGETS)
@@ -22,8 +23,8 @@ intel_x64_%:
 	$(X64_CC) $(CFLAGS) -masm=intel -static $(subst intel_x64_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
 	$(X64_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
 
-arm_%:
-	$(ARM_CC) $(CFLAGS) -static $(subst arm_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
+arm32_%:
+	$(ARM_CC) $(CFLAGS) -static $(subst arm32_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
 	$(ARM_OBJCOPY) -j .init -j .text -O binary $(OUTPUT_DIRECTORY)$@.out $(OUTPUT_DIRECTORY)$@.hook
 
 aarch64_%:

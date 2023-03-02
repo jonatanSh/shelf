@@ -6,8 +6,8 @@ from argparse import ArgumentParser
 from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFiles
 from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
 from elf_to_shellcode.lib import five
-from elf_to_shellcode.lib.exceptions import InvalidJson, PathDoesNotExists
-from elf_to_shellcode.lib.utils.general import get_json
+from elf_to_shellcode.hooks.hooks_configuration_parser import is_valid_hooks_file
+
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
 parser.add_argument("--arch",
@@ -46,25 +46,24 @@ parser.add_argument("--loader-symbols-path",
                     help="Loader symbols to use while creating the shellcode"
                     )
 parser.add_argument("--hooks-configuration", required=False,
-                    help="Hooks configuration file, must be a valid json, for examples look at hook_configurations")
+                    help="Hooks configuration file, must be a valid python hook configuration file"
+                         "for examples look at hook_configurations/simple_hello_hook.py under the project github page")
 args = parser.parse_args()
 
 if args.hooks_configuration:
-    assert os.path.exists(args.hooks_configuration)
-    try:
-        get_json(args.hooks_configuration)
-    except InvalidJson:
-        parser.error("--hook-configuration {} is not a valid json".format(
-            args.hooks_configuration
-        ))
-    except PathDoesNotExists:
+    if not os.path.exists(args.hooks_configuration):
         parser.error("--hook-configuration path: {} does not exists".format(
             args.hooks_configuration
         ))
+    if not is_valid_hooks_file(args.hooks_configuration):
+        parser.error(
+            "--hook-configuration file {} is invalid, "
+            "take a look at the github page under hook_configurations/simple_hello_hook.py".format(
+                args.hooks_configuration
+            ))
 if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_path, args.loader_symbols_path]):
     parser.error("--loader-path and --loader-symbols-path must be used together")
     sys.exit(1)
-
 
 sys.modules["global_args"] = args
 if args.verbose:

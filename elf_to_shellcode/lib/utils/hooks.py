@@ -1,10 +1,20 @@
-from copy import deepcopy
-from elf_to_shellcode.lib.five import array_join, is_python3
+import binascii
 import logging
+from copy import deepcopy
+from elf_to_shellcode.lib import five
+from elf_to_shellcode.lib.five import array_join, is_python3
+from elf_to_shellcode.lib.consts import HookTypes, Arches
 
 
-class HookTypes(object):
-    STARTUP_HOOKS = 1
+class ArchAlignedList(list):
+    def __init__(self, shellcode):
+        self.shellcode = shellcode
+        super(ArchAlignedList, self).__init__()
+
+    def append(self, __object):
+        super(ArchAlignedList, self).append(
+            self.shellcode.address_utils.left_align(__object)
+        )
 
 
 class ShellcodeHooks(object):
@@ -13,17 +23,25 @@ class ShellcodeHooks(object):
         self.number_of_hooks_per_descriptor = 1
         self._shellcode_hooks_descriptor_cls = self.shellcode.mini_loader.structs.mini_loader_hooks_descriptor
         self._startup_hooks = []
-        self._hooks_shellcode_data = []
+        self._hooks_shellcode_data = ArchAlignedList(shellcode=self.shellcode)
 
-    def _add_hook(self, shellcode_data, hook_type):
+    def _add_hook(self, shellcode_data, hook_type, attributes):
         """
         Adding all hooks relative to the end of the relocations
         :param shellcode_data:
         :return:
         """
-        relative_to_relocation_end = len(self._hooks_shellcode_data)
+        if not attributes:
+            attributes = five.py_obj()
+        relative_to_relocation_end = len(self.get_hooks_data())
+        shellcode_data = self.shellcode.address_utils.left_align(shellcode_data)
         self._hooks_shellcode_data.append(shellcode_data)
-        hook = self.shellcode.mini_loader.structs.hook(relative_address=relative_to_relocation_end)
+        self._hooks_shellcode_data.append(attributes)
+        hook = self.shellcode.mini_loader.structs.hook(
+            relative_address=relative_to_relocation_end,
+            attributes_size=len(attributes),
+            shellcode_size=len(shellcode_data)
+        )
 
         logging.info("Adding hook shellcode, type: {} size: {}".format(
             hook_type,
@@ -35,10 +53,10 @@ class ShellcodeHooks(object):
         else:
             raise NotImplementedError("Error hook type: {}".format(hook_type))
 
-    def add_startup_hook(self, shellcode_data):
+    def add_startup_hook(self, shellcode_data, attributes=None):
         if is_python3:
             assert type(shellcode_data) is bytes
-        self._add_hook(shellcode_data, HookTypes.STARTUP_HOOKS)
+        self._add_hook(shellcode_data, HookTypes.STARTUP_HOOKS, attributes=attributes)
 
     def _pad_list(self, plst, cls):
         lst = deepcopy(plst)
