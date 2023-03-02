@@ -8,7 +8,7 @@ In macOS for a memory region to have RWX (read write execute) permission.
 The originated binary must have the JIT entitlement.
 The mini loader relocates the shellcode.
 To relocate the shellcode it writes read and execute memory,
-to bypass this entitlement we can create a pre_relocate_write_hook and a pre_relocate_execute hook
+to bypass this entitlement we can create a pre_relocate_write_hook and a pre_relocate_execute_hook
 then change the memory permissions accordingly.
 The reason we use hooks instead of implementing this logic inside the loader
 is because this project is intended to support large variety of operating systems
@@ -62,7 +62,9 @@ class SimpleSayHiHook(ShelfStartupHook):
 Currently, the following hook types are supported:
 
 * startup_hooks - Hooks that run upon mini_loader initialize
-
+* pre_relocate_write_hook - WIP
+* pre_relocate_execute_hook - WIP
+* pre_calling_shellcode_main - WIP
 #### Usage
 
 ```bash
