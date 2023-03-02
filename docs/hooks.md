@@ -14,7 +14,7 @@ A hook must be a shellcode, you can take a look at the simple say hi hook
 
 The hook configuration file is a python file. The parser will parse this file and create the hooks accordingly. In the
 hook file you can create the hook attributes by overriding the hook_get_attributes function. Then inside the hook (the
-shellcode you can access this attributes)
+shellcode can access this attributes)
 
 ```python
 """
@@ -32,7 +32,7 @@ class SimpleSayHiHook(ShelfStartupHook):
         return "../outputs/{}_simple_hello_hook.hook".format(arch.value)
 
     def hook_get_attributes(self):
-        message = b"Hello from shellcode"
+        message = b"Simple hello hook said hello!"
         message_length = len(message) + 1
         message_length_packed = self.shellcode.address_utils.pack_pointer(
             message_length
@@ -62,7 +62,7 @@ Currently, the following hook types are supported:
 #### Result
 
 ```bash
-INFO:root:Stdout: hello from hook! # This is returned from the hook
+INFO:root:Stdout: Simple hello hook said hello! # This is returned from the hook
 [ELF_FEATURES:INFO] elf_features.c main(line:86):main address=7f6d4734, argc=2, argv=7ffff6b4, total_args=4
 [ELF_FEATURES:INFO] elf_features.c main(line:89):Elf in shellcode mode!
 [ELF_FEATURES:INFO] elf_features.c main(line:94):Argv[0] = ../outputs/shellcode_loader_mips.out, argv[1] = ../outputs/elf_features_mipsbe.out.hooks.shellcode
