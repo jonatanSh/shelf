@@ -1,4 +1,4 @@
-#include "./loader_generic.h"
+#include "./generic_loader.h"
 #include "eshelf/eshelf.h"
 
 /*

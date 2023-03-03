@@ -1,6 +1,6 @@
 #include <asm/unistd.h>
 #include "../osals/linux/syscalls/syscalls.h"
-#include "../mini_loaders/loader_generic.h"
+#include "../mini_loaders/generic_loader.h"
 
 struct hook_attributes {
     size_t message_length;

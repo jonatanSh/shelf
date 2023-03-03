@@ -1,5 +1,5 @@
-#ifndef LOADER_GENERIC
-#define LOADER_GENERIC
+#ifndef GENERIC_LOADER
+#define GENERIC_LOADER
 #include <stddef.h>
 #include "debug.h"
 #include "../osals/debug.h"
