@@ -105,8 +105,9 @@ void loader_main(
     base_address = (size_t)(table);
     base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
     base_address += table->padding;
-    loader_base =(size_t)((void *)(table) - table->elf_information.loader_size);
+    loader_base =(size_t)((void *)(table) - table->elf_information.loader_size) + table->padding_between_table_and_loader;
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
+    TRACE("loader_base = %x, base_address = %x", loader_base, base_address);
     // We consider the table size and the entry point as parsed
     TRACE("Starting to parse table, total size = 0x%x", total_header_plus_table_size);
     // handling relocation table

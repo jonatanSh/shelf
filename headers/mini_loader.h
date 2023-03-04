@@ -36,6 +36,7 @@ struct relocation_table {
     size_t padding;
     size_t total_size;
     size_t header_size;
+    size_t padding_between_table_and_loader;
     struct elf_information_struct elf_information;
     struct loader_function_descriptor functions;
 #ifdef SUPPORT_HOOKS

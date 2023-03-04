@@ -135,9 +135,10 @@ typedef void * (*IRELATIVE_T)();
     #define SET_STATUS
 #endif
 
-#define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                 \
-    call_function((table->functions.function+loader_base), a1, a2, a3, a4);         \
-    DISPATCHER_GET_CALL_OUT();                                         \
-}                                                                                   \
+#define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
+    TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+loader_base));  \
+    call_function((table->functions.function+loader_base), a1, a2, a3, a4);                                                             \
+    DISPATCHER_GET_CALL_OUT();                                                                                                          \
+}                                                                                                                                       \
 
 #endif
