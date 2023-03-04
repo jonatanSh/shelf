@@ -244,7 +244,6 @@ features = {
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c'], 'supported': arches},
     'hooks': {'defs': ['SUPPORT_HOOKS'], 'files': ['generic_loader.c'], 'supported': arches},
 
-    'glibc': {'defs': ['SUPPORT_START_FILES'], 'files': ['generic_loader.c'], 'supported': ['x32']},
     'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
                'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
                'supported': arches,

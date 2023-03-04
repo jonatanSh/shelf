@@ -128,3 +128,11 @@ class MiniLoader(object):
     @property
     def structs(self):
         return load_structs(self.structs_file)
+
+    @property
+    def function_descriptor_header(self):
+        return self.structs.loader_function_descriptor(
+            loader_handle_relocation_table=self.symbols.get_relative_symbol_address(
+                "loader_handle_relocation_table"
+            )
+        ).pack()

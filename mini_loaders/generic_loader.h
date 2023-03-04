@@ -115,6 +115,12 @@ typedef void * (*IRELATIVE_T)();
     );                              \
 }                                   \
 
+#define DISPATCHER_GET_CALL_OUT() {   \
+    asm(                            \
+        "\n"                        \
+        : "=r"(_dispatcher_out)     \
+    );                              \
+}                                   \
 
 #include "../headers/mini_loader.h"
 
@@ -129,5 +135,9 @@ typedef void * (*IRELATIVE_T)();
     #define SET_STATUS
 #endif
 
+#define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                 \
+    call_function((table->functions.function+loader_base), a1, a2, a3, a4);         \
+    DISPATCHER_GET_CALL_OUT();                                         \
+}                                                                                   \
 
 #endif

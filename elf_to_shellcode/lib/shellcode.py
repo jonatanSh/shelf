@@ -204,6 +204,9 @@ class Shellcode(object):
             self.elffile.header.e_ehsize + sht_entry_header_size
         )
         header += self.address_utils.pack_pointer(len(self.mini_loader.loader))
+
+        header += self.mini_loader.function_descriptor_header
+
         return header
 
     def correct_symbols(self, shellcode_data):
@@ -368,7 +371,7 @@ class Shellcode(object):
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
         new_entry_point = (original_entry_point - self.loading_virtual_address)
-        return struct.pack("{}{}".format(self.endian, self.ptr_fmt), new_entry_point)
+        return self.address_utils.pack_pointer(new_entry_point)
 
     def build_shellcode_from_header_and_code(self, header, code):
         return header + code

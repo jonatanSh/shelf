@@ -39,18 +39,16 @@ void loader_main(
     size_t loader_base;
     size_t magic;
     size_t total_argv_envp_size = 0;
-    size_t parsed_entries_size = 0;
-    size_t return_address;
     size_t total_header_plus_table_size = 0;
     long long int _out;
+    long long int _dispatcher_out;
+    size_t return_address;
+    ARCH_FUNCTION_ENTER(&return_address);
 #ifdef DEBUG
     TRACE("Loader in debug mode!");
     long long int mini_loader_status = 0;
 #endif
-    ARCH_FUNCTION_ENTER(&return_address);
-#ifdef SUPPORT_START_FILES
-    TRACE("Loader support: SUPPORT_START_FILES");
-#endif
+
 #ifdef ESHELF
     TRACE("Loader support: ESHELF");
 #endif
@@ -100,7 +98,7 @@ void loader_main(
         hook_attributes);
         TRACE_ADDRESS(hook_address, 24);
         TRACE_ADDRESS(hook_attributes, 24);
-        call_main(hook_address, table, hook_attributes, 0x0);
+        call_function(hook_address, table, hook_attributes, 0x0, 0x0);
     }
 #endif
     // Size of table header + entries + entry point
@@ -111,6 +109,53 @@ void loader_main(
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     // We consider the table size and the entry point as parsed
     TRACE("Starting to parse table, total size = 0x%x", total_header_plus_table_size);
+    // handling relocation table
+    LOADER_DISPATCH(loader_handle_relocation_table, table, 
+                entry_ptr, base_address, loader_base);
+    ASSERT(_dispatcher_out, OK);
+
+    void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
+    TRACE("Shellcode entry point = 0x%x", entry_point);
+    TRACE("Calling shellcode main");
+    call_function(entry_point, entry_point, argc, argv, (total_argv_envp_size + 1) * 4);
+#ifdef ARCH_GET_FUNCTION_OUT
+    ARCH_GET_FUNCTION_OUT();
+#endif
+
+// We ifdef everything here for compact loader
+#ifdef DEBUG
+    // If we got here then just exit normaly, and do not set error code
+    goto exit;
+#endif 
+
+error:
+#ifdef DEBUG
+    // This will set the mini loader status as the exit code
+    _out = mini_loader_status;
+#endif
+exit:
+#ifdef ESHELF
+    TRACE("ESHELF exit, RC is irrelevant");
+#endif
+    TRACE("Mini loader exit, _out=0x%x", _out);
+    TEARDOWN(1);
+    ARCH_FUNCTION_EXIT(return_address);
+    ARCH_RETURN(_out);
+/*
+Some arches still doesn't support ARCH_RETURN
+Think about how to fix this, currently it triggers compiler errors
+#ifdef DEBUG
+    return _out;
+#endif
+*/
+}
+
+STATUS loader_handle_relocation_table(struct relocation_table * table, 
+    void * entry_ptr, size_t base_address, size_t loader_base) {
+    size_t parsed_entries_size = 0;
+    long long int _out = OK;
+    size_t return_address;
+    ARCH_FUNCTION_ENTER(&return_address);
     while(parsed_entries_size < table->total_size) {
         struct table_entry * entry = (struct table_entry *)entry_ptr;
         struct entry_attributes * attributes = (struct entry_attributes*)((void*)entry+sizeof(size_t)*3);
@@ -168,51 +213,12 @@ void loader_main(
         parsed_entries_size += entry->size;
         entry_ptr += entry->size;
     }
-    void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
-    TRACE("Shellcode entry point = 0x%x", entry_point);
-#ifdef SUPPORT_START_FILES
-        int looking_at_argv = 0;
-        int index = 0;
-        total_argv_envp_size = argc + 1; // for null terminator
-        while(argv[total_argv_envp_size]) {
-            total_argv_envp_size ++;
-        }
-        total_argv_envp_size += 1; // for envp null terminator       
-        // Now overriding the auxiliary vector to point to the first pht_entry
-        argv[total_argv_envp_size] = (entry_ptr + table->elf_information.elf_header_size);
-#endif
-    TRACE("Calling shellcode main");
-    call_main(entry_point, argc, argv, total_argv_envp_size);
-#ifdef ARCH_GET_FUNCTION_OUT
-    ARCH_GET_FUNCTION_OUT();
-#endif
-
-// We ifdef everything here for compact loader
-#ifdef DEBUG
-    // If we got here then just exit normaly, and do not set error code
-    goto exit;
-#endif 
-
+    goto success;
 error:
-#ifdef DEBUG
-    // This will set the mini loader status as the exit code
-    _out = mini_loader_status;
-#endif
-exit:
-#ifdef ESHELF
-    TRACE("ESHELF exit, RC is irrelevant");
-#endif
-    TRACE("Mini loader exit, _out=0x%x", _out);
-    TEARDOWN(1);
+    _out = ERROR;
+success:
     ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
-/*
-Some arches still doesn't support ARCH_RETURN
-Think about how to fix this, currently it triggers compiler errors
-#ifdef DEBUG
-    return _out;
-#endif
-*/
 }
 
 #ifdef SUPPORT_DYNAMIC_LOADER

@@ -6,6 +6,12 @@
 */
 #define MAX_NUMBER_OF_HOOKS 1
 
+/*
+    Loader functions typedefs
+*/
+typedef int STATUS;
+
+
 struct elf_information_struct {
     size_t elf_header_size;
     size_t loader_size;
@@ -21,12 +27,17 @@ struct mini_loader_hooks_descriptor {
     size_t size_of_hook_shellcode_data;
     struct hook startup_hooks[MAX_NUMBER_OF_HOOKS];
 };
+
+struct loader_function_descriptor {
+    size_t loader_handle_relocation_table;
+};
 struct relocation_table {
     size_t magic;
     size_t padding;
     size_t total_size;
     size_t header_size;
     struct elf_information_struct elf_information;
+    struct loader_function_descriptor functions;
 #ifdef SUPPORT_HOOKS
     struct mini_loader_hooks_descriptor hook_descriptor;
 #endif
