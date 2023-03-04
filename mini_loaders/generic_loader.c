@@ -41,7 +41,7 @@ void loader_main(
     size_t total_argv_envp_size = 0;
     size_t total_header_plus_table_size = 0;
     long long int _out;
-    long long int _dispatcher_out;
+    size_t _dispatcher_out;
     size_t return_address;
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef DEBUG
@@ -105,17 +105,16 @@ void loader_main(
     base_address = (size_t)(table);
     base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
     base_address += table->padding;
-    loader_base =(size_t)((void *)(table) - table->elf_information.loader_size) + table->padding_between_table_and_loader;
-    void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
+    loader_base =(size_t)((void *)(table) - table->elf_information.loader_size) -  table->padding_between_table_and_loader;
     TRACE("loader_base = %x, base_address = %x", loader_base, base_address);
     // We consider the table size and the entry point as parsed
     TRACE("Starting to parse table, total size = 0x%x", total_header_plus_table_size);
     // handling relocation table
-    LOADER_DISPATCH(loader_handle_relocation_table, table, 
-                entry_ptr, base_address, loader_base);
-    ASSERT(_dispatcher_out, OK);
+    LOADER_DISPATCH(loader_handle_relocation_table, table, base_address, loader_base, 0x0);
+    ASSERT((_dispatcher_out != ERROR), RELOCATION_ERROR);
+    // Dispatcher out is the function return value;
+    void * entry_point = (void *)((size_t)_dispatcher_out + base_address);
 
-    void * entry_point = (void *)(*(size_t*)(entry_ptr) + base_address);
     TRACE("Shellcode entry point = 0x%x", entry_point);
     TRACE("Calling shellcode main");
     call_function(entry_point, entry_point, argc, argv, (total_argv_envp_size + 1) * 4);
@@ -151,11 +150,11 @@ Think about how to fix this, currently it triggers compiler errors
 */
 }
 
-STATUS loader_handle_relocation_table(struct relocation_table * table, 
-    void * entry_ptr, size_t base_address, size_t loader_base) {
+size_t loader_handle_relocation_table(struct relocation_table * table, size_t base_address, size_t loader_base) {
     size_t parsed_entries_size = 0;
-    long long int _out = OK;
+    size_t _out = OK;
     size_t return_address;
+    void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     ARCH_FUNCTION_ENTER(&return_address);
     while(parsed_entries_size < table->total_size) {
         struct table_entry * entry = (struct table_entry *)entry_ptr;
@@ -214,12 +213,14 @@ STATUS loader_handle_relocation_table(struct relocation_table * table,
         parsed_entries_size += entry->size;
         entry_ptr += entry->size;
     }
+    _out = *(size_t*)(size_t)entry_ptr;
+    TRACE("shellcode main located at relative %x", _out);
     goto success;
 error:
     _out = ERROR;
 success:
     ARCH_FUNCTION_EXIT(return_address);
-    ARCH_RETURN(_out);
+    return _out;
 }
 
 #ifdef SUPPORT_DYNAMIC_LOADER

@@ -61,5 +61,5 @@ int get_elf_information(struct relocation_table ** info);
 #define MAGIC_NOT_FOUND (1 << 1)
 #define INVALID_MAGIC (1 << 2)
 #define INVALID_ATTRIBUTE (1 << 3)
-
+#define RELOCATION_ERROR (1<<4)
 #endif // MINI_LOADER_EXTERNAL_DEFS
