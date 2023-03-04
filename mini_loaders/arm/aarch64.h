@@ -140,7 +140,6 @@
    register size_t x2 asm("x2") = (size_t)(a3); \
    register size_t x3 asm("x3") = (size_t)(a4); \
    register size_t x4 asm("x4") = (size_t)(main_ptr); \
-   HOOK_CALL_ENTER();                                       \
    asm(                                                 \
         "add sp,sp, #-8\n"                              \
         "str lr, [sp]\n"                                \
@@ -150,7 +149,6 @@
         :  :                                            \
         "r"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4)              \
    );                                                   \
-   HOOK_CALL_EXIT();                                    \
 }                                                       \
 
 

@@ -103,7 +103,6 @@
    register size_t a1 asm("a1") = (size_t)(arg1);               \
    register size_t a2 asm("a2") = (size_t)(arg2);               \
    register size_t a3 asm("a3") = (size_t)(arg3);               \
-   HOOK_CALL_ENTER();                                           \
    asm(                                                         \
        "addiu $sp, $sp, -4\n"                                   \
        "sw $ra, 0($sp)\n"                                       \
@@ -113,7 +112,6 @@
        :  :                                                     \
        "r"(t9)                                                  \
    );                                                           \
-   HOOK_CALL_EXIT();                                            \
 }                                                               \
 
 
