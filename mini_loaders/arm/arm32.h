@@ -29,19 +29,20 @@
 
 #define call_get_pc get_pc
 
-#define call_main(main_ptr, argc, argv, total_args) {                           \
-   register size_t r0 asm("r0") = (size_t)(main_ptr); \
-   register size_t r1 asm("r1") = (size_t)(argc); \
-   register size_t r2 asm("r2") = (size_t)(argv); \
-   register size_t r3 asm("r3") = (size_t)((total_args+1) * 4); \
+#define call_function(main_ptr, a1, a2, a3, a4) {                           \
+   register size_t r0 asm("r0") = (size_t)(a1); \
+   register size_t r1 asm("r1") = (size_t)(a2); \
+   register size_t r2 asm("r2") = (size_t)(a3); \
+   register size_t r3 asm("r3") = (size_t)(a4); \
+   register size_t r4 asm("r4") = (size_t)(main_ptr); \
    asm(                                                 \
         "add sp,sp, #-4\n"                              \
         "str lr, [sp]\n"                                \
-        "blx r0\n"                                     \
+        "blx r4\n"                                     \
         "ldr lr, [sp]\n"                                \
         "add sp, sp, #4\n"                              \
         :  :                                            \
-        "r"(r0), "r"(r1), "r"(r2), "r"(r3)              \
+        "r"(r0), "r"(r1), "r"(r2), "r"(r3), "r"(r4)     \
    );                                                   \
 }                                                       \
 

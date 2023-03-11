@@ -1,5 +1,5 @@
-#ifndef LOADER_GENERIC
-#define LOADER_GENERIC
+#ifndef GENERIC_LOADER
+#define GENERIC_LOADER
 #include <stddef.h>
 #include "debug.h"
 #include "../osals/debug.h"
@@ -115,6 +115,12 @@ typedef void * (*IRELATIVE_T)();
     );                              \
 }                                   \
 
+#define DISPATCHER_GET_CALL_OUT() {   \
+    asm(                            \
+        "\n"                        \
+        : "=r"(_dispatcher_out)     \
+    );                              \
+}                                   \
 
 #include "../headers/mini_loader.h"
 
@@ -129,5 +135,11 @@ typedef void * (*IRELATIVE_T)();
     #define SET_STATUS
 #endif
 
+#define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
+    TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+loader_base));  \
+    call_function((table->functions.function+loader_base), a1, a2, a3, a4);                                                             \
+    DISPATCHER_GET_CALL_OUT();                                                                                                          \
+    TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
+}                                                                                                                                       \
 
 #endif

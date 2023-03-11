@@ -29,51 +29,30 @@
 }                                   \
 
 
-#define call_main_glibc(main_ptr, argc, argv, total_args) {                           \
-   register size_t eax asm("eax") = (size_t)(main_ptr); \
-   register size_t ebx asm("ebx") = (size_t)(argc);     \
-   register size_t ecx asm("ecx") = (size_t)(argv);     \
-   register size_t esi asm("esi") = (size_t)((total_args+1) * 4);     \
-   asm(                                                 \
-        "push_args:\n"                                  \
-        "push [ecx+esi]\n"                              \
-        "sub esi, 4\n"                                  \
-        "cmp esi, 0\n"                                  \
-        "jg push_args\n"                               \
-        "push ebx\n"                                    \
-        "jmp eax"                                  \
-       :  :                                             \
-       "r"(eax), "r"(ebx), "r"(ecx), "r"(esi) \
-   );                                                   \
-}
 
-#define call_main_no_glibc(main_ptr, argc, argv, total_args) {                           \
-   register size_t eax asm("eax") = (size_t)(main_ptr); \
-   register size_t ebx asm("ebx") = (size_t)(argc);     \
-   register size_t ecx asm("ecx") = (size_t)(argv);     \
-   register size_t esi asm("esi") = (size_t)((total_args+1) * 4);     \
+#define call_function(main_ptr, a1, a2, a3, a4) {       \
+   register size_t eax asm("eax") = (size_t)(a1); \
+   register size_t ebx asm("ebx") = (size_t)(a2);     \
+   register size_t ecx asm("ecx") = (size_t)(a3);     \
+   register size_t esi asm("esi") = (size_t)(a4);     \
+   register size_t edx asm("edx") = (size_t)(main_ptr);     \
    asm(                                                             \
         "push esi\n"                                    \
         "push ecx\n"                                    \
         "push ebx\n"                                    \
         "push eax\n"                                    \
-        "call eax\n"                                    \
+        "call edx\n"                                    \
         "pop esi\n"                                     \
         "pop ecx\n"                                     \
         "pop ebx\n"                                     \
         /*This is important to save the return value*/  \
         "add esp, 4\n"                                  \
        :  :                                             \
-       "r"(eax) , "r"(ebx), "r"(ecx), "r"(esi)          \
+       "r"(eax) , "r"(ebx), "r"(ecx), "r"(esi) , "r"(edx)         \
    );                                                   \
 }                                                       \
 
 
 
-#ifdef SUPPORT_START_FILES
-    #define call_main call_main_glibc
-#else
-    #define call_main call_main_no_glibc
-#endif
 
 #endif

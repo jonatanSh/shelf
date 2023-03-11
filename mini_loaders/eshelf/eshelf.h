@@ -1,6 +1,6 @@
 #ifndef ESHELF_DEBUG
 #define ESHELF_DEBUG
-#include "../loader_generic.h"
+#include "../generic_loader.h"
 
 #ifdef ESHELF
     #include <stdlib.h>

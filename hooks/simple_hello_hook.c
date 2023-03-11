@@ -1,6 +1,6 @@
 #include <asm/unistd.h>
 #include "../osals/linux/syscalls/syscalls.h"
-#include "../mini_loaders/loader_generic.h"
+#include "../mini_loaders/generic_loader.h"
 
 struct hook_attributes {
     size_t message_length;
@@ -9,7 +9,7 @@ struct hook_attributes {
 
 // Must be the first data in the binary !
 __attribute__((section( ".init" )))
-void hook_main(void * base_address, void * table, struct hook_attributes * hook) {
+void hook_main(void * table, struct hook_attributes * hook) {
     long long _out;
     ARCH_GET_FUNCTION_OUT();
     size_t return_address;

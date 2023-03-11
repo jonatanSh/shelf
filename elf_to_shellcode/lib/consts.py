@@ -70,4 +70,8 @@ class ArchEndians(enum.Enum):
     big = 'big'
 
 
+class RELOCATION_OFFSETS(enum.Enum):
+    table_magic = 0
+    padding_between_table_and_loader = 1
+
 OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]

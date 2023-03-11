@@ -10,11 +10,12 @@ import lief
 from lief.ELF import SECTION_FLAGS
 from elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
-from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians
+from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians, \
+    RELOCATION_OFFSETS
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
-from elf_to_shellcode.lib.utils.general import get_json, get_binary
+from elf_to_shellcode.lib.utils.general import get_binary
 from elf_to_shellcode.hooks.hooks_configuration_parser import HookConfiguration
 from elf_to_shellcode.hooks.base_hook import _BaseShelfHook
 
@@ -103,6 +104,9 @@ class Shellcode(object):
         else:
             self.hooks = None
 
+        # Keep track of offsets inside the relocation table
+        self.offsets_in_header = {}
+
     def _generic_do_hooks(self, hooks, add_method):
         self.logger.info("Adding hooks to: {}".format(add_method))
         for hook_cls in hooks:
@@ -190,7 +194,11 @@ class Shellcode(object):
                                                  len(table),
                                                  len(self.get_shellcode_header()))
 
-        header = self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes + self.pre_table_header
+        header = self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes
+        self.offsets_in_header[RELOCATION_OFFSETS.table_magic] = 0x0
+        self.offsets_in_header[RELOCATION_OFFSETS.padding_between_table_and_loader] = len(header)
+        header += self.address_utils.pack_pointer(0x0)  # padding_between_table_and_loader
+        header += self.pre_table_header
         if LoaderSupports.HOOKS in self.args.loader_supports:
             header += self.hooks.get_header()
         header += table
@@ -203,7 +211,13 @@ class Shellcode(object):
         header += self.address_utils.pack_pointer(
             self.elffile.header.e_ehsize + sht_entry_header_size
         )
-        header += self.address_utils.pack_pointer(len(self.mini_loader.loader))
+        if self.args.output_format != OUTPUT_FORMAT_MAP.eshelf:
+            header += self.address_utils.pack_pointer(len(self.mini_loader.loader))
+        else:
+            # In eshelf the elf is the loader therefor it is incorrect to add header size
+            header += self.address_utils.pack_pointer(0x0)
+        header += self.mini_loader.function_descriptor_header
+
         return header
 
     def correct_symbols(self, shellcode_data):
@@ -368,7 +382,7 @@ class Shellcode(object):
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
         new_entry_point = (original_entry_point - self.loading_virtual_address)
-        return struct.pack("{}{}".format(self.endian, self.ptr_fmt), new_entry_point)
+        return self.address_utils.pack_pointer(new_entry_point)
 
     def build_shellcode_from_header_and_code(self, header, code):
         return header + code
@@ -431,6 +445,7 @@ class Shellcode(object):
         segment.flags = rwx
         segment.content = bytearray(shellcode_data)
         segment = loader.add(segment)
+
         tmp_path = tempfile.mktemp(".out")
         elf_buffer = None
         try:
@@ -443,6 +458,22 @@ class Shellcode(object):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
         assert elf_buffer is not None, "Error"
+        # Changing all offsets accordingly:
+        for off, value in self.offsets_in_header.items():
+            value += segment.file_offset
+            self.offsets_in_header[off] = value
+        loader_main_off = self.mini_loader.symbols.get_symbol_address("loader_main")
+        magic_off = self.offsets_in_header[RELOCATION_OFFSETS.table_magic]
+        padding_between_table_and_loader_off = self.offsets_in_header[
+            RELOCATION_OFFSETS.padding_between_table_and_loader]
+        # Checking the offset
+        assert elf_buffer[magic_off:magic_off + self.ptr_size] == self.address_utils.pack_pointer(
+            self.shellcode_table_magic), elf_buffer[magic_off:magic_off + self.ptr_size]
+        padding_between_table_and_loader = segment.virtual_address - loader_main_off
+        # Now replacing the padding_between_table_and_loader
+        elf_buffer_p1 = elf_buffer[:padding_between_table_and_loader_off]
+        elf_buffer_p2 = elf_buffer[padding_between_table_and_loader_off + self.ptr_size:]
+        elf_buffer = elf_buffer_p1 + self.address_utils.pack_pointer(padding_between_table_and_loader) + elf_buffer_p2
         loader_symbol_address = self.mini_loader.loader.find(self.address_utils.pack_pointer(0xdeadbeff))
         assert loader_symbol_address == self.mini_loader.loader.rfind(
             self.address_utils.pack_pointer(0xdeadbeff)), "Error found more then one " \
@@ -474,20 +505,6 @@ class Shellcode(object):
     def stream_unpack_pointers(self, stream, num_of_ptrs):
         return struct.unpack("{}{}".format(self.endian,
                                            self.ptr_fmt * num_of_ptrs), stream[:self.ptr_size * num_of_ptrs])
-
-    def get_loader_base_address(self, shellcode):
-        loader_size = len(self.mini_loader.loader)
-        table_length = len(self.relocation_table(0x0))
-        offset = loader_size + table_length
-        return self.unpack_ptr(shellcode[offset:offset + self.ptr_size])
-
-    def set_loader_base_address(self, shellcode, new_base_address):
-        loader_size = len(self.mini_loader.loader)
-        table_length = len(self.relocation_table(0x0))
-        offset = loader_size + table_length
-        shellcode = shellcode[:offset] + self.address_utils.pack_pointer(new_base_address) + shellcode[
-                                                                                             offset + self.ptr_size:]
-        return shellcode
 
     def embed(self, **kwargs):
         for key, value in kwargs.items():

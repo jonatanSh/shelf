@@ -134,22 +134,21 @@
     );                              \
 }                                   \
 
-#define call_main(main_ptr, argc, argv, total_args) {                           \
-   register size_t x0 asm("x0") = (size_t)(main_ptr); \
-   register size_t x1 asm("x1") = (size_t)(argc); \
-   register size_t x2 asm("x2") = (size_t)(argv); \
-   register size_t x3 asm("x3") = (size_t)((total_args+1) * 8); \
-   HOOK_CALL_ENTER();                                       \
+#define call_function(main_ptr, a1, a2, a3, a4) {                           \
+   register size_t x0 asm("x0") = (size_t)(a1); \
+   register size_t x1 asm("x1") = (size_t)(a2); \
+   register size_t x2 asm("x2") = (size_t)(a3); \
+   register size_t x3 asm("x3") = (size_t)(a4); \
+   register size_t x4 asm("x4") = (size_t)(main_ptr); \
    asm(                                                 \
         "add sp,sp, #-8\n"                              \
         "str lr, [sp]\n"                                \
-        "blr x0\n"                                     \
+        "blr x4\n"                                     \
         "ldr lr, [sp]\n"                                \
         "add sp, sp, #8\n"                              \
         :  :                                            \
-        "r"(x0), "r"(x1), "r"(x2), "r"(x3)              \
+        "r"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4)              \
    );                                                   \
-   HOOK_CALL_EXIT();                                    \
 }                                                       \
 
 

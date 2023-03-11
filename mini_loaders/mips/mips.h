@@ -97,13 +97,12 @@
     );                              \
 }                                   \
 
-#define call_main(main_ptr, argc, argv, total_args) {                           \
+#define call_function(main_ptr, arg0, arg1, arg2, arg3) {           \
    register size_t t9 asm("t9") = (size_t)(main_ptr);           \
-   register size_t a0 asm("a0") = (size_t)(main_ptr);           \
-   register size_t a1 asm("a1") = (size_t)(argc);               \
-   register size_t a2 asm("a2") = (size_t)(argv);               \
-   register size_t a3 asm("a3") = (size_t)((total_args+1) * 4); \
-   HOOK_CALL_ENTER();                                           \
+   register size_t a0 asm("a0") = (size_t)(arg0);               \
+   register size_t a1 asm("a1") = (size_t)(arg1);               \
+   register size_t a2 asm("a2") = (size_t)(arg2);               \
+   register size_t a3 asm("a3") = (size_t)(arg3);               \
    asm(                                                         \
        "addiu $sp, $sp, -4\n"                                   \
        "sw $ra, 0($sp)\n"                                       \
@@ -113,7 +112,6 @@
        :  :                                                     \
        "r"(t9)                                                  \
    );                                                           \
-   HOOK_CALL_EXIT();                                            \
 }                                                               \
 
 
