@@ -33,6 +33,7 @@
         "call rax\n"                                               \
        :  :                                                        \
        "r"(rdi),"r"(rsi),"r"(rdx),"r"(rcx),"r"(rax)                \
+       : "rsp"\
    );                                                              \
 }                                                                  \
 
