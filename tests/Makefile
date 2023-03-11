@@ -1,16 +1,29 @@
 include ../makefiles/generic.mk
 OUTPUT_DIRECTORY=../outputs/
-TESTS=mips_elf_features intel_x32_elf_features intel_x64_elf_features arm32_elf_features
-TESTS+=aarch64_elf_features dynamic_mips_elf_features dynamic_intel_x32_elf_features
-TESTS+=no_libc_intel_x32_no_relocations no_libc_aarch64_no_relocations
-TESTS+=dynamic_intel_x64_elf_features dynamic_arm32_elf_features
-TESTS+=dynamic_aarch64_elf_features
+MIPS_TARGETS=mips_elf_features dynamic_mips_elf_features
+INTEL_X32=intel_x32_elf_features no_libc_intel_x32_no_relocations
+INTEL_X32+=dynamic_intel_x32_elf_features
+INTEL_X64+=intel_x64_elf_features dynamic_intel_x64_elf_features
+AARCH64=aarch64_elf_features no_libc_aarch64_no_relocations dynamic_aarch64_elf_features
+ARM32=arm32_elf_features dynamic_arm32_elf_features
+TESTS+=$(MIPS_TARGETS)
+TESTS+=$(INTEL_X32)
+TESTS+=$(INTEL_X64)
+TESTS+=$(AARCH64)
+TESTS+=$(ARM32)
+
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
 
 .PHONY: clean all
 
 all: clean hooks $(TESTS)
+
+mips: $(MIPS_TARGETS)
+intel_x32: $(INTEL_X32)
+intel_x64: $(INTEL_X64)
+aarch64: $(AARCH64)
+arm32: $(ARM32)
 
 hooks:
 	cd ../hooks && $(MAKE)
@@ -47,3 +60,4 @@ dynamic_aarch64_%:
 clean:
 	rm -rf ../outputs/*elf_features*.out*
 	rm -rf ../outputs/*no_relocations*.out*
+	cd ../mini_loaders python compile.py --action clean

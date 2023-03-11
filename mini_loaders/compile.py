@@ -2,9 +2,35 @@ import os
 import subprocess
 import sys
 import itertools
-
+from argparse import ArgumentParser
+from enum import Enum
 from parallel_api.api import execute_jobs_in_parallel
 
+
+class Arches(Enum):
+    mips = 'mips'
+    mipsbe = 'mipsbe'
+    x32 = 'x32'
+    x64 = 'x64'
+    arm_x32 = 'arm_x32'
+    arm_x64 = 'arm_x64'
+
+
+arches = [arch.value for arch in Arches]
+
+parser = ArgumentParser("Compiler")
+parser.add_argument("--debug",
+                    action="store_true",
+                    default=False,
+                    required=False,
+                    help="Compile debug version")
+parser.add_argument("--arches",
+                    nargs="+",
+                    choices=arches,
+                    help="Target arches",
+                    default=arches)
+parser.add_argument("--action", nargs="+", choices=["clean", "make"], required=True)
+options = parser.parse_args()
 max_parallel_jobs = 16
 CFLAGS = []
 TARGET_FILES = [
@@ -19,13 +45,7 @@ def print_header(message):
     print("@" * 40)
 
 
-if len(sys.argv) < 2:
-    print("Usage compile.py <release|debug>")
-    sys.exit(1)
-
-assert sys.argv[1].strip() in ['debug', 'release'], 'error got invalid argument: {}'.format(sys.argv[1])
-
-if sys.argv[1].strip() == 'debug':
+if options.debug:
     CFLAGS += ["-DDEBUG"]
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
 RESOURCES = '../elf_to_shellcode/resources'
@@ -39,6 +59,8 @@ skip_features = {
 
 
 def should_skip_features(arch, feature):
+    if arch not in options.arches:
+        return True
     feature = feature.split("_")
     features_to_skip = skip_features.get(arch, [[]])
     for f_map in features_to_skip:
@@ -47,7 +69,6 @@ def should_skip_features(arch, feature):
             if f not in feature:
                 found = False
         if found:
-            print(True)
             return True
 
     return False
@@ -197,33 +218,33 @@ def get_compiler(host, cflags, compiler_name):
 MipsCompiler = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{}'.format(CFLAGS),
-    compiler_name="mips"
+    compiler_name=Arches.mips.value
 )
 MipsCompilerBE = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{} -BE'.format(CFLAGS),
-    compiler_name="mipsbe"
+    compiler_name=Arches.mipsbe.value
 )
 IntelX32 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic'.format(CFLAGS),
-    compiler_name="x32"
+    compiler_name=Arches.x32.value
 )
 IntelX64 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic -m64'.format(CFLAGS),
-    compiler_name="x64"
+    compiler_name=Arches.x64.value
 )
 
 ArmX32 = get_compiler(
     host=r'arm-linux-gnueabi',
     cflags='{}'.format(CFLAGS),
-    compiler_name="arm_x32"
+    compiler_name=Arches.arm_x32.value
 )
 AARCH64 = get_compiler(
     host=r'aarch64-linux-gnu',
     cflags='{}'.format(CFLAGS),
-    compiler_name="arm_x64"
+    compiler_name=Arches.arm_x64.value
 )
 
 compilers = [
@@ -234,8 +255,6 @@ compilers = [
     ArmX32,
     AARCH64
 ]
-
-arches = [_compiler().compiler_name for _compiler in compilers]
 
 # should perform cartesian product on the features
 features = {
@@ -310,13 +329,16 @@ def prepare_jobs():
 
 
 if __name__ == "__main__":
-    clean()
-    jobs = prepare_jobs()
-    entry_points = []
-    for job in jobs:
-        entry_points.append(job.run)
-    #
-    for job in jobs:
-        job.run()
-    # for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
-    #    execute_jobs_in_parallel(entry_points[i:i + max_parallel_jobs])
+    if "clean" in options.action:
+        clean()
+    if "make" in options.action:
+
+        jobs = prepare_jobs()
+        entry_points = []
+        for job in jobs:
+            entry_points.append(job.run)
+        #
+        for job in jobs:
+            job.run()
+        # for i in range(0, int(len(jobs) / max_parallel_jobs) + 1, max_parallel_jobs):
+        #    execute_jobs_in_parallel(entry_points[i:i + max_parallel_jobs])
