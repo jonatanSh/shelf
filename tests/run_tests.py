@@ -21,10 +21,10 @@ if arch == 'x86_64':
 
 test_cases = {
     'elf_features': ["../outputs/{}_elf_features.out.shellcode", ['all'], "__Test_output_Success"],
-    'no_relocations': ["../outputs/{}_no_libc_no_relocations.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
+    'no_relocations': ["../outputs/no_libc_{}_no_relocations.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
     'eshelf': ['../outputs/{}_elf_features.out.eshelf.shellcode', ['all'], 'Hello',
                {'eshelf': True}],
-    'dynamic_elf_features': ['../outputs/{}_dynamic_elf_features.out.shellcode', ['all'], 'Hello'],
+    'dynamic_elf_features': ['../outputs/dynamic_{}_elf_features.out.shellcode', ['all'], 'Hello'],
     'hooks': ['../outputs/{}_elf_features.out.hooks.shellcode', ['all'],
               ['Hello', "Simple hello hook said hello!"],
               {'eshelf': False}],

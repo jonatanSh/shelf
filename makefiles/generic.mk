@@ -3,12 +3,15 @@ CFLAGS+=-nostartfiles --entry=main
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 include $(SELF_DIR)/compilers.mk
 
+dir_guard:
+	mkdir -p $(SELF_DIR)/../outputs
 
 
-mini_loader_%:
+
+mini_loader_%: dir_guard
 	cd $(SELF_DIR)/../mini_loaders && python compile.py --action make --arch $(subst mini_loader_,,$@)
 
-shellcode_%:
+shellcode_%: dir_guard
 	python3 -m elf_to_shellcode --input $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out --output $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out.shellcode
 	python3 -m elf_to_shellcode --input $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out --output $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out.hooks.shellcode --loader-supports hooks --hooks-configuration ../hook_configurations/simple_hello_hook.py
 	python3 -m elf_to_shellcode --input $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out.eshelf --output $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out.eshelf.shellcode --output-format eshelf
