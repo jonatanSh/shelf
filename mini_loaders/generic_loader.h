@@ -143,4 +143,24 @@ typedef void * (*IRELATIVE_T)();
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \
 
+#define _DISPATCH_HOOKS(hooks_base_address, hooks_type) {                                                                         \
+    TRACE("HookDispatcher %s, hooks base address = 0x%x", #hooks_type, hooks_base_address);                                         \
+    for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {                                                                           \
+        struct hook * hook = &(table->hook_descriptor.hooks_type[i]);                                                           \
+        size_t hook_address = hooks_base_address + hook->relative_address;                                                      \
+        size_t hook_attributes = (hook_address+hook->shellcode_size);                                                           \
+        TRACE("Hook relative address = 0x%x, hook address = 0x%x, hook attributes %x", hook->relative_address, hook_address,    \
+        hook_attributes);                                                                                                       \
+        TRACE_ADDRESS(hook_address, 24);                                                                                        \
+        TRACE_ADDRESS(hook_attributes, 24);                                                                                     \
+        call_function(hook_address, table, hook_attributes, 0x0, 0x0);                                                          \
+    }                                                                                                                           \
+}
+
+#ifdef SUPPORT_HOOKS
+    #define DISPATCH_HOOKS _DISPATCH_HOOKS
+#else
+    #define DISPATCH_HOOKS
+#endif
+
 #endif

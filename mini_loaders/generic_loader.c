@@ -90,17 +90,7 @@ void loader_main(
     hooks_base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
     TRACE("Adding hooks shellcode sizes to total_header_plus_table_size shellcode size = 0x%x", table->hook_descriptor.size_of_hook_shellcode_data);
     total_header_plus_table_size += table->hook_descriptor.size_of_hook_shellcode_data;
-    TRACE("Dispatching startup hooks, hooks base address = 0x%x", hooks_base_address);
-    for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {
-        struct hook * hook = &(table->hook_descriptor.startup_hooks[i]);
-        size_t hook_address = hooks_base_address + hook->relative_address;
-        size_t hook_attributes = (hook_address+hook->shellcode_size);
-        TRACE("Hook relative address = 0x%x, hook address = 0x%x, hook attributes %x", hook->relative_address, hook_address,
-        hook_attributes);
-        TRACE_ADDRESS(hook_address, 24);
-        TRACE_ADDRESS(hook_attributes, 24);
-        call_function(hook_address, table, hook_attributes, 0x0, 0x0);
-    }
+    DISPATCH_HOOKS(hooks_base_address, startup_hooks);
 #endif
     // Size of table header + entries + entry point
     base_address = (size_t)(table);
