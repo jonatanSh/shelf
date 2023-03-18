@@ -26,6 +26,10 @@ struct hook {
 struct mini_loader_hooks_descriptor { 
     size_t size_of_hook_shellcode_data;
     struct hook startup_hooks[MAX_NUMBER_OF_HOOKS];
+    struct hook pre_relocate_write_hooks[MAX_NUMBER_OF_HOOKS];
+    struct hook pre_relocate_execute_hooks[MAX_NUMBER_OF_HOOKS];
+    struct hook pre_calling_shellcode_main_hooks[MAX_NUMBER_OF_HOOKS];
+
 };
 
 struct loader_function_descriptor {

@@ -8,6 +8,11 @@
 // I should check this more carfually.
 #define MAX_SEARCH_DEPTH 0x800
 
+struct addresses {
+    size_t base_address;
+    size_t loader_base;
+    size_t hooks_base_address;
+};
 
 #if defined(__x86_64__) || defined(_M_X64)
     #include "./intel/x64.h"
@@ -137,8 +142,8 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
-    TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+loader_base));  \
-    call_function((table->functions.function+loader_base), a1, a2, a3, a4);                                                             \
+    TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+addresses.loader_base));  \
+    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4);                                                             \
     DISPATCHER_GET_CALL_OUT();                                                                                                          \
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \

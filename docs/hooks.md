@@ -62,9 +62,9 @@ class SimpleSayHiHook(ShelfStartupHook):
 Currently, the following hook types are supported:
 
 * startup_hooks - Hooks that run upon mini_loader initialize
-* pre_relocate_write_hook - WIP
-* pre_relocate_execute_hook - WIP
-* pre_calling_shellcode_main - WIP
+* pre_relocate_write_hooks
+* pre_relocate_execute_hooks
+* pre_calling_shellcode_main_hooks
 #### Usage
 
 ```bash

@@ -34,9 +34,6 @@ void loader_main(
     size_t table_start;
     size_t table_size = 0;
     struct relocation_table * table;
-    size_t base_address;
-    size_t hooks_base_address;
-    size_t loader_base;
     size_t magic;
     size_t total_argv_envp_size = 0;
     size_t total_header_plus_table_size = 0;
@@ -44,6 +41,7 @@ void loader_main(
     size_t _dispatcher_out;
     size_t return_address;
     size_t shellcode_main_relative;
+    struct addresses addresses;
     ARCH_FUNCTION_ENTER(&return_address);
 #ifdef DEBUG
     TRACE("Loader in debug mode!");
@@ -86,25 +84,25 @@ void loader_main(
     total_header_plus_table_size = table->total_size;
     total_header_plus_table_size += table->header_size;
 #ifdef SUPPORT_HOOKS
-    hooks_base_address = (size_t)(table);
-    hooks_base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
+    addresses.hooks_base_address = (size_t)(table);
+    addresses.hooks_base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
     TRACE("Adding hooks shellcode sizes to total_header_plus_table_size shellcode size = 0x%x", table->hook_descriptor.size_of_hook_shellcode_data);
     total_header_plus_table_size += table->hook_descriptor.size_of_hook_shellcode_data;
-    DISPATCH_HOOKS(hooks_base_address, startup_hooks);
+    DISPATCH_HOOKS(addresses.hooks_base_address, startup_hooks);
 #endif
     // Size of table header + entries + entry point
-    base_address = (size_t)(table);
-    base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
-    base_address += table->padding;
-    loader_base =(size_t)((void *)(table) - table->elf_information.loader_size) -  table->padding_between_table_and_loader;
-    TRACE("loader_base = 0x%x, base_address = 0x%x", loader_base, base_address);
+    addresses.base_address = (size_t)(table);
+    addresses.base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
+    addresses.base_address += table->padding;
+    addresses.loader_base =(size_t)((void *)(table) - table->elf_information.loader_size) -  table->padding_between_table_and_loader;
+    TRACE("loader_base = 0x%x, base_address = 0x%x", addresses.loader_base, addresses.base_address);
     // We consider the table size and the entry point as parsed
     TRACE("Starting to parse table, total size = 0x%x", total_header_plus_table_size);
     // handling relocation table
-    LOADER_DISPATCH(loader_handle_relocation_table, table, base_address, loader_base, &shellcode_main_relative);
+    LOADER_DISPATCH(loader_handle_relocation_table, table, &addresses, &shellcode_main_relative, 0x0);
     ASSERT((_dispatcher_out == 0x0), _out);
     // Dispatcher out is the function return value;
-    void * entry_point = (void *)((size_t)shellcode_main_relative + base_address);
+    void * entry_point = (void *)((size_t)shellcode_main_relative + addresses.base_address);
 
     TRACE("Shellcode entry point = 0x%x", entry_point);
     TRACE("Calling shellcode main");
@@ -141,7 +139,7 @@ Think about how to fix this, currently it triggers compiler errors
 */
 }
 
-STATUS loader_handle_relocation_table(struct relocation_table * table, size_t base_address, size_t loader_base, size_t * out) {
+STATUS loader_handle_relocation_table(struct relocation_table * table, struct addresses * addresses, size_t * out) {
     size_t parsed_entries_size = 0;
     size_t return_address;
     size_t entries_for_attribute = 0;
@@ -165,8 +163,8 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, size_t ba
         struct table_entry * entry = (struct table_entry *)(entry_ptr + parsed_entries_size);
 
         // Now parsing the entry
-        size_t f_offset = entry->f_offset + base_address;
-        size_t v_offset = entry->v_offset + base_address; 
+        size_t f_offset = entry->f_offset + addresses->base_address;
+        size_t v_offset = entry->v_offset + addresses->base_address; 
         #ifdef DEBUG
             TRACE("Parssing Entry(f_offset=0x%x, v_offset=0x%x, relocation_type=0x%x)",
                 entry->f_offset, entry->v_offset,attributes->relocation_type);
@@ -191,14 +189,14 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, size_t ba
                 v_offset = attribute_val;
             }
             else if(attributes->relocation_type == RELATIVE_TO_LOADER_BASE) {
-                attribute_val = (size_t)(entry->v_offset + loader_base);
+                attribute_val = (size_t)(entry->v_offset + addresses->loader_base);
                 #ifdef DEBUG
                     TRACE("Loader RELATIVE_TO_LOADER_BASE fix: 0x%x=0x%x()", v_offset, attribute_val);
                 #endif
                 v_offset = attribute_val;
             }
             else if(attributes->relocation_type == RELATIVE) {
-                attribute_val = (size_t)(*((size_t*)f_offset)) + base_address;
+                attribute_val = (size_t)(*((size_t*)f_offset)) + addresses->base_address;
                 #ifdef DEBUG
                     TRACE("Loader RELATIVE fix: 0x%x=0x%x()", v_offset, attribute_val);
                 #endif
@@ -212,6 +210,9 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, size_t ba
             TRACE("Loader set *((size_t*)0x%x) = 0x%x", f_offset, v_offset);
         #endif
         // Fixing the entry
+#ifdef SUPPORT_HOOKS
+        DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_write_hooks);
+#endif
         *((size_t*)f_offset) = v_offset;
 
         parsed_entries_size += sizeof(struct table_entry);
