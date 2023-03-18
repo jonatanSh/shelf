@@ -131,8 +131,12 @@ class MiniLoader(object):
 
     @property
     def function_descriptor_header(self):
-        return self.structs.loader_function_descriptor(
-            loader_handle_relocation_table=self.symbols.get_relative_symbol_address(
-                "loader_handle_relocation_table"
+        functions = self.structs.loader_function_descriptor.__fields__
+        kwargs = {}
+        for function in functions:
+            kwargs[function] = self.symbols.get_relative_symbol_address(
+                function
             )
-        ).pack()
+        return self.structs.loader_function_descriptor(
+                **kwargs
+            ).pack()
