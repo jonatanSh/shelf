@@ -36,15 +36,16 @@
 typedef size_t loader_off_t;
 
 struct table_entry {
-    size_t size;
     loader_off_t f_offset;
     loader_off_t v_offset;
 };
 struct entry_attributes {
-    size_t attribute_1;
+    size_t number_of_entries_related_to_attribute;
+    size_t relocation_type;
 };
 
 enum RELOCATION_ATTRIBUTES {
+    GENERIC_RELOCATE = 0,
     IRELATIVE = 1,
     RELATIVE_TO_LOADER_BASE = 2,
     RELATIVE = 3,

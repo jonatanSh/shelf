@@ -5,7 +5,8 @@ class HookTypes(enum.Enum):
     STARTUP_HOOKS = 1
 
 
-class RelocationAttributes(object):
+class RelocationAttributes(enum.Enum):
+    generic_relocate = 0
     call_to_resolve = 1
     relative_to_loader_base = 2
     relative = 3

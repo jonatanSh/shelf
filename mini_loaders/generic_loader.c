@@ -154,27 +154,42 @@ Think about how to fix this, currently it triggers compiler errors
 STATUS loader_handle_relocation_table(struct relocation_table * table, size_t base_address, size_t loader_base, size_t * out) {
     size_t parsed_entries_size = 0;
     size_t return_address;
+    size_t entries_for_attribute = 0;
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     ARCH_FUNCTION_ENTER(&return_address);
+    struct entry_attributes * attributes;
     while(parsed_entries_size < table->total_size) {
-        struct table_entry * entry = (struct table_entry *)entry_ptr;
-        struct entry_attributes * attributes = (struct entry_attributes*)((void*)entry+sizeof(size_t)*3);
+        #ifdef DEBUG
+        TRACE("TableParser (table->total_size=0x%x, parsed_entries_size=0x%x)",
+            table->total_size,
+            parsed_entries_size
+        );
+        #endif
+        if(entries_for_attribute == 0) {
+            struct entry_attributes * attributes = (struct entry_attributes*)(entry_ptr + parsed_entries_size);
+            entries_for_attribute = attributes->number_of_entries_related_to_attribute;
+            parsed_entries_size += sizeof(struct entry_attributes);
+            TRACE("First relocation attributes, num of relocations = 0x%x, relocation_type=0x%x",
+            attributes->number_of_entries_related_to_attribute, attributes->relocation_type);
+        }
+        struct table_entry * entry = (struct table_entry *)(entry_ptr + parsed_entries_size);
+
         // Now parsing the entry
         size_t f_offset = entry->f_offset + base_address;
         size_t v_offset = entry->v_offset + base_address; 
         #ifdef DEBUG
-            TRACE("Parssing Entry(size=0x%x, f_offset=0x%x, v_offset=0x%x, first_attribute=0x%x)",
-                entry->size, entry->f_offset, entry->v_offset, attributes->attribute_1);
+            TRACE("Parssing Entry(f_offset=0x%x, v_offset=0x%x, relocation_type=0x%x)",
+                entry->f_offset, entry->v_offset,attributes->relocation_type);
         #endif    
         /*
             DO NOT USE SWITCH CASE HERE
             it will create a relocatable section
         */
-        if(entry->size > sizeof(size_t) * 3) {
+        if(attributes->relocation_type != GENERIC_RELOCATE) {
             // We have relocation attributes
             // Can't use jump tables in loader :(
             size_t attribute_val = 0;
-            if(attributes->attribute_1 == IRELATIVE) {
+            if(attributes->relocation_type == IRELATIVE) {
                 #ifdef DEBUG
                     TRACE("Loader IRELATIVE fix: 0x%x=0x%x()", v_offset, v_offset);
                     TRACE_ADDRESS(v_offset, 24);
@@ -185,14 +200,14 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, size_t ba
                 #endif
                 v_offset = attribute_val;
             }
-            else if(attributes->attribute_1 == RELATIVE_TO_LOADER_BASE) {
+            else if(attributes->relocation_type == RELATIVE_TO_LOADER_BASE) {
                 attribute_val = (size_t)(entry->v_offset + loader_base);
                 #ifdef DEBUG
                     TRACE("Loader RELATIVE_TO_LOADER_BASE fix: 0x%x=0x%x()", v_offset, attribute_val);
                 #endif
                 v_offset = attribute_val;
             }
-            else if(attributes->attribute_1 == RELATIVE) {
+            else if(attributes->relocation_type == RELATIVE) {
                 attribute_val = (size_t)(*((size_t*)f_offset)) + base_address;
                 #ifdef DEBUG
                     TRACE("Loader RELATIVE fix: 0x%x=0x%x()", v_offset, attribute_val);
@@ -209,11 +224,13 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, size_t ba
         // Fixing the entry
         *((size_t*)f_offset) = v_offset;
 
-        parsed_entries_size += entry->size;
-        entry_ptr += entry->size;
+        parsed_entries_size += sizeof(struct table_entry);
+        if(attributes) {
+            entries_for_attribute -= 1;
+        }
     }
-    *out = *(size_t*)(size_t)entry_ptr;
-    TRACE("shellcode main located at relative %x", out);
+    *out = *(size_t*)(size_t)(entry_ptr + parsed_entries_size);
+    TRACE("shellcode main located at relative %x", *out);
     goto success;
 error:
     return ERROR;

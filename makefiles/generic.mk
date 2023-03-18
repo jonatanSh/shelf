@@ -9,7 +9,7 @@ dir_guard:
 
 
 mini_loader_%: dir_guard
-	cd $(SELF_DIR)/../mini_loaders && python compile.py --action make --arch $(subst mini_loader_,,$@)
+	cd $(SELF_DIR)/../mini_loaders && python compile.py --action make --arch $(subst mini_loader_,,$@) --debug
 
 shellcode_%: dir_guard
 	python3 -m elf_to_shellcode --input $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out --output $(OUTPUT_DIRECTORY)/$(subst shellcode_,,$@).out.shellcode
