@@ -63,6 +63,23 @@ class Arches(enum.Enum):
         arm32,
         aarch64
     ]
+    from_idents = {
+        'EM_MIPS': mips,
+        'EM_386': intel_x32,
+        'EM_X86_64': intel_x64,
+        'EM_ARM': arm32,
+        'EM_AARCH64': aarch64
+
+    }
+
+    @staticmethod
+    def translate_from_ident(ident):
+        if ident in Arches.from_idents.value:
+            return Arches.from_idents.value[ident]
+        else:
+            raise Exception("Not supported for arch: {}".format(
+                ident
+            ))
 
 
 class ArchEndians(enum.Enum):

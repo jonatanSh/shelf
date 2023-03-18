@@ -20,12 +20,12 @@ if arch == 'x86_64':
     QEMUS['intel_x64'] = ""
 
 test_cases = {
-    'elf_features': ["../outputs/elf_features_{}.out.shellcode", ['all'], "__Test_output_Success"],
-    'no_relocations': ["../outputs/no_relocations_{}.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
-    'eshelf': ['../outputs/elf_features_{}.out.shellcode.eshelf', ['all'], 'Hello',
+    'elf_features': ["../outputs/{}_elf_features.out.shellcode", ['all'], "__Test_output_Success"],
+    'no_relocations': ["../outputs/{}_no_libc_no_relocations.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
+    'eshelf': ['../outputs/{}_elf_features.out.eshelf.shellcode', ['all'], 'Hello',
                {'eshelf': True}],
-    'dynamic_elf_features': ['../outputs/dynamic_elf_features_{}.out.shellcode', ['all'], 'Hello'],
-    'hooks': ['../outputs/elf_features_{}.out.hooks.shellcode', ['all'],
+    'dynamic_elf_features': ['../outputs/{}_dynamic_elf_features.out.shellcode', ['all'], 'Hello'],
+    'hooks': ['../outputs/{}_elf_features.out.hooks.shellcode', ['all'],
               ['Hello', "Simple hello hook said hello!"],
               {'eshelf': False}],
 
@@ -33,11 +33,7 @@ test_cases = {
 
 
 def translate_to_binary_name(arch):
-    if arch != "mips":
-        return arch
-    else:
-        return "mipsbe"
-
+    return arch
 
 def run_arch_tests(arch, case):
     qemu = QEMUS[arch]
@@ -61,9 +57,10 @@ def run_arch_tests(arch, case):
         db_arg = "-g 1234" if args.debug else ""
         strace_args = "-strace" if args.strace else ""
         assert os.path.exists(loader), "Error loader doesn't exists for: {}".format(arch)
-        assert os.path.exists(test), "Error test for: {}_{} does not exists".format(
+        assert os.path.exists(test), "Error test for: arch={} case={} does not exists, path: {}".format(
             arch,
-            case
+            case,
+            test
         )
         if not is_eshelf:
             command = "{} {} {} {} {}".format(qemu, db_arg, strace_args, loader, test)
