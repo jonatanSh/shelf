@@ -11,7 +11,7 @@ from lief.ELF import SECTION_FLAGS
 from elf_to_shellcode.lib.utils.address_utils import AddressUtils
 from elf_to_shellcode.lib.utils.mini_loader import MiniLoader
 from elf_to_shellcode.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians, \
-    RELOCATION_OFFSETS
+    RELOCATION_OFFSETS, RelocationAttributes, HookTypes
 from elf_to_shellcode.lib.utils.disassembler import Disassembler
 from elf_to_shellcode.lib.ext.dynamic_symbols import DynamicRelocations
 from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
@@ -107,16 +107,17 @@ class Shellcode(object):
         # Keep track of offsets inside the relocation table
         self.offsets_in_header = {}
 
-    def _generic_do_hooks(self, hooks, add_method):
-        self.logger.info("Adding hooks to: {}".format(add_method))
+    def _generic_do_hooks(self, hooks, hook_type):
+        self.logger.info("Adding hooks to: {}".format(hook_type))
         for hook_cls in hooks:
             hook = hook_cls(shellcode=self)
             assert isinstance(hook, _BaseShelfHook)
-            add_method(
+            self.hooks.add_hook(
                 shellcode_data=get_binary(hook.hook_get_shellcode_path(
                     arch=Arches[self.args.arch],
                     endian=ArchEndians[self.args.endian]
                 )),
+                hook_type=hook_type,
                 attributes=hook.hook_get_attributes()
             )
 
@@ -126,7 +127,19 @@ class Shellcode(object):
         self.logger.info("Handling hooks")
         self._generic_do_hooks(
             hooks=self.hooks_configuration.startup_hooks,
-            add_method=self.hooks.add_startup_hook
+            hook_type=HookTypes.STARTUP_HOOKS
+        )
+        self._generic_do_hooks(
+            hooks=self.hooks_configuration.pre_relocate_write_hooks,
+            hook_type=HookTypes.PRE_RELOCATE_WRITE_HOOKS
+        )
+        self._generic_do_hooks(
+            hooks=self.hooks_configuration.pre_relocate_execute_hooks,
+            hook_type=HookTypes.PRE_RELOCATE_EXECUTE_HOOKS
+        )
+        self._generic_do_hooks(
+            hooks=self.hooks_configuration.pre_calling_main_shellcode_hooks,
+            hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS
         )
 
     def arch_find_relocation_handler(self, relocation_type):
@@ -167,27 +180,31 @@ class Shellcode(object):
         else:
             raise NotImplementedError()
 
+    def pack_and_get_relocations_for_type(self, relocation_type):
+        packed = five.py_obj()
+        i = 0
+        for key, value in self.addresses_to_patch.items():
+            if type(value) is not list:
+                value = [value, RelocationAttributes.generic_relocate]
+            value, reloc_type = value
+            if reloc_type == relocation_type:
+                packed += self.address_utils.pack_pointers(key, value)
+                i += 1
+
+        return packed, i
+
     def relocation_table(self, padding=0x0):
         table = five.py_obj()
 
-        for key, value in self.addresses_to_patch.items():
-            value_packed = five.py_obj()
-            if type(value) is not list:
-                value = [value]
-            for i, v in enumerate(value):
-                if i == 0:
-                    # value_packed += self.address_utils.signed_pack_pointer(v)
-                    value_packed += self.address_utils.pack_pointer(v)
-
-                else:
-                    value_packed += self.address_utils.pack_pointer(v)
-
-            relocation_entry = self.address_utils.pack_pointer(key)
-            relocation_entry += value_packed
-
-            relocation_size = self.address_utils.pack_pointer(len(relocation_entry) + self.ptr_size)
-            relocation_entry = relocation_size + relocation_entry
-            table += relocation_entry
+        for relocation_type in RelocationAttributes:
+            packed, num_of_attributes = self.pack_and_get_relocations_for_type(relocation_type)
+            relocation_entry = self.mini_loader.structs.entry_attributes(
+                number_of_entries_related_to_attribute=num_of_attributes,
+                relocation_type=relocation_type.value
+            ).pack()
+            relocation_entry += packed
+            if num_of_attributes:
+                table += relocation_entry
 
         # Pack the following format: {size_t padding, size_t table_length, size_t header_length}
         sizes = self.address_utils.pack_pointers(padding,

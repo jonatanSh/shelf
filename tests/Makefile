@@ -28,36 +28,36 @@ arm32: $(ARM32)
 hooks:
 	cd ../hooks && $(MAKE)
 
-no_libc_intel_x32_%:
-	$(X32_CC) -masm=intel -shared -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -nolibc $(subst no_libc_intel_x32_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst no_libc_intel_x32_,,$@)_intel_x32.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst no_libc_intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst no_libc_intel_x32_,,$@)_intel_x32.out.shellcode --loader-support dynamic
+no_libc_intel_x32_%: mini_loader_x32
+	$(X32_CC) -masm=intel -shared -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -nolibc $(subst no_libc_intel_x32_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode --loader-support dynamic
 
-no_libc_aarch64_%:
-	$(AARCH64_CC) -static $(CFLAGS) $(C_FILES) $(OSAL_FILES) -nolibc $(subst no_libc_aarch64_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst no_libc_aarch64_,,$@)_aarch64.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst no_libc_aarch64_,,$@)_aarch64.out --arch aarch64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst no_libc_aarch64_,,$@)_aarch64.out.shellcode
+no_libc_aarch64_%: mini_loader_arm_x64
+	$(AARCH64_CC) -static $(CFLAGS) $(C_FILES) $(OSAL_FILES) -nolibc $(subst no_libc_aarch64_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode
 
-dynamic_mips_%:
-	$(MIPS_CC) -DOSAL_LIBC -DARCH_MIPS -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) $(NOLIBC) -static -nolibc  -shared -lm -lc -lgcc -lc  -BE $(subst dynamic_mips_,,$@).c -o $(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out --arch mips --endian big --output ../outputs/$(OUTPUT_DIRECTORY)$(subst mips_,,$@)_mipsbe.out.shellcode --loader-support dynamic
+dynamic_mips_%: mini_loader_mips mini_loader_mipsbe
+	$(MIPS_CC) -DOSAL_LIBC -DARCH_MIPS -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) $(NOLIBC) -static -nolibc  -shared -lm -lc -lgcc -lc  -BE $(subst dynamic_mips_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode --loader-support dynamic
 
-dynamic_intel_x32_%:
-	$(X32_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_intel_x32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out --arch intel_x32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x32_,,$@)_intel_x32.out.shellcode --loader-support dynamic
+dynamic_intel_x32_%: mini_loader_x32
+	$(X32_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_intel_x32_,,$@).c  -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode --loader-support dynamic
 
-dynamic_intel_x64_%:
-	$(X64_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_intel_x64_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out --arch intel_x64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst intel_x64_,,$@)_intel_x64.out.shellcode --loader-support dynamic
+dynamic_intel_x64_%: mini_loader_x64
+	$(X64_CC) -masm=intel -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_intel_x64_,,$@).c  -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode --loader-support dynamic
 
-dynamic_arm32_%:
-	$(ARM_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out --arch arm32 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst arm32_,,$@)_arm32.out.shellcode --loader-support dynamic
+dynamic_arm32_%: mini_loader_arm_x32
+	$(ARM_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_arm32_,,$@).c  -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode --loader-support dynamic
 
-dynamic_aarch64_%:
-	$(AARCH64_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_aarch64_,,$@).c  -o $(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out
-	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out --arch aarch64 --endian little --output ../outputs/$(OUTPUT_DIRECTORY)$(subst aarch64_,,$@)_aarch64.out.shellcode --loader-support dynamic
+dynamic_aarch64_%: mini_loader_arm_x64
+	$(AARCH64_CC) -DOSAL_LIBC -DDYNAMIC_SUPPORT $(CFLAGS) $(C_FILES) $(OSAL_FILES) -shared -nolibc -lm -lc -lgcc -lc $(subst dynamic_aarch64_,,$@).c  -o $(OUTPUT_DIRECTORY)$@.out
+	python3 -m elf_to_shellcode --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode --loader-support dynamic
 
 
 clean:
 	rm -rf ../outputs/*elf_features*.out*
 	rm -rf ../outputs/*no_relocations*.out*
-	cd ../mini_loaders python compile.py --action clean
+	cd ../mini_loaders && python compile.py --action clean

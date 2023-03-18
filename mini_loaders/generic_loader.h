@@ -6,8 +6,13 @@
 #include "hooks.h"
 
 // I should check this more carfually.
-#define MAX_SEARCH_DEPTH 0x800
+#define MAX_SEARCH_DEPTH 0x1000
 
+struct addresses {
+    size_t base_address;
+    size_t loader_base;
+    size_t hooks_base_address;
+};
 
 #if defined(__x86_64__) || defined(_M_X64)
     #include "./intel/x64.h"
@@ -36,15 +41,16 @@
 typedef size_t loader_off_t;
 
 struct table_entry {
-    size_t size;
     loader_off_t f_offset;
     loader_off_t v_offset;
 };
 struct entry_attributes {
-    size_t attribute_1;
+    size_t number_of_entries_related_to_attribute;
+    size_t relocation_type;
 };
 
 enum RELOCATION_ATTRIBUTES {
+    GENERIC_RELOCATE = 0,
     IRELATIVE = 1,
     RELATIVE_TO_LOADER_BASE = 2,
     RELATIVE = 3,
@@ -136,10 +142,30 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
-    TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+loader_base));  \
-    call_function((table->functions.function+loader_base), a1, a2, a3, a4);                                                             \
+    TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+addresses.loader_base));  \
+    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4);                                                             \
     DISPATCHER_GET_CALL_OUT();                                                                                                          \
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \
+
+#define _DISPATCH_HOOKS(hooks_base_address, hooks_type) {                                                                         \
+    TRACE("HookDispatcher %s, hooks base address = 0x%x", #hooks_type, hooks_base_address);                                         \
+    for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {                                                                           \
+        struct hook * hook = &(table->hook_descriptor.hooks_type[i]);                                                           \
+        size_t hook_address = hooks_base_address + hook->relative_address;                                                      \
+        size_t hook_attributes = (hook_address+hook->shellcode_size);                                                           \
+        TRACE("Hook relative address = 0x%x, hook address = 0x%x, hook attributes %x", hook->relative_address, hook_address,    \
+        hook_attributes);                                                                                                       \
+        TRACE_ADDRESS(hook_address, 24);                                                                                        \
+        TRACE_ADDRESS(hook_attributes, 24);                                                                                     \
+        call_function(hook_address, table, hook_attributes, 0x0, 0x0);                                                          \
+    }                                                                                                                           \
+}
+
+#ifdef SUPPORT_HOOKS
+    #define DISPATCH_HOOKS _DISPATCH_HOOKS
+#else
+    #define DISPATCH_HOOKS
+#endif
 
 #endif

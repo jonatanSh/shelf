@@ -3,9 +3,13 @@ import enum
 
 class HookTypes(enum.Enum):
     STARTUP_HOOKS = 1
+    PRE_RELOCATE_WRITE_HOOKS = 2
+    PRE_RELOCATE_EXECUTE_HOOKS = 3
+    PRE_CALLING_MAIN_SHELLCODE_HOOKS = 4
 
 
-class RelocationAttributes(object):
+class RelocationAttributes(enum.Enum):
+    generic_relocate = 0
     call_to_resolve = 1
     relative_to_loader_base = 2
     relative = 3
@@ -63,6 +67,23 @@ class Arches(enum.Enum):
         arm32,
         aarch64
     ]
+    from_idents = {
+        'EM_MIPS': mips,
+        'EM_386': intel_x32,
+        'EM_X86_64': intel_x64,
+        'EM_ARM': arm32,
+        'EM_AARCH64': aarch64
+
+    }
+
+    @staticmethod
+    def translate_from_ident(ident):
+        if ident in Arches.from_idents.value:
+            return Arches.from_idents.value[ident]
+        else:
+            raise Exception("Not supported for arch: {}".format(
+                ident
+            ))
 
 
 class ArchEndians(enum.Enum):
@@ -73,5 +94,6 @@ class ArchEndians(enum.Enum):
 class RELOCATION_OFFSETS(enum.Enum):
     table_magic = 0
     padding_between_table_and_loader = 1
+
 
 OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]

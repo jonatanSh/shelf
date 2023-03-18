@@ -7,17 +7,10 @@ from elf_to_shellcode.relocate import make_shellcode, Arches, ENDIANS, StartFile
 from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS
 from elf_to_shellcode.lib import five
 from elf_to_shellcode.hooks.hooks_configuration_parser import is_valid_hooks_file
+from elftools.elf.elffile import ELFFile
 
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
-parser.add_argument("--arch",
-                    required=True,
-                    choices=Arches.__all__,
-                    help="Elf file target architecture")
-parser.add_argument("--endian",
-                    required=True,
-                    choices=ENDIANS,
-                    help="Target elf file endian")
 parser.add_argument("--output", default=None, help="Output file path")
 parser.add_argument("--start-method", default=StartFiles.no_start_files,
                     choices=StartFiles.__all__, help="Start method required for full glibc usage")
@@ -50,6 +43,23 @@ parser.add_argument("--hooks-configuration", required=False,
                          "for examples look at hook_configurations/simple_hello_hook.py under the project github page")
 args = parser.parse_args()
 
+if not os.path.exists(args.input):
+    parser.error("--input does not exists")
+
+with open(args.input, 'rb') as fp:
+    elf = ELFFile(fp)
+    setattr(args, "arch", Arches.translate_from_ident(elf.header.e_machine))
+    endian = elf.header.e_ident.EI_DATA
+    endians = {
+        'ELFDATA2MSB': 'big',
+        'ELFDATA2LSB': 'little'
+    }
+    endian = endians.get(endian)
+    if not endian:
+        raise Exception("Endian: {} not supported".format(endian))
+    setattr(args, "endian", endian)
+
+
 if args.hooks_configuration:
     if not os.path.exists(args.hooks_configuration):
         parser.error("--hook-configuration path: {} does not exists".format(
@@ -64,6 +74,7 @@ if args.hooks_configuration:
 if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_path, args.loader_symbols_path]):
     parser.error("--loader-path and --loader-symbols-path must be used together")
     sys.exit(1)
+
 
 sys.modules["global_args"] = args
 if args.verbose:
