@@ -106,6 +106,9 @@ void loader_main(
 
     TRACE("Shellcode entry point = 0x%x", entry_point);
     TRACE("Calling shellcode main");
+    #ifdef SUPPORT_HOOKS
+        DISPATCH_HOOKS(addresses.hooks_base_address, pre_calling_shellcode_main_hooks);
+    #endif
     call_function(entry_point, entry_point, argc, argv, (total_argv_envp_size + 1) * 4);
 #ifdef ARCH_GET_FUNCTION_OUT
     ARCH_GET_FUNCTION_OUT();
@@ -181,6 +184,9 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
                 #ifdef DEBUG
                     TRACE("Loader IRELATIVE fix: 0x%x=0x%x()", v_offset, v_offset);
                     TRACE_ADDRESS(v_offset, 24);
+                #endif
+                #ifdef SUPPORT_HOOKS
+                    DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_execute_hooks);
                 #endif
                 attribute_val = (size_t)((IRELATIVE_T)(v_offset))();
                 #ifdef DEBUG

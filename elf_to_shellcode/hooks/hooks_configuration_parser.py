@@ -22,6 +22,9 @@ class HookConfiguration(object):
             self.package = self.package[1:]
         self.module = SourceFileLoader(self.package, path).load_module()
         self.startup_hooks = []
+        self.pre_relocate_write_hooks = []
+        self.pre_relocate_execute_hooks = []
+        self.pre_calling_main_shellcode_hooks = []
         self.not_hooks = hooks.__dict__.values()
         for attribute_name, attribute_value in self.module.__dict__.items():
             if attribute_value in self.not_hooks:
@@ -31,6 +34,21 @@ class HookConfiguration(object):
                     attribute_name
                 ))
                 self.startup_hooks.append(attribute_value)
+            elif is_base_class_of(attribute_value, hooks.ShelfPreRelocateWriteHook):
+                logging.info("Found pre relocate write hook: {}".format(
+                    attribute_name
+                ))
+                self.pre_relocate_write_hooks.append(attribute_value)
+            elif is_base_class_of(attribute_value, hooks.ShelfPreRelocateExecuteHook):
+                logging.info("Found pre relocate execute hook: {}".format(
+                    attribute_name
+                ))
+                self.pre_relocate_execute_hooks.append(attribute_value)
+            elif is_base_class_of(attribute_value, hooks.ShelfPreCallingShellcodeMainHook):
+                logging.info("Found pre calling shellcode main hook: {}".format(
+                    attribute_name
+                ))
+                self.pre_calling_main_shellcode_hooks.append(attribute_value)
 
     def validate(self):
         return

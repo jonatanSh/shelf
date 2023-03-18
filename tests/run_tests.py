@@ -26,7 +26,10 @@ test_cases = {
                {'eshelf': True}],
     'dynamic_elf_features': ['../outputs/dynamic_{}_elf_features.out.shellcode', ['all'], 'Hello'],
     'hooks': ['../outputs/{}_elf_features.out.hooks.shellcode', ['all'],
-              ['Hello', "Simple hello hook said hello!"],
+              ['Hello',
+               "Hello from startup hook!",
+               "Hello from pre write hook!",
+               "Hello from pre call main hook!"],
               {'eshelf': False}],
 
 }
@@ -34,6 +37,7 @@ test_cases = {
 
 def translate_to_binary_name(arch):
     return arch
+
 
 def run_arch_tests(arch, case):
     qemu = QEMUS[arch]

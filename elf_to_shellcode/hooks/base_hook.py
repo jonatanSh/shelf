@@ -20,3 +20,21 @@ class ShelfStartupHook(_BaseShelfHook):
     def __init__(self, *args, **kwargs):
         super(ShelfStartupHook, self).__init__(hook_type=HookTypes.STARTUP_HOOKS,
                                                *args, **kwargs)
+
+
+class ShelfPreRelocateWriteHook(_BaseShelfHook):
+    def __init__(self, *args, **kwargs):
+        super(ShelfPreRelocateWriteHook, self).__init__(hook_type=HookTypes.PRE_RELOCATE_WRITE_HOOKS,
+                                                        *args, **kwargs)
+
+
+class ShelfPreRelocateExecuteHook(_BaseShelfHook):
+    def __init__(self, *args, **kwargs):
+        super(ShelfPreRelocateExecuteHook, self).__init__(hook_type=HookTypes.PRE_RELOCATE_EXECUTE_HOOKS,
+                                                          *args, **kwargs)
+
+
+class ShelfPreCallingShellcodeMainHook(_BaseShelfHook):
+    def __init__(self, *args, **kwargs):
+        super(ShelfPreCallingShellcodeMainHook, self).__init__(hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS,
+                                                               *args, **kwargs)

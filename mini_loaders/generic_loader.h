@@ -6,7 +6,7 @@
 #include "hooks.h"
 
 // I should check this more carfually.
-#define MAX_SEARCH_DEPTH 0x800
+#define MAX_SEARCH_DEPTH 0x1000
 
 struct addresses {
     size_t base_address;

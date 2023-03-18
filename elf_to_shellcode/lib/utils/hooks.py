@@ -52,14 +52,19 @@ class ShellcodeHooks(object):
         ))
         if hook_type == HookTypes.STARTUP_HOOKS:
             self._startup_hooks.append(hook)
-
+        elif hook_type == HookTypes.PRE_RELOCATE_WRITE_HOOKS:
+            self._pre_relocate_write_hooks.append(hook)
+        elif hook_type == HookTypes.PRE_RELOCATE_EXECUTE_HOOKS:
+            self._pre_relocate_execute_hooks.append(hook)
+        elif hook_type == HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS:
+            self._pre_calling_shellcode_main_hooks.append(hook)
         else:
             raise NotImplementedError("Error hook type: {}".format(hook_type))
 
-    def add_startup_hook(self, shellcode_data, attributes=None):
+    def add_hook(self, shellcode_data, hook_type, attributes=None):
         if is_python3:
             assert type(shellcode_data) is bytes
-        self._add_hook(shellcode_data, HookTypes.STARTUP_HOOKS, attributes=attributes)
+        self._add_hook(shellcode_data, hook_type, attributes=attributes)
 
     def _pad_list(self, plst, cls):
         lst = deepcopy(plst)

@@ -3,6 +3,9 @@ import enum
 
 class HookTypes(enum.Enum):
     STARTUP_HOOKS = 1
+    PRE_RELOCATE_WRITE_HOOKS = 2
+    PRE_RELOCATE_EXECUTE_HOOKS = 3
+    PRE_CALLING_MAIN_SHELLCODE_HOOKS = 4
 
 
 class RelocationAttributes(enum.Enum):
@@ -91,5 +94,6 @@ class ArchEndians(enum.Enum):
 class RELOCATION_OFFSETS(enum.Enum):
     table_magic = 0
     padding_between_table_and_loader = 1
+
 
 OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]
