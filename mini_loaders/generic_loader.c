@@ -166,10 +166,10 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, size_t ba
         );
         #endif
         if(entries_for_attribute == 0) {
-            struct entry_attributes * attributes = (struct entry_attributes*)(entry_ptr + parsed_entries_size);
+            attributes = (struct entry_attributes*)(entry_ptr + parsed_entries_size);
             entries_for_attribute = attributes->number_of_entries_related_to_attribute;
             parsed_entries_size += sizeof(struct entry_attributes);
-            TRACE("First relocation attributes, num of relocations = 0x%x, relocation_type=0x%x",
+            TRACE("found relocation attributes, num of relocations = 0x%x, relocation_type=0x%x",
             attributes->number_of_entries_related_to_attribute, attributes->relocation_type);
         }
         struct table_entry * entry = (struct table_entry *)(entry_ptr + parsed_entries_size);

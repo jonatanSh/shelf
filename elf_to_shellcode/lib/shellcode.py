@@ -175,7 +175,7 @@ class Shellcode(object):
                 value = [value, RelocationAttributes.generic_relocate]
             value, reloc_type = value
             if reloc_type == relocation_type:
-                packed += self.address_utils.pack_pointer(key)
+                packed += self.address_utils.pack_pointers(key, value)
                 i += 1
 
         return packed, i
