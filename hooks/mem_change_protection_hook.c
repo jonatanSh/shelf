@@ -11,6 +11,8 @@ struct hook_attributes {
     size_t protection;
     size_t mmap_size;
 };
+#define PAGE_SIZE 4096
+
 
 // Must be the first data in the binary !
 __attribute__((section( ".init" )))
@@ -29,7 +31,10 @@ void hook_main(void * table, struct hook_attributes * hook, void * addr) {
     if(hook->protection & _PROT_EXEC) {
         protection |= PROT_EXEC; 
     }
-	my_syscall3(__NR_mprotect, addr, PROT_READ, hook->mmap_size);
+    while((size_t)addr % PAGE_SIZE) {
+        addr--;
+    }
+	my_syscall3(__NR_mprotect, addr, hook->mmap_size, protection);
     
     ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
