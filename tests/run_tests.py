@@ -31,7 +31,7 @@ test_cases = {
                "Hello from pre write hook!",
                "Hello from pre call main hook!"],
               {'eshelf': False}],
-    'elf_features_no_rwx': ["../outputs/{}_elf_features.out.shellcode", ['all'],
+    'elf_features_no_rwx': ["../outputs/{}_elf_features.out.rwx_bypass.shellcode", ['all'],
                             "__Test_output_Success", {'no_rwx': True}],
 
 }

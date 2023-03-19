@@ -148,7 +148,7 @@ typedef void * (*IRELATIVE_T)();
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \
 
-#define _DISPATCH_HOOKS(hooks_base_address, hooks_type) {                                                                         \
+#define _DISPATCH_HOOKS(hooks_base_address, hooks_type, a1, a2) {                                                                         \
     TRACE("HookDispatcher %s, hooks base address = 0x%x", #hooks_type, hooks_base_address);                                         \
     for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {                                                                           \
         struct hook * hook = &(table->hook_descriptor.hooks_type[i]);                                                           \
@@ -158,7 +158,7 @@ typedef void * (*IRELATIVE_T)();
         hook_attributes);                                                                                                       \
         TRACE_ADDRESS(hook_address, 24);                                                                                        \
         TRACE_ADDRESS(hook_attributes, 24);                                                                                     \
-        call_function(hook_address, table, hook_attributes, 0x0, 0x0);                                                          \
+        call_function(hook_address, table, hook_attributes, a1, a2);                                                          \
     }                                                                                                                           \
 }
 

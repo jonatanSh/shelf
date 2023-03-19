@@ -531,6 +531,10 @@ class Shellcode(object):
         if not kwargs.get("do_not_exit"):
             sys.exit(1)
 
+    @property
+    def post_build_length(self):
+        return len(self.do_objdump(self.shellcode_data))
+
     def __repr__(self):
         return "Shellcode(table_size={})".format(len(self.relocation_table(0x0)))
 
