@@ -14,3 +14,4 @@ def get_resource(resource_name, resolve=True):
 
 def get_resource_path(resource_name):
     return os.path.join(base_file, resource_name)
+

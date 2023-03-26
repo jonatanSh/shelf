@@ -97,7 +97,7 @@ class Shellcode(object):
         if args.hooks_configuration:
             if not LoaderSupports.HOOKS in self.args.loader_supports:
                 raise Exception("Error hook configuration must be used with --loader-supports hooks")
-            self.hooks_configuration = HookConfiguration(args.hooks_configuration)
+            self.hooks_configuration = [HookConfiguration(config) for config in args.hooks_configuration]
 
         if LoaderSupports.HOOKS in self.args.loader_supports:
             self.hooks = ShellcodeHooks(shellcode=self)
@@ -125,22 +125,23 @@ class Shellcode(object):
         if not self.hooks_configuration:
             return
         self.logger.info("Handling hooks")
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.startup_hooks,
-            hook_type=HookTypes.STARTUP_HOOKS
-        )
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.pre_relocate_write_hooks,
-            hook_type=HookTypes.PRE_RELOCATE_WRITE_HOOKS
-        )
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.pre_relocate_execute_hooks,
-            hook_type=HookTypes.PRE_RELOCATE_EXECUTE_HOOKS
-        )
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.pre_calling_main_shellcode_hooks,
-            hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS
-        )
+        for hook_configuration in self.hooks_configuration:
+            self._generic_do_hooks(
+                hooks=hook_configuration.startup_hooks,
+                hook_type=HookTypes.STARTUP_HOOKS
+            )
+            self._generic_do_hooks(
+                hooks=hook_configuration.pre_relocate_write_hooks,
+                hook_type=HookTypes.PRE_RELOCATE_WRITE_HOOKS
+            )
+            self._generic_do_hooks(
+                hooks=hook_configuration.pre_relocate_execute_hooks,
+                hook_type=HookTypes.PRE_RELOCATE_EXECUTE_HOOKS
+            )
+            self._generic_do_hooks(
+                hooks=hook_configuration.pre_calling_main_shellcode_hooks,
+                hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS
+            )
 
     def arch_find_relocation_handler(self, relocation_type):
         """

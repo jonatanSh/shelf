@@ -1,9 +1,8 @@
-import binascii
 import logging
 from copy import deepcopy
 from elf_to_shellcode.lib import five
 from elf_to_shellcode.lib.five import array_join, is_python3
-from elf_to_shellcode.lib.consts import HookTypes, Arches
+from elf_to_shellcode.lib.consts import HookTypes
 
 
 class ArchAlignedList(list):
@@ -108,3 +107,4 @@ class ShellcodeHooks(object):
 
     def get_header(self):
         return self.shellcode_hooks_descriptor.pack()
+

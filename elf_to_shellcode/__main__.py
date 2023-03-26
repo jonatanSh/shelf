@@ -8,7 +8,7 @@ from elf_to_shellcode.lib.consts import LoaderSupports, OUTPUT_FORMATS, Mitigati
 from elf_to_shellcode.lib import five
 from elf_to_shellcode.hooks.hooks_configuration_parser import is_valid_hooks_file
 from elftools.elf.elffile import ELFFile
-from elf_to_shellcode.hooks.builtin import rwx_bypass
+from elf_to_shellcode.hooks.builtin.descriptors import get_descriptor
 
 parser = ArgumentParser("ElfToShellcode")
 parser.add_argument("--input", help="elf input file", required=True)
@@ -41,7 +41,8 @@ parser.add_argument("--loader-symbols-path",
                     )
 parser.add_argument("--hooks-configuration", required=False,
                     help="Hooks configuration file, must be a valid python hook configuration file"
-                         "for examples look at hook_configurations/simple_hello_hook.py under the project github page")
+                         "for examples look at hook_configurations/simple_hello_hook.py under the project github page",
+                    nargs="+", default=[])
 parser.add_argument("--mitigation-bypass", required=False, help="""
     Add mitigation bypass for more read the docs
     to bypass rwx mitigation add --mitigation-bypass rwx
@@ -49,11 +50,11 @@ parser.add_argument("--mitigation-bypass", required=False, help="""
 args = parser.parse_args()
 
 if args.mitigation_bypass:
-    assert args.mitigation_bypass == [MitigationBypass.rwx.name]
-    assert not args.hooks_configuration, "Currently hooks configuration is not supported with configuration bypass"
-    args.hooks_configuration = rwx_bypass.__file__
-    if LoaderSupports.HOOKS not in args.loader_supports:
-        args.loader_supports.append(LoaderSupports.HOOKS)
+    for mitigation_bypass in MitigationBypass:
+        if mitigation_bypass.name in args.mitigation_bypass:
+            descriptor = get_descriptor(mitigation_bypass.value)
+            args.hooks_configuration.append(descriptor.path)
+            args = descriptor.add_support(args)
 
 if not os.path.exists(args.input):
     parser.error("--input does not exists")
@@ -72,16 +73,17 @@ with open(args.input, 'rb') as fp:
     setattr(args, "endian", endian)
 
 if args.hooks_configuration:
-    if not os.path.exists(args.hooks_configuration):
-        parser.error("--hook-configuration path: {} does not exists".format(
-            args.hooks_configuration
-        ))
-    if not is_valid_hooks_file(args.hooks_configuration):
-        parser.error(
-            "--hook-configuration file {} is invalid, "
-            "take a look at the github page under hook_configurations/simple_hello_hook.py".format(
-                args.hooks_configuration
+    for configuration in args.hooks_configuration:
+        if not os.path.exists(configuration):
+            parser.error("--hook-configuration path: {} does not exists".format(
+                configuration
             ))
+        if not is_valid_hooks_file(configuration):
+            parser.error(
+                "--hook-configuration file {} is invalid, "
+                "take a look at the github page under hook_configurations/simple_hello_hook.py".format(
+                    configuration
+                ))
 if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_path, args.loader_symbols_path]):
     parser.error("--loader-path and --loader-symbols-path must be used together")
     sys.exit(1)

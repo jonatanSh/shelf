@@ -38,3 +38,11 @@ class ShelfPreCallingShellcodeMainHook(_BaseShelfHook):
     def __init__(self, *args, **kwargs):
         super(ShelfPreCallingShellcodeMainHook, self).__init__(hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS,
                                                                *args, **kwargs)
+
+
+class _BuiltinHookDescriptor(object):
+    def __init__(self, path):
+        self.path = path
+
+    def add_support(self, args):
+        return args

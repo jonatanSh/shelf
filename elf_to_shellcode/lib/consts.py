@@ -97,7 +97,7 @@ class RELOCATION_OFFSETS(enum.Enum):
 
 
 class MitigationBypass(enum.Enum):
-    rwx = "rwx"
+    rwx = 'RwxHooksDescriptor'
 
 
 OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]
