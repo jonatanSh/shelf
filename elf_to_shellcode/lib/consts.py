@@ -100,4 +100,10 @@ class MitigationBypass(enum.Enum):
     rwx = 'RwxHooksDescriptor'
 
 
+class MemoryProtection(enum.Enum):
+    PROT_READ = (2 << 0)
+    PROT_WRITE = (2 << 1)
+    PROT_EXEC = (2 << 2)
+
+
 OUTPUT_FORMATS = [OUTPUT_FORMAT_MAP.eshelf, OUTPUT_FORMAT_MAP.shelf]

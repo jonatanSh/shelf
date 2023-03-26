@@ -1,12 +1,5 @@
-from enum import Enum
-from elf_to_shellcode.hooks import Arches, ArchEndians
+from elf_to_shellcode.hooks import Arches, ArchEndians, MemoryProtection
 from elf_to_shellcode.resources import get_resource_path
-
-
-class MemoryProtection(Enum):
-    PROT_READ = (2 << 0)
-    PROT_WRITE = (2 << 1)
-    PROT_EXEC = (2 << 2)
 
 
 class MemoryProtecitonHook(object):
