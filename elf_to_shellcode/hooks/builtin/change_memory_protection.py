@@ -1,12 +1,21 @@
-from elf_to_shellcode.hooks import Arches, ArchEndians, MemoryProtection
+from elf_to_shellcode.hooks import Arches, ArchEndians
 from elf_to_shellcode.resources import get_resource_path
 
 
-class MemoryProtecitonHook(object):
-    def __init__(self, protection, size=None, *args, **kwargs):
+class MemoryProtectionDescriptor(object):
+    def __init__(self, protection, size):
         self.protection = protection
-        self.size = size
-        super(MemoryProtecitonHook, self).__init__(*args, **kwargs)
+        self._size = size
+
+    @property
+    def size(self):
+        return self._size
+
+
+class MemoryProtectionHook(object):
+    def __init__(self, descriptors, *args, **kwargs):
+        self.descriptors = descriptors
+        super(MemoryProtectionHook, self).__init__(*args, **kwargs)
 
     def hook_get_shellcode_path(self, arch, endian):
         assert isinstance(arch, Arches)
@@ -17,10 +26,10 @@ class MemoryProtecitonHook(object):
         raise NotImplemented("Error either size or calc size should be implemented")
 
     def hook_get_attributes(self):
-        size = self.size
-        if not size:
-            size = self.calc_size()
-        return self.shellcode.address_utils.pack_pointers(
-            self.protection,
-            size
-        )
+        obj = self.shellcode.address_utils.pack_pointer(len(self.descriptors))
+        for descriptor in self.descriptors:
+            obj += self.shellcode.address_utils.pack_pointers(
+                descriptor.protection,
+                descriptor.size
+            )
+        return obj

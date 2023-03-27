@@ -39,10 +39,13 @@ class ShellcodeHooks(object):
         shellcode_data = self.shellcode.address_utils.left_align(shellcode_data)
         self._hooks_shellcode_data.append(shellcode_data)
         self._hooks_shellcode_data.append(attributes)
+        """
+            We add 0xff to all hooks in order to extinguish between real hooks and null ones 
+        """
         hook = self.shellcode.mini_loader.structs.hook(
-            relative_address=relative_to_relocation_end,
+            relative_address=relative_to_relocation_end+0xff,
             attributes_size=len(attributes),
-            shellcode_size=len(shellcode_data)
+            shellcode_size=len(shellcode_data),
         )
 
         logging.info("Adding hook shellcode, type: {} size: {}".format(
