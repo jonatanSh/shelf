@@ -18,6 +18,7 @@ from elf_to_shellcode.lib.utils.hooks import ShellcodeHooks
 from elf_to_shellcode.lib.utils.general import get_binary
 from elf_to_shellcode.hooks.hooks_configuration_parser import HookConfiguration
 from elf_to_shellcode.hooks.base_hook import _BaseShelfHook
+from elf_to_shellcode.lib.utils.memory_section import MemorySection, MemoryProtection
 
 PTR_SIZES = {
     4: "I",
@@ -97,7 +98,7 @@ class Shellcode(object):
         if args.hooks_configuration:
             if not LoaderSupports.HOOKS in self.args.loader_supports:
                 raise Exception("Error hook configuration must be used with --loader-supports hooks")
-            self.hooks_configuration = HookConfiguration(args.hooks_configuration)
+            self.hooks_configuration = [HookConfiguration(config) for config in args.hooks_configuration]
 
         if LoaderSupports.HOOKS in self.args.loader_supports:
             self.hooks = ShellcodeHooks(shellcode=self)
@@ -125,22 +126,23 @@ class Shellcode(object):
         if not self.hooks_configuration:
             return
         self.logger.info("Handling hooks")
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.startup_hooks,
-            hook_type=HookTypes.STARTUP_HOOKS
-        )
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.pre_relocate_write_hooks,
-            hook_type=HookTypes.PRE_RELOCATE_WRITE_HOOKS
-        )
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.pre_relocate_execute_hooks,
-            hook_type=HookTypes.PRE_RELOCATE_EXECUTE_HOOKS
-        )
-        self._generic_do_hooks(
-            hooks=self.hooks_configuration.pre_calling_main_shellcode_hooks,
-            hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS
-        )
+        for hook_configuration in self.hooks_configuration:
+            self._generic_do_hooks(
+                hooks=hook_configuration.startup_hooks,
+                hook_type=HookTypes.STARTUP_HOOKS
+            )
+            self._generic_do_hooks(
+                hooks=hook_configuration.pre_relocate_write_hooks,
+                hook_type=HookTypes.PRE_RELOCATE_WRITE_HOOKS
+            )
+            self._generic_do_hooks(
+                hooks=hook_configuration.pre_relocate_execute_hooks,
+                hook_type=HookTypes.PRE_RELOCATE_EXECUTE_HOOKS
+            )
+            self._generic_do_hooks(
+                hooks=hook_configuration.pre_calling_main_shellcode_hooks,
+                hook_type=HookTypes.PRE_CALLING_MAIN_SHELLCODE_HOOKS
+            )
 
     def arch_find_relocation_handler(self, relocation_type):
         """
@@ -287,6 +289,16 @@ class Shellcode(object):
     def do_objdump(self, data):
         # We want the first virtual address
         new_binary = five.py_obj()
+        for segment in self.get_segments_in_memory():
+            new_binary = five.ljust(new_binary, segment.vsize, b'\x00')
+            segment_data = data[segment.f_start:segment.f_end]
+            new_binary = new_binary[:segment.start] + segment_data + new_binary[segment.start + len(segment_data):]
+
+        return new_binary  # TODO check if the elf header is really required
+
+    def get_segments_in_memory(self):
+        sections_in_memory = []
+        # We want the first virtual address
         for segment in self.elffile.iter_segments():
             if segment.header.p_type in ['PT_LOAD']:
                 header = segment.header
@@ -295,21 +307,25 @@ class Shellcode(object):
                 end = start + segment_size
                 f_start = header.p_offset
                 f_end = f_start + header.p_filesz
-                assert f_end <= len(data), "Error segment offset outside of data: {} {}".format(
-                    hex(f_end),
-                    hex(len(data))
+                protection = 0
+                if segment.header.p_flags & P_FLAGS.PF_X:
+                    protection |= MemoryProtection.PROT_EXEC.value
+                if segment.header.p_flags & P_FLAGS.PF_R:
+                    protection |= MemoryProtection.PROT_READ.value
+                if segment.header.p_flags & P_FLAGS.PF_W:
+                    protection |= MemoryProtection.PROT_WRITE.value
+                sections_in_memory.append(
+                    MemorySection(
+                        start=start,
+                        vsize=end,
+                        size=f_end - f_start,
+                        f_start=f_start,
+                        f_end=f_end,
+                        protection=protection,
+                    )
                 )
-                # first we make sure this part is already filled
-                if end < 0:
-                    self.logger.warn("Padding returned negative offset !")
-                else:
-                    new_binary = five.ljust(new_binary, end, b'\x00')
-                segment_data = data[f_start:f_end]
 
-                # Now we rewrite the segment data
-                # We look at new binary as memory dump so we write using virtual addresses offsets
-                new_binary = new_binary[:start] + segment_data + new_binary[start + len(segment_data):]
-        return new_binary  # TODO check if the elf header is really required
+        return sections_in_memory
 
     @staticmethod
     def aligned(a, b):
@@ -530,6 +546,10 @@ class Shellcode(object):
         IPython.embed()
         if not kwargs.get("do_not_exit"):
             sys.exit(1)
+
+    @property
+    def post_build_length(self):
+        return len(self.do_objdump(self.shellcode_data))
 
     def __repr__(self):
         return "Shellcode(table_size={})".format(len(self.relocation_table(0x0)))

@@ -13,6 +13,7 @@ then change the memory permissions accordingly.
 The reason we use hooks instead of implementing this logic inside the loader
 is because this project is intended to support large variety of operating systems
 and if this logic was inside the mini loader the mini loader will be os dependent.
+for more information about mitigation bypass refer to the [mitigation bypass](./mitigation_bypass.md)
 
 ### How to use
 

@@ -31,6 +31,8 @@ test_cases = {
                "Hello from pre write hook!",
                "Hello from pre call main hook!"],
               {'eshelf': False}],
+    'elf_features_no_rwx': ["../outputs/{}_elf_features.out.rwx_bypass.shellcode", ['all'],
+                            "__Test_output_Success", {'no_rwx': True}],
 
 }
 
@@ -41,7 +43,9 @@ def translate_to_binary_name(arch):
 
 def run_arch_tests(arch, case):
     qemu = QEMUS[arch]
-    loader = "../outputs/shellcode_loader_{}.out".format(arch)
+    normal_loader = "../outputs/shellcode_loader_{}.out".format(arch)
+    loader_no_rwx = "../outputs/shellcode_loader_no_rwx_{}.out".format(arch)
+
     tests = [case]
     if case == "all":
         tests = test_cases.keys()
@@ -50,10 +54,15 @@ def run_arch_tests(arch, case):
         if type(success) is str:
             success = [success]
         attribute = test_cases[test_case]
+        loader = normal_loader
         if len(attribute) > 3:
-            is_eshelf = attribute[3]['eshelf']
+            is_eshelf = attribute[3].get('eshelf', False)
+            is_no_rwx_loader = attribute[3].get('no_rwx', False)
         else:
             is_eshelf = False
+            is_no_rwx_loader = False
+        if is_no_rwx_loader:
+            loader = loader_no_rwx
         if supported_arches != ['all']:
             if arch not in supported_arches:
                 continue

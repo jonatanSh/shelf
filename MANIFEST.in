@@ -1,4 +1,5 @@
 recursive-include elf_to_shellcode/resources/ *.shellcode
 recursive-include elf_to_shellcode/resources/ *.symbols
 recursive-include elf_to_shellcode/resources/ *.shellcode.structs.json
+recursive-include elf_to_shellcode/resources/ *.hook
 global-exclude *.pyc
