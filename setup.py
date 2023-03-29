@@ -23,7 +23,7 @@ except:
     print("Readme error")
 
 setup(
-    name='elf_to_shellcode',
+    name='shelf',
     version='2.2.8',
     packages=find_packages(),
     include_package_data=True,
@@ -37,7 +37,7 @@ setup(
                 '(mips, arm (32bit), i386 32bit, i386 64bit, aarch64)',
     long_description=README,
     long_description_content_type='text/markdown',
-    url='https://github.com/jonatanSh/elf_to_shellcode',
+    url='https://github.com/jonatanSh/shelf',
     author='Jonathan Shimon',
     author_email='jonatanshimon@gmail.com',
     package_data={'': ['*.shellcode']}

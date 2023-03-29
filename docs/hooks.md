@@ -31,10 +31,10 @@ shellcode can access this attributes)
 ```python
 """
 The library parses this file and find all the class inheriting from 
-elf_to_shellcode.hooks import [... hook types (eg .. ShelfStartupHook)]
+shelf.hooks import [... hook types (eg .. ShelfStartupHook)]
 Then the library create all the hooks accordingly
 """
-from elf_to_shellcode.hooks import ShelfStartupHook, Arches, ArchEndians
+from shelf.hooks import ShelfStartupHook, Arches, ArchEndians
 
 
 class SimpleSayHiHook(ShelfStartupHook):

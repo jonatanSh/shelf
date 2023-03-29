@@ -14,4 +14,4 @@ The reason we use hooks instead of implementing this logic inside the loader
 is because this project is intended to support large variety of operating systems
 and if this logic was inside the mini loader the mini loader will be os dependent.
 
-[Read more about the hooks](../elf_to_shellcode/hooks/builtin/rwx_bypass.py)
+[Read more about the hooks](../shelf/hooks/builtin/rwx_bypass.py)

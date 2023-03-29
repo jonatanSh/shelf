@@ -1,4 +1,4 @@
-from elf_to_shellcode.hooks import ShelfStartupHook, ShelfPreRelocateWriteHook, ShelfPreCallingShellcodeMainHook, \
+from shelf.hooks import ShelfStartupHook, ShelfPreRelocateWriteHook, ShelfPreCallingShellcodeMainHook, \
     ShelfPreRelocateExecuteHook, Arches, ArchEndians
 
 

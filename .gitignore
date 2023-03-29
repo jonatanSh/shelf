@@ -5,8 +5,9 @@
 
 # Node artifact files
 *.hook
-elf_to_shellcode-*
+shelf-*
 elf-to-shellcode-*
+shelf-*
 *.out*
 *.bin*
 *.shellcode*

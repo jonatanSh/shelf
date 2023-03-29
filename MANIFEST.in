@@ -1,5 +1,5 @@
-recursive-include elf_to_shellcode/resources/ *.shellcode
-recursive-include elf_to_shellcode/resources/ *.symbols
-recursive-include elf_to_shellcode/resources/ *.shellcode.structs.json
-recursive-include elf_to_shellcode/resources/ *.hook
+recursive-include shelf/resources/ *.shellcode
+recursive-include shelf/resources/ *.symbols
+recursive-include shelf/resources/ *.shellcode.structs.json
+recursive-include shelf/resources/ *.hook
 global-exclude *.pyc

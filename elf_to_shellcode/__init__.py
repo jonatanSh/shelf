@@ -1,1 +1,0 @@
-from elf_to_shellcode.relocate import make_shellcode

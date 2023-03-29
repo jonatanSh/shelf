@@ -48,7 +48,7 @@ def print_header(message):
 if options.debug:
     CFLAGS += ["-DDEBUG"]
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
-RESOURCES = '../elf_to_shellcode/resources'
+RESOURCES = '../shelf/resources'
 CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
 CFLAGS += ['-nolibc', '--entry=loader_main', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
@@ -288,7 +288,7 @@ def _clean(directory):
 
 def clean():
     _clean('../outputs')
-    _clean('../elf_to_shellcode/resources')
+    _clean('../shelf/resources')
 
 
 def prepare_jobs():

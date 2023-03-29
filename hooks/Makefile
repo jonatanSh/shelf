@@ -5,7 +5,7 @@ CFLAGS=-fno-stack-protector -g -static -Wno-stack-protector
 CFLAGS+=-nolibc --entry=hook_main -nostartfiles -fno-plt
 CFLAGS+=-DSUPPORT_HOOKS
 OUTPUT_DIRECTORY=../outputs/
-RESORUCE_DIRECTORY=../elf_to_shellcode/resources/
+RESORUCE_DIRECTORY=../shelf/resources/
 TARGETS=mips_simple_hello_hook intel_x32_simple_hello_hook intel_x64_simple_hello_hook
 TARGETS+=arm32_simple_hello_hook aarch64_simple_hello_hook
 

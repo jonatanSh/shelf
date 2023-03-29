@@ -1,11 +1,11 @@
-# Elf to shellcode
+# Shelf - Shellcode ELF convert elf to shellcode
 Convert standard elf files to standalone shellcodes.
 Please read the following documentation and view the examples for this project to work properly
 
 #### Project links
-[Github](https://github.com/jonatanSh/elf_to_shellcode)
+[Github](https://github.com/jonatanSh/shelf)
 
-[Pypi](https://pypi.org/project/elf-to-shellcode/)
+[Pypi](https://pypi.org/project/shelf/)
 
 #### Supported architectures
 * mips
@@ -16,7 +16,7 @@ Please read the following documentation and view the examples for this project t
 
 #### Installation:
 ```bash
-pip install elf_to_shellcode
+pip install shelf
 ```
 ###### Python version support
 * python3
@@ -67,20 +67,20 @@ simplified make command for mips big endian
 
 ```c
 gcc example.c -fno-stack-protector -fPIE -fpic -static -nostartfiles --entry=main -o binary.out
-python -m elf_to_shellcode --input binary.out                                     
+python -m shelf --input binary.out                                     
 ```
 
 ### Examples:
 
-[Makefile](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/Makefile)
+[Makefile](https://github.com/jonatanSh/shelf/blob/master/examples/Makefile)
 
-[Example.c](https://github.com/jonatanSh/elf_to_shellcode/blob/master/examples/example.c)
+[Example.c](https://github.com/jonatanSh/shelf/blob/master/examples/example.c)
 
 
 
 ### Testing your shellcode
 You can use the provided shellcode
-[Loader](https://github.com/jonatanSh/elf_to_shellcode/tree/master/shellcode_loader)
+[Loader](https://github.com/jonatanSh/shelf/tree/master/shellcode_loader)
 to test you shellcodes
 
 ```bash
