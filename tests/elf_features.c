@@ -13,7 +13,7 @@
 #endif
 #include "../headers/mini_loader.h"
 
-static int a = 1;
+static int static_variable = 1;
 
 #define MAX_DEBUG_BUFFER 0xffff
 #define TRACE_FORMAT "[ELF_FEATURES:INFO] %s %s(line:%u):\x00"
@@ -94,7 +94,9 @@ long long int main(void * main_address, int argc, char ** argv, int total_args) 
 #else
     TRACE("Elf in eshelf mode !\n");
 #endif
-    TRACE("Testing static variables, a=%d\n", a);
+    TRACE("Testing static variables, static_variable=%d, changing to 2\n", static_variable);
+    static_variable = 2;
+    TRACE("Testing static variables, static_variable=%d\n", static_variable);
     TRACE("Hello from shellcode!\n");
     TRACE("Testing jump tables\n");
     test_jump_table((size_t)main_address);
