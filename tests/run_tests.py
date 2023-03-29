@@ -3,9 +3,9 @@ import subprocess
 from subprocess import PIPE
 from argparse import ArgumentParser
 import logging
-
+import time
 parser = ArgumentParser("testRunner")
-
+execution_timeout = 3 # Meaning seconds
 arch = os.uname()[-1]
 
 QEMUS = {
@@ -39,7 +39,9 @@ test_cases = {
 
 def translate_to_binary_name(arch):
     return arch
-
+def test_banner():
+    print("-" * 30)
+    print("\n")
 
 def run_arch_tests(arch, case):
     qemu = QEMUS[arch]
@@ -85,7 +87,23 @@ def run_arch_tests(arch, case):
             print("Waiting for debugger at: {}".format(1234))
             print(command)
         logging.info("Running command: {}".format(command))
-        stdout, stderr = subprocess.Popen(command, shell=True, stdout=PIPE, stderr=PIPE).communicate()
+        process = subprocess.Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+        start = time.time()
+        timeout_passed = False
+        status_fmt = "test: {}({}) ... ".format(test_case, arch) + "{}"
+
+        while process.poll() is None:
+            if (time.time() - start) > execution_timeout:
+                timeout_passed = True
+                break
+        if timeout_passed:
+            subprocess.call("kill -9 {}".format(process.pid), shell=True)
+            print(status_fmt.format("Failure Timeout reached"))
+            test_banner()
+            continue
+        else:
+            stdout = process.stdout.read()
+            stderr = process.stderr.read()
         if args.only_stdout:
             print(stdout)
             print(stderr)
@@ -109,9 +127,9 @@ def run_arch_tests(arch, case):
             """
             if 'ESHELF exit, RC is irrelevant' in stdout:
                 final_status = "Success"
-            print("test: {}({}) ... {}".format(test_case, arch, final_status))
+            print(status_fmt.format(final_status))
         else:
-            print("test: {} for: {} ... Failure, use --verbose-on-failed to see output".format(test_case, arch))
+            print(status_fmt.format("Failure, use --verbose-on-failed to see output"))
             if args.verbose_on_failed:
                 print stdout, stderr
         if args.verbose:
@@ -121,8 +139,7 @@ def run_arch_tests(arch, case):
             logging.info("Stderr: {}".format(
                 stderr
             ))
-        print("-" * 30)
-        print("\n")
+        test_banner()
 
 
 def main(arch, case, *args):
