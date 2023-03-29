@@ -66,4 +66,14 @@ int get_elf_information(struct relocation_table ** info);
 #define INVALID_MAGIC (1 << 2)
 #define INVALID_ATTRIBUTE (1 << 3)
 #define RELOCATION_ERROR (1<<4)
+
+/*
+    Define addresses in the mini loader
+*/
+struct addresses {
+    size_t base_address;
+    size_t loader_base;
+    size_t hooks_base_address;
+};
+
 #endif // MINI_LOADER_EXTERNAL_DEFS
