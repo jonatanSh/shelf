@@ -23,7 +23,7 @@ except:
     print("Readme error")
 
 setup(
-    name='shelf',
+    name='py_shelf',
     version='2.2.8',
     packages=find_packages(),
     include_package_data=True,
@@ -33,7 +33,7 @@ setup(
                          'py_elf_structs>=1.4.1'
                      ] + py_specific_req,
     license='MIT License',
-    description='Python package to create shellcdoes from elfs supported arch '
+    description='Python package to create shellcodes from elfs supported arch '
                 '(mips, arm (32bit), i386 32bit, i386 64bit, aarch64)',
     long_description=README,
     long_description_content_type='text/markdown',

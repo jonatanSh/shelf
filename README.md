@@ -5,7 +5,7 @@ Please read the following documentation and view the examples for this project t
 #### Project links
 [Github](https://github.com/jonatanSh/shelf)
 
-[Pypi](https://pypi.org/project/shelf/)
+[Pypi](https://pypi.org/project/py_shelf/)
 
 #### Supported architectures
 * mips
@@ -16,7 +16,7 @@ Please read the following documentation and view the examples for this project t
 
 #### Installation:
 ```bash
-pip install shelf
+pip install py_shelf
 ```
 ###### Python version support
 * python3
