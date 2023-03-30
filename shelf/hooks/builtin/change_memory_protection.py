@@ -3,9 +3,10 @@ from shelf.resources import get_resource_path
 
 
 class MemoryProtectionDescriptor(object):
-    def __init__(self, protection, size):
+    def __init__(self, protection, size, address=0x0):
         self.protection = protection
         self._size = size
+        self.address = address
 
     @property
     def size(self):
@@ -30,6 +31,7 @@ class MemoryProtectionHook(object):
         for descriptor in self.descriptors:
             obj += self.shellcode.address_utils.pack_pointers(
                 descriptor.protection,
-                descriptor.size
+                descriptor.size,
+                descriptor.address
             )
         return obj

@@ -8,11 +8,6 @@
 // I should check this more carfually.
 #define MAX_SEARCH_DEPTH 0x1000
 
-struct addresses {
-    size_t base_address;
-    size_t loader_base;
-    size_t hooks_base_address;
-};
 
 #if defined(__x86_64__) || defined(_M_X64)
     #include "./intel/x64.h"

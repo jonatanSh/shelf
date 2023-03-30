@@ -3,6 +3,7 @@ from shelf.hooks import ShelfPreRelocateWriteHook, ShelfPreCallingShellcodeMainH
 from shelf.hooks.builtin.change_memory_protection import MemoryProtectionHook, \
     MemoryProtectionDescriptor
 from shelf.lib.consts import MemoryProtection
+from shelf.lib.utils.memory_section import MemorySection
 
 
 class PreExecuteHook(MemoryProtectionHook, ShelfPreRelocateExecuteHook):
@@ -24,7 +25,20 @@ class PreWriteHook(MemoryProtectionHook, ShelfPreRelocateWriteHook):
 
 class PreCallMain(MemoryProtectionHook, ShelfPreCallingShellcodeMainHook):
     def __init__(self, shellcode, *args, **kwargs):
+        segments = shellcode.get_segments_in_memory()
+        descriptors = [
+            MemoryProtectionDescriptor(
+                protection=MemoryProtection.PROT_READ.value | MemoryProtection.PROT_EXEC.value,
+                size=shellcode.post_build_length)
+        ]
+        for segment in segments:
+            assert isinstance(segment, MemorySection)
+            descriptors.append(
+                MemoryProtectionDescriptor(
+                    protection=segment.memory_protection,
+                    size=segment.vsize,
+                    address=segment.start,
+                )
+            )
         super(PreCallMain, self).__init__(shellcode=shellcode,
-                                          descriptors=[MemoryProtectionDescriptor(
-                                              protection=MemoryProtection.PROT_READ.value | MemoryProtection.PROT_EXEC.value,
-                                              size=shellcode.post_build_length)], *args, **kwargs)
+                                          descriptors=descriptors, *args, **kwargs)
