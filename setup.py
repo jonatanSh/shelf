@@ -24,7 +24,7 @@ except:
 
 setup(
     name='py_shelf',
-    version='3',
+    version='3.0.1',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
