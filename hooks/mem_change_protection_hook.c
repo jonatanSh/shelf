@@ -11,7 +11,7 @@
 struct hook_attributes {
 	size_t protection;
 	size_t mmap_size;
-	size_t address;
+	size_t relative_address;
 };
 #define PAGE_SIZE 4096
 
@@ -32,8 +32,8 @@ void hook_main(void * table,
 	for(size_t i = 0; i < *number_of_attributes; i++) {
 		void * hook_add;
 		struct hook_attributes * hook = (struct hook_attributes *)(hook_start + i*sizeof(struct hook));
-		if(hook->address) {
-			hook_add = (void*)hook->address;
+		if(hook->relative_address) {
+			hook_add = ((void*)hook->relative_address + addresses->base_address);
 		}
 		else {
 			hook_add = addr;
