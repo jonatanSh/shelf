@@ -35,6 +35,7 @@ class ArmX64Shellcode(Shellcode):
             self.add_relocation_handler(self.irelative_helper.relocation_for_rela_plt_got_plt)
 
     def shellcode_handle_padding(self, shellcode_data):
+        logging.info("Getting dummy header")
         dummy_header = self.shellcode_get_full_header(padding=0x0)
 
         # Now we are going to align our shellcode
@@ -44,8 +45,9 @@ class ArmX64Shellcode(Shellcode):
         else:
             alignment = aarch64_alignment - len(dummy_header)
         padding = b'\x00' * alignment
-        logging.info("Aarch64 add alignment: {}".format(
-            hex(alignment)
+        logging.info("Aarch64 add alignment: {}, dummy header size: {}".format(
+            hex(alignment),
+            hex(len(dummy_header))
         ))
         return alignment, padding + shellcode_data
 

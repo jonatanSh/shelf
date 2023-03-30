@@ -190,7 +190,17 @@ class Shellcode(object):
                 value = [value, RelocationAttributes.generic_relocate]
             value, reloc_type = value
             if reloc_type == relocation_type:
-                packed += self.address_utils.pack_pointers(key, value)
+                bitmask = 0x0
+                if key < 0:
+                    bitmask |= (2 << 0)
+                    key = key * -1
+                if value < 0:
+                    bitmask |= (2 << 1)
+                    value = value * -1
+                table_entry = self.mini_loader.structs.table_entry(f_offset=key,
+                                                                   v_offset=value,
+                                                                   bitmask=bitmask)
+                packed += table_entry.pack()
                 i += 1
 
         return packed, i
@@ -318,6 +328,7 @@ class Shellcode(object):
                     MemorySection(
                         start=start,
                         vsize=end,
+                        vsize_aligned=AddressUtils.get_alignment(end, segment.header.p_align),
                         size=f_end - f_start,
                         f_start=f_start,
                         f_end=f_end,
@@ -427,6 +438,9 @@ class Shellcode(object):
 
         if self.args.output_format != OUTPUT_FORMAT_MAP.eshelf:
             full_header = self.mini_loader.loader + full_header
+        logging.info("Alignment up to shellcode data: {}".format(
+            hex(len(full_header))
+        ))
         if LoaderSupports.HOOKS in self.args.loader_supports:
             hooks = self.hooks.get_hooks_data()
             logging.info("Adding hook shellcodes, size: {}".format(

@@ -11,7 +11,7 @@ class PreExecuteHook(MemoryProtectionHook, ShelfPreRelocateExecuteHook):
         super(PreExecuteHook, self).__init__(
             descriptors=[MemoryProtectionDescriptor(
                 protection=MemoryProtection.PROT_READ.value | MemoryProtection.PROT_EXEC.value,
-                size=4096)],
+                size=8192)],
             *args, **kwargs)
 
 
@@ -20,7 +20,7 @@ class PreWriteHook(MemoryProtectionHook, ShelfPreRelocateWriteHook):
         super(PreWriteHook, self).__init__(
             descriptors=[MemoryProtectionDescriptor(
                 protection=MemoryProtection.PROT_READ.value | MemoryProtection.PROT_WRITE.value,
-                size=4096)], *args, **kwargs)
+                size=8192)], *args, **kwargs)
 
 
 class PreCallMain(MemoryProtectionHook, ShelfPreCallingShellcodeMainHook):
@@ -36,7 +36,7 @@ class PreCallMain(MemoryProtectionHook, ShelfPreCallingShellcodeMainHook):
             descriptors.append(
                 MemoryProtectionDescriptor(
                     protection=segment.memory_protection,
-                    size=segment.vsize,
+                    size=segment.vsize_aligned,
                     address=segment.start,
                 )
             )

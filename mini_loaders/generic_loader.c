@@ -150,6 +150,8 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
     ARCH_FUNCTION_ENTER(&return_address);
     struct entry_attributes * attributes;
     while(parsed_entries_size < table->total_size) {
+        size_t f_offset;
+        size_t v_offset;
         #ifdef DEBUG
         TRACE("TableParser (table->total_size=0x%x, parsed_entries_size=0x%x)",
             table->total_size,
@@ -166,8 +168,18 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
         struct table_entry * entry = (struct table_entry *)(entry_ptr + parsed_entries_size);
 
         // Now parsing the entry
-        size_t f_offset = entry->f_offset + addresses->base_address;
-        size_t v_offset = entry->v_offset + addresses->base_address; 
+        if(entry->bitmask & RELOCATION_BITMASK_NEGATIVE_F_OFFSET) {
+            f_offset = addresses->base_address - entry->f_offset;   
+        }
+        else {
+            f_offset = entry->f_offset + addresses->base_address;
+        }
+        if(entry->bitmask & RELOCATION_BITMASK_NEGATIVE_V_OFFSET) {
+            v_offset = addresses->base_address - entry->v_offset; 
+        }
+        else {
+            v_offset = entry->v_offset + addresses->base_address; 
+        }
         #ifdef DEBUG
             TRACE("Parssing Entry(f_offset=0x%x, v_offset=0x%x, relocation_type=0x%x)",
                 entry->f_offset, entry->v_offset,attributes->relocation_type);
