@@ -9,6 +9,7 @@ from py_elf_structs import load_structs
 
 class MiniLoader(object):
     def __init__(self, shellcode):
+        self._structs = None
         self.shellcode = shellcode
         self.logger = getLogger(self.__class__.__name__)
         self._path = None
@@ -127,8 +128,9 @@ class MiniLoader(object):
 
     @property
     def structs(self):
-        return load_structs(self.structs_file)
-
+        if not self._structs:
+            self._structs = load_structs(self.structs_file)
+        return self._structs
     @property
     def function_descriptor_header(self):
         functions = self.structs.loader_function_descriptor.__fields__
