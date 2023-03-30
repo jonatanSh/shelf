@@ -48,7 +48,12 @@ parser.add_argument("--mitigation-bypass", required=False, help="""
     to bypass rwx mitigation add --mitigation-bypass rwx
 """, choices=[mitigation.name for mitigation in MitigationBypass], nargs="+")
 args = parser.parse_args()
-
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info("Verbose level: DEBUG")
+else:
+    logging.basicConfig(level=logging.CRITICAL)
+    
 if args.mitigation_bypass:
     for mitigation_bypass in MitigationBypass:
         if mitigation_bypass.name in args.mitigation_bypass:
@@ -89,11 +94,7 @@ if any([args.loader_path, args.loader_symbols_path]) and not all([args.loader_pa
     sys.exit(1)
 
 sys.modules["global_args"] = args
-if args.verbose:
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info("Verbose level: DEBUG")
-else:
-    logging.basicConfig(level=logging.CRITICAL)
+
 if args.output:
     output_file = args.output
 else:
