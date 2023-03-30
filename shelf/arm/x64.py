@@ -41,7 +41,7 @@ class ArmX64Shellcode(Shellcode):
         # Now we are going to align our shellcode
         aarch64_alignment = (2 << 12)
         if len(dummy_header) > aarch64_alignment:
-            alignment = len(dummy_header) % aarch64_alignment
+            alignment = aarch64_alignment - (len(dummy_header) % aarch64_alignment)
         else:
             alignment = aarch64_alignment - len(dummy_header)
         padding = b'\x00' * alignment
