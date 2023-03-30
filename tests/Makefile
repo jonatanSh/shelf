@@ -17,7 +17,7 @@ OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
 
 .PHONY: clean all
 
-all: clean hooks $(TESTS)
+all: hooks $(TESTS)
 
 mips: $(MIPS_TARGETS)
 intel_x32: $(INTEL_X32)
