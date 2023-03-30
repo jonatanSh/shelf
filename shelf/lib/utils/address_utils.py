@@ -136,6 +136,6 @@ class AddressUtils(object):
     @staticmethod
     def get_alignment(size, aligned):
         if size > aligned:
-            return size % aligned
+            return size + (aligned - (size % aligned))
         else:
             return aligned - size
