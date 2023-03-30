@@ -328,6 +328,7 @@ class Shellcode(object):
                     MemorySection(
                         start=start,
                         vsize=end,
+                        vsize_aligned=AddressUtils.get_alignment(end, segment.header.p_align),
                         size=f_end - f_start,
                         f_start=f_start,
                         f_end=f_end,
@@ -437,6 +438,9 @@ class Shellcode(object):
 
         if self.args.output_format != OUTPUT_FORMAT_MAP.eshelf:
             full_header = self.mini_loader.loader + full_header
+        logging.info("Alignment up to shellcode data: {}".format(
+            hex(len(full_header))
+        ))
         if LoaderSupports.HOOKS in self.args.loader_supports:
             hooks = self.hooks.get_hooks_data()
             logging.info("Adding hook shellcodes, size: {}".format(

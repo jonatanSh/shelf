@@ -36,7 +36,7 @@ class PreCallMain(MemoryProtectionHook, ShelfPreCallingShellcodeMainHook):
             descriptors.append(
                 MemoryProtectionDescriptor(
                     protection=segment.memory_protection,
-                    size=segment.vsize,
+                    size=segment.vsize_aligned,
                     address=segment.start,
                 )
             )

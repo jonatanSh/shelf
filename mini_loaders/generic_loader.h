@@ -39,6 +39,7 @@ struct table_entry {
     loader_off_t f_offset;
     loader_off_t v_offset;
     loader_off_t bitmask;
+
 };
 struct entry_attributes {
     size_t number_of_entries_related_to_attribute;

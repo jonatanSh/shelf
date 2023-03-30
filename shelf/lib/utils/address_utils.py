@@ -132,3 +132,10 @@ class AddressUtils(object):
 
     def right_align(self, data, padding=b'\x00'):
         return self._align(data=data, direction="right", padding=padding)
+
+    @staticmethod
+    def get_alignment(size, aligned):
+        if size > aligned:
+            return size % aligned
+        else:
+            return aligned - size
