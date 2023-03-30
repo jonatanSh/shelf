@@ -190,7 +190,17 @@ class Shellcode(object):
                 value = [value, RelocationAttributes.generic_relocate]
             value, reloc_type = value
             if reloc_type == relocation_type:
-                packed += self.address_utils.pack_pointers(key, value)
+                bitmask = 0x0
+                if key < 0:
+                    bitmask |= (2 << 0)
+                    key = key * -1
+                if value < 0:
+                    bitmask |= (2 << 1)
+                    value = value * -1
+                table_entry = self.mini_loader.structs.table_entry(f_offset=key,
+                                                                   v_offset=value,
+                                                                   bitmask=bitmask)
+                packed += table_entry.pack()
                 i += 1
 
         return packed, i
