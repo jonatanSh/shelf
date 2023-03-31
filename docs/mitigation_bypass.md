@@ -21,4 +21,5 @@ To bypass RWX in other OS's write a shellcode
 to [chane memory permissions such as this one](../hooks/mem_change_protection_hook.c).
 
 Compile this shellcode as a hook and write [Hook descriptor such as this one](../shelf/hooks/builtin/rwx_bypass.py).
+
 [Then use your hook](./hooks.md)
