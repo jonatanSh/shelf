@@ -1,5 +1,5 @@
 #include "../generic_loader.h"
-#include "arm32.h"
+#include "aarch64.h"
 
 void startup_code(size_t main_ptr, int argc, void * argv) {
     size_t return_address;
