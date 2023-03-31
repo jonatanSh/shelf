@@ -39,8 +39,8 @@ mini loaders.
     Relocation table --|> HOOKS Optional
     Relocation table : Contain table required for shellcode runtime relocation
     HOOKS Optional --|> SHELF
-    HOOKS: Read more about hooks in the documentation below
-    HOOKS: This section is optional and only exists if hooks are used
+    HOOKS Optional: Read more about hooks in the documentation below
+    HOOKS Optional: This section is optional and only exists if hooks are used
     SHELF: Shellcode elf - This is the compiled binary we convert into shellcode
     SHELF: This binary is stripped into only opcodes
     SHELF: fully relocatable using the relocation table
