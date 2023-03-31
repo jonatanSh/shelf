@@ -19,11 +19,3 @@ just add the following outputing option
 ```bash
 --output-format eshelf
 ```
-
-### Supported architectures:
-
-* intel x64
-* intel x32
-* mips
-* arm32
-* arm64

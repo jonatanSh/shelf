@@ -23,11 +23,15 @@ pip install py_shelf
 
 
 ## How does this work ?
-The python library parses the elf and create a simple relocatable file format
-Then the mini loader is inserted as the entry point of the elf the mini loader
-will load the relocatable format and execute it.
+The python library parses the elf and create a simple relocatable file format called shelf (shellcode elf).
+
+The mini loader is inserted as the entry point for shelf.
+
+the mini loader will load and relocate the shelf then it will execute it.
 There are no special requirements, the library contain the compiled
-mini loaders.
+mini loaders and resources.
+
+The diagram below explain the format (Only work in browsers)
 
 ```mermaid
   classDiagram
@@ -52,8 +56,10 @@ You can just execute it, eg ...
 ```c
 ((void (*)()) shellcode)();
 ```
-note that __libc_start_main perform syscalls
+* note that __libc_start_main perform syscalls
 therefor if you want your shellcode to be fully os independent you must compile with -nostartfiles
+* Shelf by default expects RWX (Read Write Execute) memory shelf can run in [RX environments (Read Execute) Click the link to read more](docs/mitigation_bypass.md)
+
 follow the examples below
 
 ## Creating a shellcode
@@ -82,8 +88,7 @@ python -m shelf --input binary.out
 
 
 ### Testing your shellcode
-You can use the provided shellcode
-[Loader](https://github.com/jonatanSh/shelf/tree/master/shellcode_loader)
+You can use the provided shellcode [Loader](https://github.com/jonatanSh/shelf/tree/master/shellcode_loader)
 to test you shellcodes
 
 ```bash
