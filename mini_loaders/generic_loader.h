@@ -145,7 +145,7 @@ typedef void * (*IRELATIVE_T)();
 
 #define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
     TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+addresses.loader_base));  \
-    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4);                                                             \
+call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4);                                                             \
     DISPATCHER_GET_CALL_OUT();                                                                                                          \
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \
@@ -174,5 +174,7 @@ typedef void * (*IRELATIVE_T)();
 #else
     #define DISPATCH_HOOKS
 #endif
+
+#define GLIBC_STACK_SIZE(argc) ((3 + argc) * sizeof(size_t))
 
 #endif

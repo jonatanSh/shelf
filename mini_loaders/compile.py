@@ -55,7 +55,6 @@ CFLAGS += ['-nolibc', '--entry=loader_main', '-nostartfiles', '-fno-plt', '-fno-
 CFLAGS = ' '.join(CFLAGS)
 print_header("Compiling mini loaders, cflags={}".format(CFLAGS))
 skip_features = {
-    'x32': [['hooks', 'glibc']]
 }
 
 
@@ -272,6 +271,8 @@ features = {
     '': {'defs': [], 'files': ['generic_loader.c'], 'supported': arches},
     'dynamic': {'defs': ['SUPPORT_DYNAMIC_LOADER'], 'files': ['generic_loader.c'], 'supported': arches},
     'hooks': {'defs': ['SUPPORT_HOOKS'], 'files': ['generic_loader.c'], 'supported': arches},
+    'glibc': {'defs': ['GLIBC_STARTUP'], 'files': ['generic_loader.c'], 'supported': [Arches.mips.value,
+                                                                                      Arches.mipsbe.value]},
 
     'eshelf': {'defs': ['ESHELF', 'WITH_LIBC'],
                'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
