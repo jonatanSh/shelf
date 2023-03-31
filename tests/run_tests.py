@@ -1,170 +1,59 @@
-import os
-import subprocess
-from subprocess import PIPE
 from argparse import ArgumentParser
 import logging
-import time
+from test_runner.consts import Arches
+from test_runner.tests import TEST_CASES, TESTS, get_test_with_features
+from test_runner.test_run_utils import run_test, test_banner, arch_banner, display_output
+
 parser = ArgumentParser("testRunner")
-execution_timeout = 3 # Meaning seconds
-arch = os.uname()[-1]
-
-QEMUS = {
-    "mips": "qemu-mips-static",
-    "intel_x32": "qemu-i386-static",
-    "intel_x64": "qemu-x86_64-static",
-    "arm32": "qemu-arm-static",
-    "aarch64": "qemu-aarch64-static"
-}
-# Prefer no emulation if running on x64 host !
-if arch == 'x86_64':
-    QEMUS['intel_x64'] = ""
-
-test_cases = {
-    'elf_features': ["../outputs/{}_elf_features.out.shellcode", ['all'], "__Test_output_Success"],
-    'no_relocations': ["../outputs/no_libc_{}_no_relocations.out.shellcode", ['intel_x32', 'aarch64'], 'Hello'],
-    'eshelf': ['../outputs/{}_elf_features.out.eshelf.shellcode', ['all'], 'Hello',
-               {'eshelf': True}],
-    'dynamic_elf_features': ['../outputs/dynamic_{}_elf_features.out.shellcode', ['all'], 'Hello'],
-    'hooks': ['../outputs/{}_elf_features.out.hooks.shellcode', ['all'],
-              ['Hello',
-               "Hello from startup hook!",
-               "Hello from pre write hook!",
-               "Hello from pre call main hook!"],
-              {'eshelf': False}],
-    'elf_features_no_rwx': ["../outputs/{}_elf_features.out.rwx_bypass.shellcode", ['all'],
-                            "__Test_output_Success", {'no_rwx': True}],
-
-}
-
-
-def translate_to_binary_name(arch):
-    return arch
-def test_banner():
-    print("-" * 30)
-    print("\n")
-
-def run_arch_tests(arch, case):
-    qemu = QEMUS[arch]
-    normal_loader = "../outputs/shellcode_loader_{}.out".format(arch)
-    loader_no_rwx = "../outputs/shellcode_loader_no_rwx_{}.out".format(arch)
-
-    tests = [case]
-    if case == "all":
-        tests = test_cases.keys()
-    for test_case in tests:
-        case, supported_arches, success = test_cases[test_case][:3]
-        if type(success) is str:
-            success = [success]
-        attribute = test_cases[test_case]
-        loader = normal_loader
-        if len(attribute) > 3:
-            is_eshelf = attribute[3].get('eshelf', False)
-            is_no_rwx_loader = attribute[3].get('no_rwx', False)
-        else:
-            is_eshelf = False
-            is_no_rwx_loader = False
-        if is_no_rwx_loader:
-            loader = loader_no_rwx
-        if supported_arches != ['all']:
-            if arch not in supported_arches:
-                continue
-        test = case.format(translate_to_binary_name(arch))
-        db_arg = "-g 1234" if args.debug else ""
-        strace_args = "-strace" if args.strace else ""
-        assert os.path.exists(loader), "Error loader doesn't exists for: {}".format(arch)
-        assert os.path.exists(test), "Error test for: arch={} case={} does not exists, path: {}".format(
-            arch,
-            case,
-            test
-        )
-        if not is_eshelf:
-            command = "{} {} {} {} {}".format(qemu, db_arg, strace_args, loader, test)
-        else:
-            command = '{} {} {} "First_Argument_for_argv" "Second argument for argv"'.format(qemu, db_arg, test)
-        if not args.only_stdout:
-            print("-" * 30)
-        if args.debug:
-            print("Waiting for debugger at: {}".format(1234))
-            print(command)
-        logging.info("Running command: {}".format(command))
-        process = subprocess.Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
-        start = time.time()
-        timeout_passed = False
-        status_fmt = "test: {}({}) ... ".format(test_case, arch) + "{}"
-
-        while process.poll() is None:
-            if (time.time() - start) > execution_timeout:
-                timeout_passed = True
-                break
-        if timeout_passed:
-            subprocess.call("kill -9 {}".format(process.pid), shell=True)
-            print(status_fmt.format("Failure Timeout reached"))
-            test_banner()
-            continue
-        else:
-            stdout = process.stdout.read()
-            stderr = process.stderr.read()
-        if args.only_stdout:
-            print(stdout)
-            print(stderr)
-            continue
-        if all([s in stdout for s in success]) and ('core dumped' not in stderr and 'core dumped' not in stdout):
-            key = "Shellcode returned: "
-            index = stdout.find(key)
-            final_status = "Failure, reason: RC"
-
-            if index != -1:
-                index += len(key)
-                loader_output = stdout[index:]
-                value = loader_output[:loader_output.find("\n") + 1].strip()
-                value = int(value.strip(), 16)
-                if value == 0x12468:
-                    final_status = "Success"
-                else:
-                    final_status = "Failure, reason: RC"
-            """
-            We don't check the return code in eshelf modes due to it being irrelevant
-            """
-            if 'ESHELF exit, RC is irrelevant' in stdout:
-                final_status = "Success"
-            print(status_fmt.format(final_status))
-        else:
-            print(status_fmt.format("Failure, use --verbose-on-failed to see output"))
-            if args.verbose_on_failed:
-                print stdout, stderr
-        if args.verbose:
-            logging.info("Stdout: {}".format(
-                stdout
-            ))
-            logging.info("Stderr: {}".format(
-                stderr
-            ))
-        test_banner()
-
-
-def main(arch, case, *args):
-    if arch == "all":
-        for key in QEMUS.keys():
-            run_arch_tests(key, case)
-    else:
-        run_arch_tests(arch, case)
-
-
-usage_printed = False
-
-arch_choices = QEMUS.keys() + ["all"]
-tests = test_cases.keys() + ['all']
-parser.add_argument("--arch", choices=arch_choices, required=False, default="all")
-parser.add_argument("--test", choices=tests, required=False, default="all")
+all_arches = [arch.value for arch in Arches]
+parser.add_argument("--arch", choices=all_arches, required=False, default=all_arches, nargs="+")
+parser.add_argument("--test", choices=TEST_CASES, required=False, default=TEST_CASES, nargs="+")
 parser.add_argument("--debug", default=False, action="store_true", required=False, help="Run qemu on local port 1234")
 parser.add_argument("--verbose", default=False, action="store_true", required=False)
-parser.add_argument("--only-stdout", default=False, required=False, action="store_true",
-                    help="Run and only display stdout and stderr")
-parser.add_argument("--verbose-on-failed", default=False, action="store_true", required=False)
+parser.add_argument("--test-verbose", default=False, action="store_true", help="Test runner verbose logging")
 parser.add_argument("--strace", default=False, action="store_true", required=False)
 
 args = parser.parse_args()
-if args.verbose:
-    assert not args.only_stdout, "error --only-stdout and --verbose dont work togther"
+if args.test_verbose:
     logging.basicConfig(level=logging.INFO)
-main(arch=args.arch, case=args.test)
+summary_failed = []
+failed = 0
+success = 0
+for arch in args.arch:
+    arch_banner(arch)
+    for case in args.test:
+        logging.info("Finding key for: {}".format(case))
+        test_description, test_features = get_test_with_features(case)
+        logging.info("Key found: {}".format(test_description))
+        test_parameters = TESTS[test_description]
+        if arch not in test_parameters['supported_arches']:
+            continue
+        if test_features in test_parameters.get("disabled_features", []):
+            continue
+        try:
+            test_output = run_test(
+                key=test_description,
+                test_parameters=test_parameters,
+                arch=arch,
+                description=case,
+                test_features=test_features,
+                is_debug=args.debug,
+                is_strace=args.strace,
+                is_verbose=args.verbose)
+            display_output(test_output, is_verbose=args.verbose)
+            if test_output.success:
+                success += 1
+            else:
+                failed += 1
+            test_banner()
+        except Exception as e:
+            summary_failed.append(e)
+            failed += 1
+
+print("Success: {} Failed: {}".format(
+    success,
+    failed
+))
+if args.verbose:
+    for failed in summary_failed:
+        print(failed)

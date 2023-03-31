@@ -43,6 +43,9 @@ parser.add_argument("--hooks-configuration", required=False,
                     help="Hooks configuration file, must be a valid python hook configuration file"
                          "for examples look at hook_configurations/simple_hello_hook.py under the project github page",
                     nargs="+", default=[])
+parser.add_argument("--run-profiler",
+                    help="Run with Cprofile to output a profile of this library only for develpomenet", required=False,
+                    action="store_true")
 parser.add_argument("--mitigation-bypass", required=False, help="""
     Add mitigation bypass for more read the docs
     to bypass rwx mitigation add --mitigation-bypass rwx
@@ -53,7 +56,7 @@ if args.verbose:
     logging.info("Verbose level: DEBUG")
 else:
     logging.basicConfig(level=logging.CRITICAL)
-    
+
 if args.mitigation_bypass:
     for mitigation_bypass in MitigationBypass:
         if mitigation_bypass.name in args.mitigation_bypass:
@@ -101,10 +104,18 @@ else:
     output_file = args.input + "{0}.out.shell".format(args.arch)
 
 with open(output_file, "wb") as fp:
+    if args.run_profiler:
+        import cProfile
+        pr = cProfile.Profile()
+        pr.enable()
     shellcode, shellcode_repr = make_shellcode(arch=args.arch, endian=args.endian,
                                                start_file_method=args.start_method, args=args)
     fp.write(five.to_file(shellcode))
     st = os.stat(output_file)
     os.chmod(output_file, st.st_mode | stat.S_IEXEC)
+
+    if args.run_profiler:
+        pr.disable()
+        pr.print_stats(sort=1)
 
 print("Created: {}, from: {}".format(output_file, shellcode_repr))
