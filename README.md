@@ -32,12 +32,15 @@ mini loaders.
 ```mermaid
   classDiagram
     ShellcodeEntryPoint --|> MiniLoader
-    ShellcodeEntryPoint: Shellcode to jump into the mini loader
+    ShellcodeEntryPoint: Shellcode containing pre mini loader logic
     MiniLoader --|> Relocation table
     MiniLoader: Contain all the logic for parsing the relocation table
     MiniLoader: fully os independent
-    Relocation table --|> SHELF
+    Relocation table --|> HOOKS Optional
     Relocation table : Contain table required for shellcode runtime relocation
+    HOOKS Optional --|> SHELF
+    HOOKS: Read more about hooks in the documentation below
+    HOOKS: This section is optional and only exists if hooks are used
     SHELF: Shellcode elf - This is the compiled binary we convert into shellcode
     SHELF: This binary is stripped into only opcodes
     SHELF: fully relocatable using the relocation table
