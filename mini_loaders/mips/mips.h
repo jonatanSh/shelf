@@ -1,5 +1,6 @@
 #ifndef LOADER_MIPS
 #define LOADER_MIPS
+#include <stddef.h>
 
 #define ARCH_OPCODE_SIZE 4 
 #define TABLE_MAGIC 0xaabbccdd
@@ -114,6 +115,7 @@
    );                                                           \
 }                                                               \
 
+void startup_code(size_t main_ptr, int argc, void * argv);
 
 #define ARCH_FUNCTION_ENTER(ra) {            \
     register size_t a0 asm("a0");           \

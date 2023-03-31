@@ -34,6 +34,7 @@ struct mini_loader_hooks_descriptor {
 
 struct loader_function_descriptor {
     size_t loader_handle_relocation_table;
+    size_t startup_code;
 };
 struct relocation_table {
     size_t magic;

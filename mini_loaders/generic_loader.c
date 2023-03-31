@@ -109,7 +109,7 @@ void loader_main(
     #ifdef SUPPORT_HOOKS
         DISPATCH_HOOKS(addresses.hooks_base_address, pre_calling_shellcode_main_hooks, entry_point, &addresses);
     #endif
-    call_function(entry_point, entry_point, argc, argv, (total_argv_envp_size + 1) * 4);
+    LOADER_DISPATCH(startup_code, entry_point, argc, argv, 0);
 #ifdef ARCH_GET_FUNCTION_OUT
     ARCH_GET_FUNCTION_OUT();
 #endif
