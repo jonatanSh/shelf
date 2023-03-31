@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from enum import Enum
 from parallel_api.api import execute_jobs_in_parallel
 
+local_path = os.path.dirname(__file__)
 
 class Arches(Enum):
     mips = 'mips'
@@ -109,13 +110,14 @@ def merge_features(first_dict, second_dict):
 
 
 class Compiler(object):
-    def __init__(self, host, cflags, compiler_name):
+    def __init__(self, host, cflags, compiler_name, files=[]):
         self._gcc = "{}-gcc".format(host)
         self._objcopy = "{}-objcopy".format(host)
         self._strip = "{}-strip".format(host)
         self.cflags = cflags.split(" ")
         self.compiler_name = compiler_name
         self.compile_kwargs = None
+        self.files = files
 
     @staticmethod
     def execute(*cmd):
@@ -204,12 +206,13 @@ class Compiler(object):
         )
 
 
-def get_compiler(host, cflags, compiler_name):
+def get_compiler(host, cflags, compiler_name, files=[]):
     def cls():
         return Compiler(
             host=host,
             cflags=cflags,
-            compiler_name=compiler_name
+            compiler_name=compiler_name,
+            files=files
         )
 
     return cls
@@ -218,33 +221,40 @@ def get_compiler(host, cflags, compiler_name):
 MipsCompiler = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{}'.format(CFLAGS),
-    compiler_name=Arches.mips.value
+    compiler_name=Arches.mips.value,
+    files=["mips/mips.c"]
 )
 MipsCompilerBE = get_compiler(
     host=r'mips-linux-gnu',
     cflags='{} -BE'.format(CFLAGS),
-    compiler_name=Arches.mipsbe.value
+    compiler_name=Arches.mipsbe.value,
+    files=["mips/mips.c"]
 )
 IntelX32 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic'.format(CFLAGS),
-    compiler_name=Arches.x32.value
+    compiler_name=Arches.x32.value,
+    files=["intel/x32.c"]
 )
 IntelX64 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic -m64'.format(CFLAGS),
-    compiler_name=Arches.x64.value
+    compiler_name=Arches.x64.value,
+    files=["intel/x64.c"]
+
 )
 
 ArmX32 = get_compiler(
     host=r'arm-linux-gnueabi',
     cflags='{}'.format(CFLAGS),
-    compiler_name=Arches.arm_x32.value
+    compiler_name=Arches.arm_x32.value,
+    files=["arm/arm32.c"]
 )
 AARCH64 = get_compiler(
     host=r'aarch64-linux-gnu',
     cflags='{}'.format(CFLAGS),
-    compiler_name=Arches.arm_x64.value
+    compiler_name=Arches.arm_x64.value,
+    files=["arm/aarch64.c"]
 )
 
 compilers = [
@@ -317,7 +327,7 @@ def prepare_jobs():
                                             feature_name)
             target_out = OUTPUT_BASE.format(target_out)
             compiler.prepare_compile_kwargs(
-                files=attributes['files'],
+                files=attributes['files'] + compiler.files,
                 output_file=target_out,
                 defines=attributes['defs'],
                 flags=flags,
