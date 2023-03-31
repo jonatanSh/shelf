@@ -19,7 +19,7 @@ void startup_code(size_t main_ptr, int argc, void * argv) {
         "pop ebx\n"
         "add esp, 4\n" 
         : :
-        "r"(main_ptr), "r"(argc), "r"(argv)
+        "r"(eax), "r"(ebx), "r"(ecx)
         :
     );
 #endif

@@ -239,7 +239,8 @@ IntelX32 = get_compiler(
 IntelX64 = get_compiler(
     host=r'i686-linux-gnu',
     cflags='{} -masm=intel -fno-plt -fno-pic -m64'.format(CFLAGS),
-    compiler_name=Arches.x64.value
+    compiler_name=Arches.x64.value,
+    files=["intel/x64.c"]
 
 )
 
