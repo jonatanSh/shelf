@@ -247,12 +247,14 @@ IntelX64 = get_compiler(
 ArmX32 = get_compiler(
     host=r'arm-linux-gnueabi',
     cflags='{}'.format(CFLAGS),
-    compiler_name=Arches.arm_x32.value
+    compiler_name=Arches.arm_x32.value,
+    files=["arm/arm32.c"]
 )
 AARCH64 = get_compiler(
     host=r'aarch64-linux-gnu',
     cflags='{}'.format(CFLAGS),
-    compiler_name=Arches.arm_x64.value
+    compiler_name=Arches.arm_x64.value,
+    files=["arm/aarch64.c"]
 )
 
 compilers = [
