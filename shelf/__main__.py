@@ -106,15 +106,16 @@ else:
 with open(output_file, "wb") as fp:
     if args.run_profiler:
         import cProfile
+        pr = cProfile.Profile()
+        pr.enable()
+    shellcode, shellcode_repr = make_shellcode(arch=args.arch, endian=args.endian,
+                                               start_file_method=args.start_method, args=args)
+    fp.write(five.to_file(shellcode))
+    st = os.stat(output_file)
+    os.chmod(output_file, st.st_mode | stat.S_IEXEC)
 
-        cProfile.run(
-            """make_shellcode(arch=args.arch, endian=args.endian,start_file_method=args.start_method, args=args)""")
-        sys.exit(1)
-    else:
-        shellcode, shellcode_repr = make_shellcode(arch=args.arch, endian=args.endian,
-                                                   start_file_method=args.start_method, args=args)
-        fp.write(five.to_file(shellcode))
-        st = os.stat(output_file)
-        os.chmod(output_file, st.st_mode | stat.S_IEXEC)
+    if args.run_profiler:
+        pr.disable()
+        pr.print_stats(sort=1)
 
 print("Created: {}, from: {}".format(output_file, shellcode_repr))

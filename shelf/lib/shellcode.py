@@ -41,6 +41,9 @@ class Shellcode(object):
                  support_dynamic=False,
                  add_dynamic_relocation_lib=True,
                  **kwargs):
+        self._ptr_size = None
+        self._loading_virtual_addr = None
+        self._linker_base = None
         self.support_hooks = True
         if reloc_types is None:
             reloc_types = {}
@@ -86,7 +89,7 @@ class Shellcode(object):
 
         self.arch = arch
 
-        self.disassembler = Disassembler(self)
+        # self.disassembler = Disassembler(self)
         if self.support_dynamic:
             if add_dynamic_relocation_lib:
                 self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
@@ -174,7 +177,9 @@ class Shellcode(object):
 
     @property
     def ptr_size(self):
-        return struct.calcsize(self.ptr_fmt)
+        if not self._ptr_size:
+            self._ptr_size = struct.calcsize(self.ptr_fmt)
+        return self._ptr_size
 
     def sizeof(self, tp):
         if tp == "short":
@@ -379,6 +384,8 @@ class Shellcode(object):
                 last_section = section
 
     def get_linker_base_address(self, check_x=True, attribute='p_offset'):
+        if self._linker_base:
+            return self._linker_base
         if self.elffile.num_segments() == 0:
             return 0
 
@@ -390,14 +397,17 @@ class Shellcode(object):
                 if (header.p_flags & P_FLAGS.PF_X) or not check_x:
                     min_s = min(min_s, getattr(header, attribute))
         assert min_s != 2 ** 32
-        return min_s
+        self._linker_base = min_s
+        return self._linker_base
 
     @property
     def loading_virtual_address(self):
-        return self.get_linker_base_address(
-            check_x=False,
-            attribute="p_vaddr"
-        )
+        if not self._loading_virtual_addr:
+            self._loading_virtual_addr = self.get_linker_base_address(
+                check_x=False,
+                attribute="p_vaddr"
+            )
+        return self._loading_virtual_addr
 
     @property
     def linker_base_address(self):
