@@ -48,6 +48,7 @@ for arch in args.arch:
             test_banner()
         except Exception as e:
             summary_failed.append(e)
+            failed += 1
 
 print("Success: {} Failed: {}".format(
     success,

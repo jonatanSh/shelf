@@ -29,6 +29,7 @@ TESTS = {
                      TestFeatures.DYNAMIC,
                      TestFeatures.NORWX],
         "disabled_features": forbidden_features(
+            bind_together(TestFeatures.ESHELF, TestFeatures.NORWX),
             bind_together(TestFeatures.ESHELF, TestFeatures.DYNAMIC),
             bind_together(TestFeatures.ESHELF, TestFeatures.DYNAMIC, TestFeatures.NORWX),
         )
