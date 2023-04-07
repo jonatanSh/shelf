@@ -31,39 +31,35 @@ void startup_code(size_t main_ptr, int argc, void * argv) {
 
     TRACE("Glbic startup is defiend ! stack space = %x", a3);
     asm volatile(
-        "subu $sp, $sp, $a3\n" // Substract from stack
-        "addiu $sp, $sp, -24\n"
-        "sw $a3, 0($sp)\n"
-        "sw $t9, 4($sp)\n" // Store t9 into the stack
-        "sw $a1, 8($sp)\n" // Store a1 into the stack
-        "move $a1, $a2\n" // Get argument vector
-        "sw $a2, 12($sp)\n" // Save a2
-        "sw $t8, 16($sp)\n"
-        "sw $t7, 20($sp)\n"
-        "move $t9, $zero\n"
-        "addiu $sp, $sp, 24\n" // Moving the stack for the args space
-        "sub $s3, 12\n" // All 3 last pointers are null !
-        "loop:\n"
         /*
-            Here we are going to push all the variables to the stack accordingly
+            In the beging of this routine we substract from the stack.
+            first we substract the size of GLIB_STACK_SIZE
+            then we make room for the variables we save on the stack.
         */
-        "addu $a2, $a1, $t9\n" // Points to the current argument
-        "addu $t7, $sp, $t9\n" // Current sp
-        "sw $a2, 0($t7)\n" // Save that address
-        "addiu $t9, $t9, 4\n" // Advance the counter
-        "bne $t9, $a3, loop\n"
-        "sw $zero, 4($t7)\n" // First null
-        "sw $zero, 8($t7)\n" // First null
-        "sw $zero, 12($t7)\n" // First null
-        "addiu $sp, $sp, -24\n" // Restoring
-        "lw $t7, 20($sp)\n"
-        "lw $t8, 16($sp)\n"        
-        "lw $a2, 12($sp)\n" // Load a2
-        "lw $a1, 8($sp)\n" // Load a1 from the stack
-        "lw $t9, 4($sp)\n" // Get stored t9
+        "subu $sp, $sp, $a3\n"
+        "addiu $sp, $sp, -28\n"
+        "sw $a0, 0($sp)\n"
+        "sw $a1, 4($sp)\n"
+        "sw $a2, 8($sp)\n"
+        "sw $a3, 12($sp)\n"
+        "sw $t7, 16($sp)\n"
+        "sw $t8, 20($sp)\n"
+        "sw $t9, 24($sp)\n"
+
+
+        // Now we are going to load all the variables from the stack
+        "lw $a0, 0($sp)\n"
+        "lw $a1, 4($sp)\n"
+        "lw $a2, 8($sp)\n"
+        "lw $a3, 12($sp)\n"
+        "lw $t7, 16($sp)\n"
+        "lw $t8, 20($sp)\n"
+        "lw $t9, 24($sp)\n"
+        // Jumping to the prodcedure
         "jalr $t9\n"
-        "lw $a3, 0($sp)\n"
-        "addiu $sp, $sp, 24\n"
+        /* Restore all variables here */
+        "lw $a3, 12($sp)\n"
+        "addiu $sp, $sp, 28\n"
         "addu $sp, $sp, $a3\n"
         : :
         "r"(t9), "r"(a0), "r"(a1), "r"(a2), "r"(a3)
