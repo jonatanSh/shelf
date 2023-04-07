@@ -1,6 +1,11 @@
 #include "../generic_loader.h"
 #include "mips.h"
 #define GLIBC_STARTUP
+
+#ifdef GLIBC_STARTUP
+    static size_t original_sp = 0x0;
+#endif
+
 void startup_code(size_t main_ptr, int argc, void * argv) {
     size_t return_address;
     ARCH_FUNCTION_ENTER(&return_address);
@@ -26,45 +31,47 @@ void startup_code(size_t main_ptr, int argc, void * argv) {
         NULL
         
         A3 stores the total pointers in the stack
-    */ 
-    register size_t a3 asm("a3") = (size_t)(GLIBC_STACK_SIZE(argc));
+    */
+    size_t* elf_sp;
+    size_t elf_stack_frame_size;
+    size_t i = 0;
+    size_t elf_stack_ctr = 0x0;
+    size_t my_sp;
+    elf_stack_frame_size = GLIBC_STACK_SIZE(argc);
+    get_stack_pointer(my_sp);
+    original_sp = my_sp;
+    elf_sp = original_sp - elf_stack_frame_size;
+    
+    register size_t a3 asm("a3") = (size_t)(elf_stack_frame_size);
+    TRACE("Glbic startup is defiend ! stack space = 0x%x,sp=0x%0x, elf_sp=0x%0x",
+     a3, original_sp, elf_sp);
+    elf_sp[elf_stack_ctr++] = argc;
+    while(i++ < argc) {
+        elf_sp[elf_stack_ctr++] = ((size_t*)(argv))[i-1]; 
+    }
+    // Null for argv
+    elf_sp[elf_stack_ctr++] = 0x0;
+    // Null for envp
+    elf_sp[elf_stack_ctr++] = 0x0;
 
-    TRACE("Glbic startup is defiend ! stack space = %x", a3);
+    
+
+    a3 = elf_sp;
+    // Finally call main
     asm volatile(
-        /*
-            In the beging of this routine we substract from the stack.
-            first we substract the size of GLIB_STACK_SIZE
-            then we make room for the variables we save on the stack.
-        */
-        "subu $sp, $sp, $a3\n"
-        "addiu $sp, $sp, -28\n"
-        "sw $a0, 0($sp)\n"
-        "sw $a1, 4($sp)\n"
-        "sw $a2, 8($sp)\n"
-        "sw $a3, 12($sp)\n"
-        "sw $t7, 16($sp)\n"
-        "sw $t8, 20($sp)\n"
-        "sw $t9, 24($sp)\n"
-
-
-        // Now we are going to load all the variables from the stack
-        "lw $a0, 0($sp)\n"
-        "lw $a1, 4($sp)\n"
-        "lw $a2, 8($sp)\n"
-        "lw $a3, 12($sp)\n"
-        "lw $t7, 16($sp)\n"
-        "lw $t8, 20($sp)\n"
-        "lw $t9, 24($sp)\n"
-        // Jumping to the prodcedure
+        "move $sp, $a3\n"
         "jalr $t9\n"
-        /* Restore all variables here */
-        "lw $a3, 12($sp)\n"
-        "addiu $sp, $sp, 28\n"
-        "addu $sp, $sp, $a3\n"
         : :
         "r"(t9), "r"(a0), "r"(a1), "r"(a2), "r"(a3)
         : "ra"
     );
+    a3 = original_sp;
+    asm volatile(
+        "move $sp, $a3\n"
+        : :
+        "r"(a3)
+    );
+
 #endif
     ARCH_FUNCTION_EXIT(return_address);
 }
