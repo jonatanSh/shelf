@@ -7,14 +7,8 @@ from shelf.lib.consts import RelocationAttributes
 
 class AArch64DynamicRelocations(BaseDynamicRelocations):
     def __init__(self, shellcode):
-        super(AArch64DynamicRelocations, self).__init__(shellcode=shellcode)
-        self.entry_handlers = {
-            ENUM_RELOC_TYPE_AARCH64['R_AARCH64_TLS_DTPMOD32']: self.r_aarch64_tls_dtpmod32,
-            ENUM_RELOC_TYPE_AARCH64['R_AARCH64_ABS64']: self.r_aarch64_abs64,
-            ENUM_RELOC_TYPE_AARCH64['R_AARCH64_GLOB_DAT']: self.r_aarch64_glob_dat,
-            ENUM_RELOC_TYPE_AARCH64['R_AARCH64_JUMP_SLOT']: self.r_aarch64_jmp_slot
-
-        }
+        super(AArch64DynamicRelocations, self).__init__(shellcode=shellcode,
+                                                        relocation_mapping=ENUM_RELOC_TYPE_AARCH64)
 
     def r_aarch64_tls_dtpmod32(self, relocation):
         s = relocation.symbol.value

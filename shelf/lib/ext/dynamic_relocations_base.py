@@ -2,19 +2,29 @@ import logging
 
 
 class BaseDynamicRelocations(object):
-    def __init__(self, shellcode):
+    def __init__(self, shellcode, relocation_mapping=None):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.entry_handlers = {
         }
+        self.relocation_mapping = {}
+        if relocation_mapping:
+            for key, value in relocation_mapping.items():
+                self.relocation_mapping[value] = key.lower()
         self.shellcode = shellcode
 
     def call_entry_handler(self, relocation):
-        entry_handler = self.entry_handlers.get(relocation.type, None)
+        mapped_name = self.relocation_mapping.get(relocation.type, None)
+        entry_handler = None
+        if mapped_name:
+            entry_handler = getattr(self, mapped_name)
+
+        entry_handler = self.entry_handlers.get(relocation.type, entry_handler)
         if not entry_handler:
-            self.logger.error("Entry handler for: {} not found, available: {}".format(
+            self.logger.error("Entry handler for: {} not found, available: {}, mapped: {}".format(
                 relocation.type,
-                self.entry_handlers.keys()
+                self.entry_handlers.keys(),
+                mapped_name
             ))
             assert False
         logging.info("Calling entry handler: {}".format(entry_handler.__name__))

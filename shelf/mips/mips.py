@@ -3,6 +3,7 @@ from shelf.lib.consts import RelocationAttributes
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_MIPS
 from shelf.lib.consts import RELOC_TYPES
+from shelf.mips.mips_dynamic_relocations import MipsDynamicRelocations
 
 
 class MipsShellcode(Shellcode):
@@ -21,14 +22,8 @@ class MipsShellcode(Shellcode):
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
 
             },
-            reloc_types={
-                RELOC_TYPES.GLOBAL_SYM: ENUM_RELOC_TYPE_MIPS['R_MIPS_REL32'],
-                RELOC_TYPES.DO_NOT_HANDLE: [
-                    ENUM_RELOC_TYPE_MIPS['R_MIPS_NONE']
-                ]
-
-            },
             support_dynamic=True,
+            add_dynamic_relocation_lib=False,
             **kwargs
         )
 
@@ -38,6 +33,8 @@ class MipsShellcode(Shellcode):
         self.dynsym = self.elffile.get_section_by_name(".dynsym")
         self.can_handle_dynamic_got_relocs = False
         self.prepare_got_parsing()
+        self.dynamic_handler = MipsDynamicRelocations(shellcode=self)
+        self.add_relocation_handler(self.dynamic_handler.handle)
 
     def prepare_got_parsing(self):
         dynamic = self.elffile.get_section_by_name(".dynamic")
