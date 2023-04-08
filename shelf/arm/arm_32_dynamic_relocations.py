@@ -1,6 +1,5 @@
 from elftools.elf.enums import ENUM_RELOC_TYPE_ARM
 from shelf.lib.ext.dynamic_relocations_base import BaseDynamicRelocations
-from shelf.lib.consts import RelocationAttributes
 
 
 class Arm32DynamicRelocations(BaseDynamicRelocations):
@@ -14,13 +13,7 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
     def jmp_slot(self, relocation):
         symbol = relocation.symbol
         offset = self.shellcode.make_relative(relocation.address)
-        if self.shellcode.mini_loader.symbols.has_symbol(symbol.name):
-            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
-                symbol_name=symbol.name
-            )
-            self.shellcode.addresses_to_patch[offset] = [jmp_slot_address,
-                                                         RelocationAttributes.relative_to_loader_base]
-
+        if self.handle_loader_relocation(relocation):
             return
         if symbol.value == 0x0:
             self.logger.error("Can't relocate: {}".format(
@@ -43,30 +36,3 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
         v_offset = s + a
         offset = self.shellcode.make_relative(relocation.address)
         self.shellcode.addresses_to_patch[offset] = v_offset
-
-    def r_arm_base_perl(self, relocation):
-        pass
-
-    def r_arm_jump24(self, relocation):
-        pass
-
-    def r_arm_got_brel(self, relocation):
-        pass
-
-    def r_arm_abs12(self, relocation):
-        pass
-
-    def r_arm_base_abs(self, relocation):
-        pass
-
-    def r_arm_thm_swi8(self, relocation):
-        pass
-
-    def r_arm_xpc25(self, relocation):
-        pass
-
-    def r_arm_thm_xpc22(self, relocation):
-        pass
-
-    def r_arm_thm_abs5(self, relocation):
-        pass

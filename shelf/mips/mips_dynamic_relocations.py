@@ -1,8 +1,5 @@
-import logging
-
 from shelf.lib.ext.dynamic_relocations_base import BaseDynamicRelocations
 from elftools.elf.enums import ENUM_RELOC_TYPE_MIPS
-from shelf.lib.consts import RelocationAttributes
 
 
 class MipsDynamicRelocations(BaseDynamicRelocations):

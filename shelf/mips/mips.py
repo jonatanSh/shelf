@@ -1,8 +1,6 @@
 import logging
 from shelf.lib.consts import RelocationAttributes
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
-from elftools.elf.enums import ENUM_RELOC_TYPE_MIPS
-from shelf.lib.consts import RELOC_TYPES
 from shelf.mips.mips_dynamic_relocations import MipsDynamicRelocations
 
 

@@ -1,4 +1,5 @@
 import logging
+from shelf.lib.consts import RelocationAttributes
 
 
 class BaseDynamicRelocations(object):
@@ -42,3 +43,17 @@ class BaseDynamicRelocations(object):
     @property
     def dynsym(self):
         return self.shellcode.elffile.get_section_by_name('.dynsym')
+
+    def handle_loader_relocation(self, relocation):
+        symbol = relocation.symbol
+        offset = self.shellcode.make_relative(relocation.address)
+        if self.shellcode.mini_loader.symbols.has_symbol(symbol.name):
+            jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
+                symbol_name=symbol.name
+            )
+            self.shellcode.addresses_to_patch[offset] = [jmp_slot_address,
+                                                         RelocationAttributes.relative_to_loader_base]
+
+            return True
+
+        return False
