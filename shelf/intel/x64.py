@@ -1,6 +1,7 @@
 from elftools.elf.enums import ENUM_RELOC_TYPE_x64
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
-from shelf.lib.ext.x32_irelative_relocations import X32IrelativeRelocs
+from shelf.intel.intel_irelative_relocations import IntelIrelativeRelocs
+from shelf.intel.x64_dynamic_relocations import X64DynamicRelocations
 from shelf.lib.consts import RELOC_TYPES
 
 
@@ -20,17 +21,12 @@ class IntelX64Shellcode(Shellcode):
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
             },
             support_dynamic=True,
-            reloc_types={
-                RELOC_TYPES.GLOBAL_SYM: ENUM_RELOC_TYPE_x64['R_X86_64_64'],
-                RELOC_TYPES.GLOBAL_DAT: ENUM_RELOC_TYPE_x64['R_X86_64_GLOB_DAT'],
-                RELOC_TYPES.DO_NOT_HANDLE: [
-                ]
-
-            },
             **kwargs
         )
-        self.irelative = X32IrelativeRelocs(ENUM_RELOC_TYPE_x64['R_X86_64_IRELATIVE'])
+        self.irelative = IntelIrelativeRelocs(ENUM_RELOC_TYPE_x64['R_X86_64_IRELATIVE'])
         self.add_relocation_handler(self.irelative.relocation_for_rela_plt_got_plt)
+        self.dynamic_handler = X64DynamicRelocations(shellcode=self)
+        self.add_relocation_handler(self.dynamic_handler.handle)
 
 
 intel_x64_make_shellcode = create_make_shellcode(IntelX64Shellcode)

@@ -1,8 +1,7 @@
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from elftools.elf.enums import ENUM_RELOC_TYPE_i386
-from shelf.lib.ext.x32_irelative_relocations import X32IrelativeRelocs
+from shelf.intel.intel_irelative_relocations import IntelIrelativeRelocs
 from shelf.lib.consts import StartFiles
-from shelf.lib.consts import RELOC_TYPES
 from shelf.intel.x32_dynamic_relocations import X32DynamicRelocations
 
 
@@ -34,11 +33,10 @@ class IntelX32Shellcode(Shellcode):
                 StartFiles.no_start_files,
                 # StartFiles.glibc
             ],
-            add_dynamic_relocation_lib=False,
             support_dynamic=True,
             **kwargs
         )
-        self.irelative = X32IrelativeRelocs(
+        self.irelative = IntelIrelativeRelocs(
             irelative_type=ENUM_RELOC_TYPE_i386['R_386_IRELATIVE'],
             jmp_slot_type=ENUM_RELOC_TYPE_i386['R_386_JUMP_SLOT'],
             get_glibc_instructions_filter=get_glibc_instructions_filter

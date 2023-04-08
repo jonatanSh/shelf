@@ -21,7 +21,6 @@ class MipsShellcode(Shellcode):
 
             },
             support_dynamic=True,
-            add_dynamic_relocation_lib=False,
             **kwargs
         )
 

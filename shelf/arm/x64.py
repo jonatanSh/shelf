@@ -23,7 +23,6 @@ class ArmX64Shellcode(Shellcode):
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
             },
             support_dynamic=True,
-            add_dynamic_relocation_lib=False,
             **kwargs
         )
         self.dynamic_handler = AArch64DynamicRelocations(shellcode=self)

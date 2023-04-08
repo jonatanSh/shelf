@@ -12,6 +12,7 @@ class X32DynamicRelocations(BaseDynamicRelocations):
                                                     relocation_mapping=ENUM_RELOC_TYPE_i386)
 
     def r_386_irelative(self, relocation):
+        # Handled in the INTEL_IRELATIVE
         pass
 
     def r_386_jump_slot(self, relocation):

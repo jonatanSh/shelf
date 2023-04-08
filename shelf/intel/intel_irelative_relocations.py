@@ -2,7 +2,7 @@ from shelf.lib.consts import RelocationAttributes, StartFiles
 import logging
 
 
-class X32IrelativeRelocs(object):
+class IntelIrelativeRelocs(object):
     def __init__(self, irelative_type,
                  jmp_slot_type=None,
                  get_glibc_instructions_filter=None):
