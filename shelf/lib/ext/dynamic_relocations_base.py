@@ -31,9 +31,22 @@ class BaseDynamicRelocations(object):
         logging.info("Calling entry handler: {}".format(entry_handler.__name__))
         entry_handler(relocation=relocation)
 
+    @property
+    def iter_relocations(self):
+        lists = [
+            self.shellcode.lief_elf.relocations,
+            self.shellcode.lief_elf.dynamic_relocations,
+            self.shellcode.lief_elf.object_relocations,
+            self.shellcode.lief_elf.pltgot_relocations,
+        ]
+
+        for reloc_list in lists:
+            for item in reloc_list:
+                yield item
+
     def handle(self, shellcode, shellcode_data):
         assert shellcode == self.shellcode
-        for relocation in self.shellcode.lief_elf.relocations:
+        for relocation in self.iter_relocations:
             self.call_entry_handler(
                 relocation=relocation
             )
@@ -57,3 +70,15 @@ class BaseDynamicRelocations(object):
             return True
 
         return False
+
+    def jump_slot_generic_handle(self, relocation):
+        symbol = relocation.symbol
+        offset = self.shellcode.make_relative(relocation.address)
+        if self.handle_loader_relocation(relocation):
+            return
+        if symbol.value == 0x0:
+            self.logger.error("Can't relocate: {}".format(
+                symbol.name
+            ))
+        relative_sym = self.shellcode.make_relative(symbol.value)
+        self.shellcode.addresses_to_patch[offset] = relative_sym

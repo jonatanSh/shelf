@@ -21,19 +21,10 @@ class AArch64DynamicRelocations(BaseDynamicRelocations):
         ]
 
     def r_aarch64_abs64(self, relocation):
-        f_offset_r = self.shellcode.make_relative(relocation.address)
-
-        if self.handle_loader_relocation(relocation):
-            return
-        s = relocation.symbol.value
-        a = relocation.addend
-        v_offset = s + a
-        v_offset_r = self.shellcode.make_relative(v_offset)
-
-        self.shellcode.addresses_to_patch[f_offset_r] = v_offset_r
+        self.r_aarch64_jmp_slot(relocation)
 
     def r_aarch64_glob_dat(self, relocation):
-        return self.r_aarch64_abs64(relocation)
+        self.r_aarch64_jmp_slot(relocation)
 
     def r_aarch64_jmp_slot(self, relocation):
-        return self.r_aarch64_abs64(relocation)
+        self.jump_slot_generic_handle(relocation)

@@ -2,7 +2,6 @@ import logging
 
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from shelf.arm.aarch64_dynamic_relocations import AArch64DynamicRelocations
-from shelf.lib.ext.irelative_relocations import IrelativeRelocs
 from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
 from shelf.lib.consts import LoaderSupports
 
@@ -28,11 +27,7 @@ class ArmX64Shellcode(Shellcode):
             **kwargs
         )
         self.dynamic_handler = AArch64DynamicRelocations(shellcode=self)
-        if LoaderSupports.DYNAMIC in self.args.loader_supports:
-            self.add_relocation_handler(self.dynamic_handler.handle)
-        else:
-            self.irelative_helper = IrelativeRelocs(ENUM_RELOC_TYPE_AARCH64['R_AARCH64_TLS_DTPMOD32'])
-            self.add_relocation_handler(self.irelative_helper.relocation_for_rela_plt_got_plt)
+        self.add_relocation_handler(self.dynamic_handler.handle)
 
     def shellcode_handle_padding(self, shellcode_data):
         logging.info("Getting dummy header")

@@ -2,7 +2,7 @@ from shelf.lib.consts import RelocationAttributes, StartFiles
 import logging
 
 
-class IrelativeRelocs(object):
+class X32IrelativeRelocs(object):
     def __init__(self, irelative_type,
                  jmp_slot_type=None,
                  get_glibc_instructions_filter=None):
@@ -76,33 +76,7 @@ class IrelativeRelocs(object):
                 raise Exception("Relocation not supported yet: {}".format(
                     relocation.entry.r_info_type
                 ))
-        self.fix_glibc_references(shellcode)
         return shellcode_data
-
-    def fix_glibc_references(self, shellcode):
-        if shellcode.args.start_method != StartFiles.glibc:
-            return
-
-        assert self.glibc_irelative_first_reference != 2 ** 32
-        assert self.glibc_last_reference != 0
-
-        """ here we should search for the opcode containing first reference, last reference
-             and fix thoose opcodes
-             ...eg :
-             .text:0804A480 C7 C3 B4 81 04 08                       mov     ebx, offset off_80481B4
-             .text:0804A486 C7 C7 24 82 04 08                       mov     edi, 8048224h
-        """
-
-        for entry in [self.glibc_irelative_first_reference, self.glibc_last_reference]:
-            addresses = shellcode.disassembler.get_instruction_addresses(
-                instruction_filter=self.get_glibc_instructions_filter(entry)
-            )
-            for address in addresses:
-                self.logger.info("[!GLIBC] |InstructionPatch| Relative({}), Absolute({})".format(
-                    hex(address),
-                    hex(shellcode.address_utils.make_absolute(address))
-                ))
-                shellcode.addresses_to_patch[address] = shellcode.make_relative(entry)
 
     def do_irelative_rel_plt_got_plt(self, shellcode, got_plt, relocation):
         virtual_offset = shellcode.make_relative(relocation.entry.r_offset)

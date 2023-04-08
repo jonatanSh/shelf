@@ -1,6 +1,6 @@
 from elftools.elf.enums import ENUM_RELOC_TYPE_x64
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
-from shelf.lib.ext.irelative_relocations import IrelativeRelocs
+from shelf.lib.ext.x32_irelative_relocations import X32IrelativeRelocs
 from shelf.lib.consts import RELOC_TYPES
 
 
@@ -29,7 +29,7 @@ class IntelX64Shellcode(Shellcode):
             },
             **kwargs
         )
-        self.irelative = IrelativeRelocs(ENUM_RELOC_TYPE_x64['R_X86_64_IRELATIVE'])
+        self.irelative = X32IrelativeRelocs(ENUM_RELOC_TYPE_x64['R_X86_64_IRELATIVE'])
         self.add_relocation_handler(self.irelative.relocation_for_rela_plt_got_plt)
 
 
