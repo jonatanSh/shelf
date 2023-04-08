@@ -13,7 +13,6 @@ from shelf.lib.utils.mini_loader import MiniLoader
 from shelf.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians, \
     RELOCATION_OFFSETS, RelocationAttributes, HookTypes
 from shelf.lib.utils.disassembler import Disassembler
-from shelf.lib.ext.dynamic_symbols import DynamicRelocations
 from shelf.lib.utils.hooks import ShellcodeHooks
 from shelf.lib.utils.general import get_binary
 from shelf.hooks.hooks_configuration_parser import HookConfiguration
@@ -39,7 +38,6 @@ class Shellcode(object):
                  supported_start_methods=None,
                  reloc_types=None,
                  support_dynamic=False,
-                 add_dynamic_relocation_lib=True,
                  **kwargs):
         self._ptr_size = None
         self._loading_virtual_addr = None
@@ -90,10 +88,6 @@ class Shellcode(object):
         self.arch = arch
 
         # self.disassembler = Disassembler(self)
-        if self.support_dynamic:
-            if add_dynamic_relocation_lib:
-                self.dynamic_relocs = DynamicRelocations(shellcode=self, reloc_types=reloc_types)
-                self.add_relocation_handler(self.dynamic_relocs.handle)
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)

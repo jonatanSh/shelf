@@ -19,7 +19,6 @@ class ArmX32Shellcode(Shellcode):
 
             },
             support_dynamic=True,
-            add_dynamic_relocation_lib=False,
             **kwargs
         )
         self.dynamic_handler = Arm32DynamicRelocations(shellcode=self)
