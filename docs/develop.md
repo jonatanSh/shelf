@@ -14,7 +14,7 @@
 ### Run tests
 ```bash
 # Run all tests
- python run_tests.py
+python run_tests.py
 # A specific test 
 python run_tests.py --arch mips --verbose --test elf_features
  ```
