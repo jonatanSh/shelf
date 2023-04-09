@@ -70,10 +70,10 @@ class OpcodesExtractor(object):
         for memory_dump in self.memory_dumps:
             opcodes, address = self.extract_bytes_address(memory_dump)
             gdb_opcodes = self.gdb_get_opcodes(opcodes, address)
+            instructions = ""
             if opcodes != gdb_opcodes:
-                instructions = "\n[!!!!] Disassembly output disabled non matching opcodes !\n"
-            else:
-                instructions = self.disassemble(opcodes=opcodes, off=address)
+                instructions = "\n[!!!!] Disassembly may be incorrect !\n"
+            instructions += self.disassemble(opcodes=opcodes, off=address)
             dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
                                        memory_dump,
                                        ShellcodeLoader.MemoryDumpEnd)

@@ -24,7 +24,7 @@ class TestOutput(object):
         self.context = {
             'arch': arch,
             'shellcode': test_file,
-            'elf': test_file[:test_file.find(".shellcode")]
+            'elf': test_file[:test_file.find(".out") + len(".out")]
         }
 
     def prepare(self, success, reason, stdout="", stderr=""):
