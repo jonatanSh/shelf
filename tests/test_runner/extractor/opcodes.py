@@ -69,7 +69,11 @@ class OpcodesExtractor(object):
     def parsed(self):
         for memory_dump in self.memory_dumps:
             opcodes, address = self.extract_bytes_address(memory_dump)
-            instructions = self.disassemble(opcodes=opcodes, off=address)
+            gdb_opcodes = self.gdb_get_opcodes(opcodes, address)
+            if opcodes != gdb_opcodes:
+                instructions = "\n[!!!!] Disassembly output disabled non matching opcodes !\n"
+            else:
+                instructions = self.disassemble(opcodes=opcodes, off=address)
             dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
                                        memory_dump,
                                        ShellcodeLoader.MemoryDumpEnd)
@@ -116,3 +120,11 @@ class OpcodesExtractor(object):
     @staticmethod
     def instruction_repr(instruction):
         return "0x%x:\t%s\t%s" % (instruction.address, instruction.mnemonic, instruction.op_str)
+
+    def gdb_get_opcodes(self, opcodes, address):
+        gdb_out = subprocess.check_output(
+            'gdb -batch -ex "x/{}bx {}" "{}"'.format(len(opcodes), hex(address), self.text_context['elf']),
+            shell=True
+        )
+        gdb_opcodes = "".join([chr(int(op, 16)) for op in gdb_out.split("\t") if op.startswith("0x") and len(op) == 4])
+        return gdb_opcodes
