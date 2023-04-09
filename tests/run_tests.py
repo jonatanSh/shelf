@@ -3,6 +3,8 @@ import logging
 from test_runner.consts import Arches
 from test_runner.tests import TEST_CASES, TESTS, get_test_with_features
 from test_runner.test_run_utils import run_test, test_banner, arch_banner, display_output
+import traceback
+import sys
 
 parser = ArgumentParser("testRunner")
 all_arches = [arch.value for arch in Arches]
@@ -14,6 +16,7 @@ parser.add_argument("--test-verbose", default=False, action="store_true", help="
 parser.add_argument("--strace", default=False, action="store_true", required=False)
 
 args = parser.parse_args()
+sys.modules['__global_args'] = args
 if args.test_verbose:
     logging.basicConfig(level=logging.INFO)
 summary_failed = []
@@ -47,6 +50,8 @@ for arch in args.arch:
                 failed += 1
             test_banner()
         except Exception as e:
+            if args.test_verbose:
+                traceback.print_exc()
             summary_failed.append(e)
             failed += 1
 

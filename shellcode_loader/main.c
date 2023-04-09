@@ -8,6 +8,23 @@
 #include <sys/mman.h>
 #include <limits.h>
 #include <errno.h>
+#include <signal.h>
+
+#define NUMBER_OF_OPCODES_TO_DUMP 48
+
+void memory_dump(size_t address, size_t size) {
+    printf("MemDmpStart Dumping memory at 0x%lx\n", address);
+    for(int i = 0; i < size; i ++) {
+        printf("0x%02x ", *(unsigned char *)(address+i));
+    }
+    printf("\nMemDmpEnd\n");
+}
+
+void segfault_handler(int signal, siginfo_t *info, void *context) {
+    printf("Segmentation fault occurred at address: %p\n", info->si_addr);
+    memory_dump((size_t)info->si_addr - ((sizeof(size_t) * (NUMBER_OF_OPCODES_TO_DUMP / 2))), NUMBER_OF_OPCODES_TO_DUMP);
+    exit(1);
+}
 
 int main(int argc, char **argv, char **envp) {
     struct stat stat_buffer;
@@ -19,6 +36,13 @@ int main(int argc, char **argv, char **envp) {
     int bytes_read = 0;
     int read_chunk = _POSIX_SSIZE_MAX;
     void *start_address;
+    struct sigaction sa;
+
+    sa.sa_sigaction = segfault_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_SIGINFO;
+
+    sigaction(SIGSEGV, &sa, NULL);
 
     if (argc < 2) {
         printf("Usage main.out <shellcode>\n");
@@ -32,7 +56,7 @@ int main(int argc, char **argv, char **envp) {
         return -1;
     }
 
-    printf("Shellcode size = %d\n", stat_buffer.st_size);
+    printf("Shellcode size = %ld\n", stat_buffer.st_size);
 
     shellcode_fd = open(argv[1], O_RDONLY);
 
@@ -59,7 +83,7 @@ int main(int argc, char **argv, char **envp) {
         }
         int current_read = read(shellcode_fd, shellcode_buffer + bytes_read, read_chunk);
         if (current_read < 0) {
-            printf("Error reading all the shellcode, read = %d, shellcode_length=%d, read_chunk=%d, errno=%d\n",
+            printf("Error reading all the shellcode, read = %d, shellcode_length=%ld, read_chunk=%d, errno=%d\n",
                    bytes_read, stat_buffer.st_size, read_chunk, errno);
             exit_code = -1;
             shellcode_buffer = NULL;

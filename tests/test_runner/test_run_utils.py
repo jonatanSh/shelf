@@ -4,6 +4,7 @@ import subprocess
 import itertools
 import logging
 from test_runner.consts import Resolver, CONSTS, TestFeatures, LoaderTypes
+from test_runner.extractor.opcodes import OpcodesExtractor
 
 
 class TestOutput(object):
@@ -13,26 +14,54 @@ class TestOutput(object):
         self.reason = ""
         self.success = False
         self.has_reason = False
-        self.stdout = ""
-        self.stderr = ""
+        self._stdout = ""
+        self._stderr = ""
+        self.extractors = [
+            OpcodesExtractor
+        ]
+        self._parsed = ""
+        self.context = {
+            'arch': arch
+        }
 
     def prepare(self, success, reason, stdout="", stderr=""):
         self.reason = reason
         self.success = success
-        self.stderr = stderr
-        self.stdout = stdout
+        self._stderr = stderr
+        self._stdout = stdout
         self.has_reason = True
         return self
 
+    @property
+    def parsed(self):
+        if not self._parsed:
+            if self.success:
+                self.reason = "Success"
+            if not self.success:
+                self.reason = "Failure {}".format(
+                    self.reason
+                )
+            self._parsed = "{} - {} ... {}".format(self.arch, self.description,
+                                                   self.reason)
+            for extractor_cls in self.extractors:
+                extractor = extractor_cls(self._parsed, self.context)
+                self._parsed = extractor.parsed
+        return self._parsed
+
+    @property
+    def stderr(self):
+        return self._stderr
+
+    @property
+    def stdout(self):
+        stdout_extracted = self._stdout
+        for extractor_cls in self.extractors:
+            extractor = extractor_cls(stdout_extracted, self.context)
+            stdout_extracted = extractor.parsed
+        return stdout_extracted
+
     def __str__(self):
-        if self.success:
-            self.reason = "Success"
-        if not self.success:
-            self.reason = "Failure {}".format(
-                self.reason
-            )
-        return "{} - {} ... {}".format(self.arch, self.description,
-                                       self.reason)
+        return self.parsed
 
 
 def get_test_command(test_file, description, loader_type, arch, is_debug, is_strace, is_eshelf, **kwargs):

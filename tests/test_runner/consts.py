@@ -1,5 +1,10 @@
 import os
 from enum import Enum
+import sys
+
+
+def get_args():
+    return sys.modules['__global_args']
 
 
 class TestFeatures(Enum):
@@ -44,6 +49,13 @@ LOADERS = {
     LoaderTypes.RX_LOADER: "../outputs/shellcode_loader_no_rwx_{}.out"
 
 }
+
+
+class ShellcodeLoader(object):
+    MemoryDumpStart = "MemDmpStart"
+    MemoryDumpEnd = "MemDmpEnd"
+    DumpAddressStart = "Dumping memory at "
+    DumpAddressEnd = "\n"
 
 
 class Resolver(object):
