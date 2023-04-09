@@ -8,7 +8,7 @@ from test_runner.extractor.opcodes import OpcodesExtractor
 
 
 class TestOutput(object):
-    def __init__(self, description, arch):
+    def __init__(self, description, arch, test_file):
         self.description = description
         self.arch = arch
         self.reason = ""
@@ -16,12 +16,15 @@ class TestOutput(object):
         self.has_reason = False
         self._stdout = ""
         self._stderr = ""
+        self.test_file = test_file
         self.extractors = [
             OpcodesExtractor
         ]
         self._parsed = ""
         self.context = {
-            'arch': arch
+            'arch': arch,
+            'shellcode': test_file,
+            'elf': test_file[:test_file.find(".shellcode")]
         }
 
     def prepare(self, success, reason, stdout="", stderr=""):
@@ -65,7 +68,7 @@ class TestOutput(object):
 
 
 def get_test_command(test_file, description, loader_type, arch, is_debug, is_strace, is_eshelf, **kwargs):
-    test_output = TestOutput(description=description, arch=arch)
+    test_output = TestOutput(description=description, arch=arch, test_file=test_file)
     assert not all([is_strace, is_debug]), "Only --strace or --debug is available"
     command = [Resolver.get_qemu(arch)]
     if is_debug:

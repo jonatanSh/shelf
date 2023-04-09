@@ -1,4 +1,5 @@
 import capstone
+import subprocess
 from test_runner.extractor.utils import extract_text_between
 from test_runner.consts import ShellcodeLoader, Arches
 
@@ -38,6 +39,31 @@ class OpcodesExtractor(object):
             ARCHES[self.text_context['arch']],
             ENDIAN[self.text_context['arch']] | mode
         )
+        try:
+            self.symbols = subprocess.check_output(" ".join(["readelf", '-s', self.text_context[
+                'elf'
+            ]]), shell=True)
+        except:
+            self.symbols = ""
+
+    def get_symbol(self, address):
+        for line in self.symbols.split("\n"):
+            if not line:
+                continue
+            parts = [p for p in line.split(" ") if p]
+            if len(parts) != 8:
+                continue
+            _, s_address, size, _, _, _, _, name = parts
+            try:
+                s_address = int(s_address, 16)
+                size = int(size)
+            except:
+                pass
+
+            if s_address <= address <= s_address + size:
+                return name
+
+        return ""
 
     @property
     def parsed(self):
@@ -78,7 +104,7 @@ class OpcodesExtractor(object):
             opcodes,
             off,
         )]
-        instructions = []
+        instructions = ["\n{}:".format(self.get_symbol(address=off))]
         for i, instruction in enumerate(_instructions):
             rpr = "      "
             if (i + 1) == len(_instructions) / 2:
