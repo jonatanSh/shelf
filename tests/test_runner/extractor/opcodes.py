@@ -33,8 +33,8 @@ class SegfaultHandler(object):
         loader_binary = Binary(binary_path=loader_elf)
         shellcode_binary = Binary(binary_path=shellcode_elf)
         if address_in_region(address=faulting_address,
-                                 start=shellcode_address,
-                                 size=mapped_size):
+                             start=shellcode_address,
+                             size=mapped_size):
             elf = shellcode_binary
         elif loader_binary.in_region_of_loading_addresses(
                 address=faulting_address,
@@ -90,7 +90,14 @@ class SegfaultHandler(object):
 
     @staticmethod
     def instruction_repr(instruction):
-        return "0x%x:\t%s\t%s" % (instruction.address, instruction.mnemonic, instruction.op_str)
+        dis = "0x%x:\t%s\t%s\t" % (instruction.address,
+                                   instruction.mnemonic,
+                                   instruction.op_str)
+        ins_bytes = " ".join([hex(c) for c in instruction.bytes])
+        dis = dis.ljust(50, " ")
+        print(len(di))
+        dis += "# {}".format(ins_bytes)
+        return dis
 
     @property
     def summary(self):
