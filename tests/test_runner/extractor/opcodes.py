@@ -84,7 +84,8 @@ class SegfaultHandler(object):
             rpr = "      "
             if instruction.address == self.faulting_address:
                 rpr = "----> "
-            rpr += self.instruction_repr(instruction)
+            dis_out = self.instruction_repr(instruction)
+            rpr += dis_out
             instructions.append(rpr)
         return "\n".join(instructions)
 
@@ -94,9 +95,8 @@ class SegfaultHandler(object):
                                    instruction.mnemonic,
                                    instruction.op_str)
         ins_bytes = " ".join([hex(c) for c in instruction.bytes])
-        dis = dis.ljust(50, " ")
-        print(len(di))
-        dis += "# {}".format(ins_bytes)
+
+#        dis = dis.ljust(50, " ") + "# {}".format(ins_bytes)
         return dis
 
     @property
