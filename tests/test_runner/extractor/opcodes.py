@@ -66,7 +66,7 @@ class SegfaultHandler(object):
             address=self.dump_address,
         )
 
-        if opcodes == self.opcodes:
+        if not (opcodes == self.opcodes):
             self.error_message = "Disassembly error opcodes do not match !"
             return False
 
