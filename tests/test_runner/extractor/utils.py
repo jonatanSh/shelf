@@ -46,6 +46,8 @@ class Binary(object):
     def __init__(self, binary_path):
         self.binary_path = binary_path
         self.symbols = ""
+        self.program_headers = ""
+        self.load_and_get_binary_program_headers()
         self.load_and_get_binary_symbols()
 
     def get_bytes_at_virtual_address(self, size, address):
@@ -80,6 +82,30 @@ class Binary(object):
             self.symbols = subprocess.check_output(" ".join(["readelf", '-s', self.binary_path]), shell=True)
         except:
             self.symbols = ""
+
+    def load_and_get_binary_program_headers(self):
+        try:
+            self.program_headers = subprocess.check_output(" ".join(["readelf", '-l', self.binary_path]), shell=True)
+        except:
+            self.program_headers = ""
+
+    def get_virtual_loading_addresses(self):
+        addresses = []
+        for line in self.program_headers.split("\n"):
+            if 'LOAD' in line:
+                parts = [p.strip() for p in line.strip().split(" ") if p]
+                _, off, virt, phys, filesize, memsize = parts[:6]
+                virt = int(virt, 16)
+                memsize = int(memsize, 16)
+                addresses.append([virt, memsize])
+        return addresses
+
+    def in_region_of_loading_addresses(self, address):
+        for obj in self.get_virtual_loading_addresses():
+            add, size = obj
+            if address_in_region(address=address, start=add, size=size):
+                return True
+        return False
 
 
 def address_in_region(address, start, size):

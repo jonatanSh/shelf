@@ -30,13 +30,16 @@ class SegfaultHandler(object):
         shellcode_address = other_context['shellcode_address']
         mapped_size = other_context['mapped_memory_size']
 
-        loader_binary = Binary(binary_path=shellcode_elf)
+        loader_binary = Binary(binary_path=loader_elf)
         shellcode_binary = Binary(binary_path=shellcode_elf)
-
-        if not address_in_region(address=faulting_address,
+        if address_in_region(address=faulting_address,
                                  start=shellcode_address,
                                  size=mapped_size):
             elf = shellcode_binary
+        elif loader_binary.in_region_of_loading_addresses(
+                address=faulting_address,
+        ):
+            elf = loader_binary
         else:
             raise cls(
                 elf=None,
@@ -63,7 +66,7 @@ class SegfaultHandler(object):
             address=self.dump_address,
         )
 
-        if not opcodes == self.opcodes:
+        if opcodes == self.opcodes:
             self.error_message = "Disassembly error opcodes do not match !"
             return False
 
@@ -74,7 +77,9 @@ class SegfaultHandler(object):
             opcodes,
             off,
         )]
-        instructions = ["\n{}:".format(self.elf.get_symbol(address=off))]
+        instructions = ["\n{}:\n   S:{}:".format(
+            self.elf.binary_path,
+            self.elf.get_symbol(address=off))]
         for i, instruction in enumerate(_instructions):
             rpr = "      "
             if instruction.address == self.faulting_address:
