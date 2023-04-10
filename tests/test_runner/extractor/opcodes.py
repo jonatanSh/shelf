@@ -1,117 +1,83 @@
 import capstone
-import subprocess
-from test_runner.extractor.utils import extract_text_between
-from test_runner.consts import ShellcodeLoader, Arches
-
-ARCHES = {
-    Arches.MIPS.value: capstone.CS_ARCH_MIPS,
-    Arches.intel_x32.value: capstone.CS_ARCH_X86,
-    Arches.intel_x64.value: capstone.CS_ARCH_X86,
-    Arches.aarch64.value: capstone.CS_ARCH_ARM64,
-    Arches.arm32.value: capstone.CS_ARCH_ARM
-}
-
-ENDIAN = {
-    Arches.MIPS.value: capstone.CS_MODE_BIG_ENDIAN,
-    Arches.intel_x32.value: capstone.CS_MODE_LITTLE_ENDIAN,
-    Arches.intel_x64.value: capstone.CS_MODE_LITTLE_ENDIAN,
-    Arches.aarch64.value: capstone.CS_MODE_LITTLE_ENDIAN,
-    Arches.arm32.value: capstone.CS_MODE_LITTLE_ENDIAN,
-}
-
-BITS = {
-    Arches.MIPS.value: capstone.CS_MODE_32,
-    Arches.intel_x32.value: capstone.CS_MODE_32,
-    Arches.intel_x64.value: capstone.CS_MODE_64,
-    Arches.aarch64.value: capstone.CS_MODE_ARM,
-    Arches.arm32.value: capstone.CS_MODE_ARM,
-}
+from test_runner.extractor.utils import extract_text_between, Binary, extract_int16, address_in_region
+from test_runner.consts import ShellcodeLoader
+from test_runner.extractor.disassembler_consts import ENDIAN, BITS, ARCHES
 
 
-class OpcodesExtractor(object):
-    def __init__(self, stream, test_context):
-        self.stream = stream
-        self.memory_dumps = extract_text_between(self.stream, ShellcodeLoader.MemoryDumpStart,
-                                                 ShellcodeLoader.MemoryDumpEnd)
-        self.text_context = test_context
-        mode = BITS[self.text_context['arch']]
+class SegfaultHandler(object):
+    def __init__(self, elf, arch, opcodes, dump_address, faulting_address,
+                 error_message="No error", bad_fault=False):
+        self.elf = elf
+        self.opcodes = opcodes
+        self.dump_address = dump_address
+        self.faulting_address = faulting_address
+        self.arch = arch
+        self.bad_fault = bad_fault
+        self.error_message = error_message
+        mode = BITS[self.arch]
         self.cs = capstone.Cs(
-            ARCHES[self.text_context['arch']],
-            ENDIAN[self.text_context['arch']] | mode
+            ARCHES[self.arch],
+            ENDIAN[self.arch] | mode
         )
-        try:
-            self.symbols = subprocess.check_output(" ".join(["readelf", '-s', self.text_context[
-                'elf'
-            ]]), shell=True)
-        except:
-            self.symbols = ""
 
-    def get_symbol(self, address):
-        for line in self.symbols.split("\n"):
-            if not line:
-                continue
-            parts = [p for p in line.split(" ") if p]
-            if len(parts) != 8:
-                continue
-            _, s_address, size, _, _, _, _, name = parts
-            try:
-                s_address = int(s_address, 16)
-                size = int(size)
-            except:
-                pass
+    @classmethod
+    def create(cls,
+               other_context,
+               arch,
+               shellcode_elf,
+               loader_elf,
+               opcodes, dump_address, faulting_address):
+        shellcode_address = other_context['shellcode_address']
+        mapped_size = other_context['mapped_memory_size']
 
-            if s_address <= address <= s_address + size:
-                return name
+        loader_binary = Binary(binary_path=shellcode_elf)
+        shellcode_binary = Binary(binary_path=shellcode_elf)
 
-        return ""
-
-    @property
-    def parsed(self):
-        for memory_dump in self.memory_dumps:
-            opcodes, address = self.extract_bytes_address(memory_dump)
-            gdb_opcodes = self.gdb_get_opcodes(opcodes, address)
-            instructions = ""
-            if opcodes != gdb_opcodes:
-                instructions = "\n[!!!!] Disassembly may be incorrect !\n"
-            instructions += self.disassemble(opcodes=opcodes, off=address)
-            dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
-                                       memory_dump,
-                                       ShellcodeLoader.MemoryDumpEnd)
-            parsed = "{}\nOpcodes parser for: {}\n{}".format(
-                memory_dump.strip(),
-                self.text_context['arch'],
-                instructions
+        if not address_in_region(address=faulting_address,
+                                 start=shellcode_address,
+                                 size=mapped_size):
+            elf = shellcode_binary
+        else:
+            raise cls(
+                elf=None,
+                arch=arch,
+                opcodes=None,
+                dump_address=dump_address,
+                faulting_address=faulting_address,
+                error_message="Address not in region of loader nor shellcode",
+                bad_fault=True
             )
-            self.stream = self.stream.replace(
-                dmp_full,
-                parsed
-            )
+        return cls(
+            elf=elf,
+            arch=arch,
+            opcodes=opcodes,
+            dump_address=dump_address,
+            faulting_address=faulting_address
+        )
 
-        return self.stream
+    def is_output_correct(self):
+        if self.bad_fault:
+            return False
+        opcodes = self.elf.get_bytes_at_virtual_address(
+            size=len(self.opcodes),
+            address=self.dump_address,
+        )
 
-    @staticmethod
-    def extract_bytes_address(stream):
-        address = extract_text_between(stream, ShellcodeLoader.DumpAddressStart,
-                                       ShellcodeLoader.DumpAddressEnd,
-                                       times=1)
-        dump_bytes = extract_text_between(stream,
-                                          ShellcodeLoader.DumpAddressEnd,
-                                          "\n",
-                                          times=1)
+        if not opcodes == self.opcodes:
+            self.error_message = "Disassembly error opcodes do not match !"
+            return False
 
-        dump_bytes = "".join([chr(int(b, 16)) for b in dump_bytes.split(" ") if b.startswith("0x")])
-
-        return dump_bytes, int(address, 16)
+        return True
 
     def disassemble(self, opcodes, off):
         _instructions = [instruction for instruction in self.cs.disasm(
             opcodes,
             off,
         )]
-        instructions = ["\n{}:".format(self.get_symbol(address=off))]
+        instructions = ["\n{}:".format(self.elf.get_symbol(address=off))]
         for i, instruction in enumerate(_instructions):
             rpr = "      "
-            if (i + 1) == len(_instructions) / 2:
+            if instruction.address == self.faulting_address:
                 rpr = "----> "
             rpr += self.instruction_repr(instruction)
             instructions.append(rpr)
@@ -121,10 +87,73 @@ class OpcodesExtractor(object):
     def instruction_repr(instruction):
         return "0x%x:\t%s\t%s" % (instruction.address, instruction.mnemonic, instruction.op_str)
 
-    def gdb_get_opcodes(self, opcodes, address):
-        gdb_out = subprocess.check_output(
-            'gdb -batch -ex "x/{}bx {}" "{}"'.format(len(opcodes), hex(address), self.text_context['elf']),
-            shell=True
+    @property
+    def summary(self):
+        if not self.is_output_correct():
+            return "Disassembly error message: {}".format(
+                self.error_message
+            )
+        else:
+            return self.disassemble(
+                off=self.dump_address,
+                opcodes=self.opcodes
+            )
+
+
+class OpcodesExtractor(object):
+    def __init__(self, stream, test_context, extractor_data):
+        self.stream = stream
+        self.extractor_data = extractor_data
+        self.memory_dumps = extract_text_between(self.stream, ShellcodeLoader.MemoryDumpStart,
+                                                 ShellcodeLoader.MemoryDumpEnd)
+        self.text_context = test_context
+
+    @property
+    def parsed(self):
+        parsed_data = {
+            'segfaults': []
+        }
+        for memory_dump in self.memory_dumps:
+            opcodes, address, segfault_address = self.extract_bytes_address(memory_dump)
+            segfault = SegfaultHandler.create(
+                other_context=self.extractor_data,
+                arch=self.text_context['arch'],
+                shellcode_elf=self.text_context['elf'],
+                loader_elf=self.text_context['loader_file'],
+                opcodes=opcodes,
+                dump_address=address,
+                faulting_address=segfault_address
+            )
+            parsed_data['segfaults'].append(segfault)
+
+            dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
+                                       memory_dump,
+                                       ShellcodeLoader.MemoryDumpEnd)
+            parsed = "{}\nOpcodes parser for: {}\n{}".format(
+                memory_dump.strip(),
+                self.text_context['arch'],
+                segfault.summary
+            )
+            self.stream = self.stream.replace(
+                dmp_full,
+                parsed
+            )
+
+        return self.stream, parsed_data
+
+    @staticmethod
+    def extract_bytes_address(stream):
+        segfault_address = extract_int16(
+            stream,
+            'Segmentation fault occurred at address: ',
+            '\n'
         )
-        gdb_opcodes = "".join([chr(int(op, 16)) for op in gdb_out.split("\t") if op.startswith("0x") and len(op) == 4])
-        return gdb_opcodes
+        address = extract_int16(stream, ShellcodeLoader.DumpAddressStart,
+                                ShellcodeLoader.DumpAddressEnd)
+        dump_bytes = extract_text_between(stream.strip(),
+                                          '\n',
+                                          "",
+                                          times=1,
+                                          rindex_start=True)
+        dump_bytes = "".join([chr(int(b, 16)) for b in dump_bytes.split(" ") if b.startswith("0x") if len(b) == 0x4])
+        return dump_bytes, address, segfault_address

@@ -13,7 +13,7 @@
 #define NUMBER_OF_OPCODES_TO_DUMP 48
 
 void memory_dump(size_t address, size_t size) {
-    printf("MemDmpStart Dumping memory at 0x%lx\n", address);
+    printf("Dumping memory at 0x%lx\n", address);
     for(int i = 0; i < size; i ++) {
         printf("0x%02x ", *(unsigned char *)(address+i));
     }
@@ -21,7 +21,7 @@ void memory_dump(size_t address, size_t size) {
 }
 
 void segfault_handler(int signal, siginfo_t *info, void *context) {
-    printf("Segmentation fault occurred at address: %p\n", info->si_addr);
+    printf("MemDmpStart Segmentation fault occurred at address: %p\n", info->si_addr);
     memory_dump((size_t)info->si_addr - ((sizeof(size_t) * (NUMBER_OF_OPCODES_TO_DUMP / 2))), NUMBER_OF_OPCODES_TO_DUMP);
     exit(1);
 }
