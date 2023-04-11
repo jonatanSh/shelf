@@ -85,7 +85,7 @@ def get_test_command(test_file, description, loader_type, arch, is_debug, is_str
     command = [Resolver.get_qemu(arch)]
     if is_debug:
         command.append("-g")
-        command.append(str(CONSTS.DEBUG_PORT))
+        command.append(CONSTS.DEBUG_PORT.value)
 
     if is_strace:
         command.append("-strace")
@@ -107,7 +107,7 @@ def get_test_command(test_file, description, loader_type, arch, is_debug, is_str
     if is_eshelf:
         command.append("First_Argument_for_argv")
         command.append("Second argument for argv")
-
+    command = [str(v) for v in command]
     return command, test_output
 
 
