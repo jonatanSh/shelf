@@ -1,5 +1,6 @@
 import logging
 import subprocess
+from shelf.relocate import make_shellcode
 
 
 def extract_text_between(stream, start_s, end_s, times=-1,
@@ -44,12 +45,13 @@ def extract_int16(stream, start, end):
 
 
 class Binary(object):
-    def __init__(self, binary_path):
+    def __init__(self, binary_path, loading_address=None):
         self.binary_path = binary_path
         self.symbols = ""
         self.program_headers = ""
         self.load_and_get_binary_program_headers()
         self.load_and_get_binary_symbols()
+        self.loading_address = loading_address
 
     def get_bytes_at_virtual_address(self, size, address):
         try:
@@ -119,6 +121,11 @@ class Binary(object):
                 return True
         return False
 
+    @property
+    def shelf(self):
+        shellcode, shellcode_repr = make_shellcode(arch=self.arch, endian=self.endian,
+                                                   start_file_method=None, args=None)
+        return shellcode
 
 def address_in_region(address, start, size):
     return start <= address <= start + size

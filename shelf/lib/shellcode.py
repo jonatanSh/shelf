@@ -12,7 +12,6 @@ from shelf.lib.utils.address_utils import AddressUtils
 from shelf.lib.utils.mini_loader import MiniLoader
 from shelf.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians, \
     RELOCATION_OFFSETS, RelocationAttributes, HookTypes
-from shelf.lib.utils.disassembler import Disassembler
 from shelf.lib.utils.hooks import ShellcodeHooks
 from shelf.lib.utils.general import get_binary
 from shelf.hooks.hooks_configuration_parser import HookConfiguration

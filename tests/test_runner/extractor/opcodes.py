@@ -34,7 +34,8 @@ class SegfaultHandler(object):
         mapped_size = other_context['mapped_memory_size']
 
         loader_binary = Binary(binary_path=loader_elf)
-        shellcode_binary = Binary(binary_path=shellcode_elf)
+        shellcode_binary = Binary(binary_path=shellcode_elf,
+                                  loading_address=shellcode_address)
         if address_in_region(address=faulting_address,
                              start=shellcode_address,
                              size=mapped_size):
