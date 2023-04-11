@@ -17,4 +17,11 @@ api.shelf.get_segments_in_memory()
 
 # Get symbol name for its address:
 api.shelf.get_symbol_name_from_address(address=0xdeadbeef)
+
+# Get symbol address
+print(api.shelf.find_symbols("test"))
+# Get relative symbol address
+print(api.shelf.find_symbols("test", return_relative_address=True))
+# Get all symbols:
+print(api.shelf.find_symbols())
 ```

@@ -24,6 +24,13 @@ PTR_SIZES = {
 }
 
 
+def api_function(func):
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 class Shellcode(object):
     def __init__(self, elffile,
                  shellcode_data,
@@ -415,6 +422,24 @@ class Shellcode(object):
                 addresses.append(address)
 
         return addresses
+
+    @api_function
+    def find_symbols(self, symbol_name=None,
+                     return_relative_address=False):
+        symbols = []
+        symtab = self.elffile.get_section_by_name(".symtab")
+        for sym in symtab.iter_symbols():
+            self.embed(sym=sym)
+            address = sym.entry.st_value
+            if return_relative_address:
+                address -= self.loading_virtual_address
+            symbols.append((sym.name, address))
+        if not symbols:
+            raise Exception("Shelf symbol: {} not found".format(symbol_name))
+
+        if symbol_name:
+            return [s for s in filter(lambda s: s[0] == symbol_name, symbols)]
+        return symbols
 
     def get_symbol_name_from_address(self, address):
 

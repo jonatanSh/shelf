@@ -1,6 +1,6 @@
 import logging
 import subprocess
-from shelf.relocate import make_shellcode
+from shelf.api import ShelfApi
 
 
 def extract_text_between(stream, start_s, end_s, times=-1,
@@ -52,6 +52,7 @@ class Binary(object):
         self.load_and_get_binary_program_headers()
         self.load_and_get_binary_symbols()
         self.loading_address = loading_address
+        self.shelf = ShelfApi(self.binary_path)
 
     def get_bytes_at_virtual_address(self, size, address):
         try:
@@ -73,19 +74,10 @@ class Binary(object):
             return
 
     def get_symbol(self, address):
-        for line in self.symbols.split("\n"):
-            if not line:
-                continue
-            parts = [p for p in line.split(" ") if p]
-            if len(parts) != 8:
-                continue
-            _, s_address, size, _, _, _, _, name = parts
-            try:
-                s_address = int(s_address, 16)
-                size = int(size)
-            except:
-                pass
-
+        for symbol in self.shelf.shelf.find_symbols():
+            name, s_address = symbol
+            if self.loading_address:
+                s_address -= self.loading_address
             if s_address <= address <= s_address + size:
                 return name
 
@@ -121,11 +113,6 @@ class Binary(object):
                 return True
         return False
 
-    @property
-    def shelf(self):
-        shellcode, shellcode_repr = make_shellcode(arch=self.arch, endian=self.endian,
-                                                   start_file_method=None, args=None)
-        return shellcode
 
 def address_in_region(address, start, size):
     return start <= address <= start + size

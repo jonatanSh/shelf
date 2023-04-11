@@ -2,9 +2,13 @@ from setuptools import find_packages, setup
 import os
 import sys
 
+disable_checks = '--force-disable-py2-check' in sys.argv
+
 version = int(sys.version[0])
-if version == 2:
-    raise Exception("Only supported in python3")
+if not disable_checks and version == 2:
+    raise Exception("Only supported in python3 to force install use --force-disable-py2-check")
+if disable_checks:
+    sys.argv.remove('--force-disable-py2-check')
 py_specific_req_2 = [
     'lief==0.9',
 ]
