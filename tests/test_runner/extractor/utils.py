@@ -1,3 +1,4 @@
+import logging
 import subprocess
 
 
@@ -51,19 +52,23 @@ class Binary(object):
         self.load_and_get_binary_symbols()
 
     def get_bytes_at_virtual_address(self, size, address):
-        gdb_out = subprocess.check_output(
-            'gdb -batch -ex "x/{}bx {}" "{}"'.format(size, hex(address), self.binary_path),
-            shell=True
-        )
-        opcodes = []
-        for line in gdb_out.split("\n"):
-            for opcode in line.split("\t"):
-                if len(opcode) != 0x4:
-                    continue
-                opcodes.append(chr(int(opcode, 16)))
+        try:
+            gdb_out = subprocess.check_output(
+                'gdb -batch -ex "x/{}bx {}" "{}"'.format(size, hex(address), self.binary_path),
+                shell=True
+            )
+            opcodes = []
+            for line in gdb_out.split("\n"):
+                for opcode in line.split("\t"):
+                    if len(opcode) != 0x4:
+                        continue
+                    opcodes.append(chr(int(opcode, 16)))
 
-        gdb_opcodes = "".join(opcodes)
-        return gdb_opcodes
+            gdb_opcodes = "".join(opcodes)
+            return gdb_opcodes
+        except Exception as e:
+            logging.error(e)
+            return
 
     def get_symbol(self, address):
         for line in self.symbols.split("\n"):

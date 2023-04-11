@@ -1,3 +1,5 @@
+import logging
+
 import capstone
 from test_runner.extractor.utils import extract_text_between, Binary, extract_int16, address_in_region
 from test_runner.consts import ShellcodeLoader
@@ -6,7 +8,7 @@ from test_runner.extractor.disassembler_consts import ENDIAN, BITS, ARCHES
 
 class SegfaultHandler(object):
     def __init__(self, elf, arch, opcodes, dump_address, faulting_address,
-                 error_message="No error", bad_fault=False):
+                 error_message="No error", bad_fault=False, additional_messages=[]):
         self.elf = elf
         self.opcodes = opcodes
         self.dump_address = dump_address
@@ -19,6 +21,7 @@ class SegfaultHandler(object):
             ARCHES[self.arch],
             ENDIAN[self.arch] | mode
         )
+        self.additional_messages = additional_messages
 
     @classmethod
     def create(cls,
@@ -41,7 +44,7 @@ class SegfaultHandler(object):
         ):
             elf = loader_binary
         else:
-            raise cls(
+            return cls(
                 elf=None,
                 arch=arch,
                 opcodes=None,
@@ -65,7 +68,14 @@ class SegfaultHandler(object):
             size=len(self.opcodes),
             address=self.dump_address,
         )
-        if not (opcodes == self.opcodes):
+        if not opcodes:
+            self.additional_messages.append(
+                'Output may be incorrect faulting address is only runtime relvant'
+            )
+        elif not (opcodes == self.opcodes):
+            logging.info("Gdb out: {}".format(opcodes.encode('hex')))
+            logging.info("mem dump out: {}".format(self.opcodes.encode('hex')))
+
             self.error_message = "Disassembly error opcodes do not match !"
             return False
 
@@ -76,9 +86,12 @@ class SegfaultHandler(object):
             opcodes,
             off,
         )]
-        instructions = ["\n{}:\n   S:{}:".format(
+        sym = self.elf.get_symbol(address=off)
+        if not sym:
+            sym = "UNKNOWN_SYMBOL"
+        instructions = self.additional_messages+["\n{}:\n   S:{}:".format(
             self.elf.binary_path,
-            self.elf.get_symbol(address=off))]
+            sym)]
         for i, instruction in enumerate(_instructions):
             rpr = "      "
             if instruction.address == self.faulting_address:
@@ -91,8 +104,8 @@ class SegfaultHandler(object):
     @staticmethod
     def instruction_repr(instruction):
         dis = "0x%x:    %s    %s    " % (instruction.address,
-                                   instruction.mnemonic,
-                                   instruction.op_str)
+                                         instruction.mnemonic,
+                                         instruction.op_str)
         ins_bytes = " ".join([hex(c) for c in instruction.bytes])
 
         dis = dis.ljust(50, " ") + "# {}".format(ins_bytes)
