@@ -55,7 +55,14 @@ class Binary(object):
             'gdb -batch -ex "x/{}bx {}" "{}"'.format(size, hex(address), self.binary_path),
             shell=True
         )
-        gdb_opcodes = "".join([chr(int(op, 16)) for op in gdb_out.split("\t") if op.startswith("0x") and len(op) == 4])
+        opcodes = []
+        for line in gdb_out.split("\n"):
+            for opcode in line.split("\t"):
+                if len(opcode) != 0x4:
+                    continue
+                opcodes.append(chr(int(opcode, 16)))
+
+        gdb_opcodes = "".join(opcodes)
         return gdb_opcodes
 
     def get_symbol(self, address):
