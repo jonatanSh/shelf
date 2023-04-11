@@ -90,12 +90,12 @@ class SegfaultHandler(object):
 
     @staticmethod
     def instruction_repr(instruction):
-        dis = "0x%x:\t%s\t%s\t" % (instruction.address,
+        dis = "0x%x:    %s    %s    " % (instruction.address,
                                    instruction.mnemonic,
                                    instruction.op_str)
         ins_bytes = " ".join([hex(c) for c in instruction.bytes])
 
-#        dis = dis.ljust(50, " ") + "# {}".format(ins_bytes)
+        dis = dis.ljust(50, " ") + "# {}".format(ins_bytes)
         return dis
 
     @property
