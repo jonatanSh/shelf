@@ -5,10 +5,11 @@ import itertools
 import logging
 from test_runner.consts import Resolver, CONSTS, TestFeatures, LoaderTypes
 from test_runner.extractor.opcodes import OpcodesExtractor
+from test_runner.extractor.loader_information_extractor import LoaderInformationExtractor
 
 
 class TestOutput(object):
-    def __init__(self, description, arch, test_file):
+    def __init__(self, description, arch, test_file, loader_file):
         self.description = description
         self.arch = arch
         self.reason = ""
@@ -17,15 +18,20 @@ class TestOutput(object):
         self._stdout = ""
         self._stderr = ""
         self.test_file = test_file
+        self.loader_file = loader_file
         self.extractors = [
+            LoaderInformationExtractor,
             OpcodesExtractor
         ]
         self._parsed = ""
+        self.test_file_elf = test_file[:test_file.find(".out") + len(".out")]
         self.context = {
             'arch': arch,
             'shellcode': test_file,
-            'elf': test_file[:test_file.find(".out") + len(".out")]
+            'elf': self.test_file_elf,
+            'loader_file': loader_file if loader_file else self.test_file_elf
         }
+        self.extractor_data = {}
 
     def prepare(self, success, reason, stdout="", stderr=""):
         self.reason = reason
@@ -46,9 +52,7 @@ class TestOutput(object):
                 )
             self._parsed = "{} - {} ... {}".format(self.arch, self.description,
                                                    self.reason)
-            for extractor_cls in self.extractors:
-                extractor = extractor_cls(self._parsed, self.context)
-                self._parsed = extractor.parsed
+
         return self._parsed
 
     @property
@@ -59,8 +63,12 @@ class TestOutput(object):
     def stdout(self):
         stdout_extracted = self._stdout
         for extractor_cls in self.extractors:
-            extractor = extractor_cls(stdout_extracted, self.context)
-            stdout_extracted = extractor.parsed
+            extractor = extractor_cls(stdout_extracted, self.context,
+                                      self.extractor_data)
+
+            stdout_extracted, extractor_context = extractor.parsed
+            self.extractor_data.update(extractor_context)
+
         return stdout_extracted
 
     def __str__(self):
@@ -68,18 +76,21 @@ class TestOutput(object):
 
 
 def get_test_command(test_file, description, loader_type, arch, is_debug, is_strace, is_eshelf, **kwargs):
-    test_output = TestOutput(description=description, arch=arch, test_file=test_file)
+    loader = None
+    if not is_eshelf:
+        loader = Resolver.get_loader(loader_type, arch)
+    test_output = TestOutput(description=description, arch=arch, test_file=test_file,
+                             loader_file=loader)
     assert not all([is_strace, is_debug]), "Only --strace or --debug is available"
     command = [Resolver.get_qemu(arch)]
     if is_debug:
         command.append("-g")
-        command.append(str(CONSTS.DEBUG_PORT))
+        command.append(CONSTS.DEBUG_PORT.value)
 
     if is_strace:
         command.append("-strace")
 
     if not is_eshelf:
-        loader = Resolver.get_loader(loader_type, arch)
         command.append(loader)
         if not os.path.exists(loader):
             return None, test_output.prepare(reason="Loader {} not found".format(
@@ -96,7 +107,7 @@ def get_test_command(test_file, description, loader_type, arch, is_debug, is_str
     if is_eshelf:
         command.append("First_Argument_for_argv")
         command.append("Second argument for argv")
-
+    command = [str(v) for v in command]
     return command, test_output
 
 

@@ -113,5 +113,6 @@ for following links only work on the github page
 * [Mitigation bypass](docs/mitigation_bypass.md)
 * [Optimizations](docs/optimizations.md)
 * [Output formats](docs/output_formats.md)
+* [Python api](docs/py_api.md)
 * [Development](docs/develop.md)
 * [Specific architecture limitations](docs/speific_arch_limitations.md)
