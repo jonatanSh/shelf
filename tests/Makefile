@@ -5,11 +5,13 @@ INTEL_X32=intel_x32_elf_features no_libc_intel_x32_no_relocations
 INTEL_X64+=intel_x64_elf_features
 AARCH64=aarch64_elf_features no_libc_aarch64_no_relocations
 ARM32=arm32_elf_features
+RISCV64_FILES=riscv64_elf_features
 TESTS+=$(MIPS_TARGETS)
 TESTS+=$(INTEL_X32)
 TESTS+=$(INTEL_X64)
 TESTS+=$(AARCH64)
 TESTS+=$(ARM32)
+TESTS+=$(RISCV64_FILES)
 
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
@@ -23,6 +25,7 @@ intel_x32: $(INTEL_X32)
 intel_x64: $(INTEL_X64)
 aarch64: $(AARCH64)
 arm32: $(ARM32)
+riscv64: $(RISCV64_FILES)
 
 hooks:
 	cd ../hooks && $(MAKE)

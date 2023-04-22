@@ -60,19 +60,22 @@ class Arches(enum.Enum):
     intel_x64 = "intel_x64"
     arm32 = "arm32"
     aarch64 = "aarch64"
+    riscv64 = "riscv64"
     __all__ = [
         mips,
         intel_x32,
         intel_x64,
         arm32,
-        aarch64
+        aarch64,
+        riscv64
     ]
     from_idents = {
         'EM_MIPS': mips,
         'EM_386': intel_x32,
         'EM_X86_64': intel_x64,
         'EM_ARM': arm32,
-        'EM_AARCH64': aarch64
+        'EM_AARCH64': aarch64,
+        'EM_RISCV': riscv64
 
     }
 
