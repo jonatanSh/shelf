@@ -56,3 +56,8 @@ arm32_%: mini_loader_arm_x32
 aarch64_%: mini_loader_arm_x64
 	$(MAKE) compile_all COMPILER="$(AARCH64_CC)" COMPILER_FLAGS="$(CFLAGS)" FILES="$(subst aarch64_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
 	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
+
+riscv64_%: mini_loader_riscv64
+	$(MAKE) compile_all COMPILER="$(RISCV64_CC)" COMPILER_FLAGS="$(CFLAGS)" FILES="$(subst riscv64_,,$@).c"  OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
+	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
+

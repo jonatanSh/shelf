@@ -8,6 +8,7 @@ from parallel_api.api import execute_jobs_in_parallel
 
 local_path = os.path.dirname(__file__)
 
+
 class Arches(Enum):
     mips = 'mips'
     mipsbe = 'mipsbe'
@@ -15,6 +16,7 @@ class Arches(Enum):
     x64 = 'x64'
     arm_x32 = 'arm_x32'
     arm_x64 = 'arm_x64'
+    riscv64 = "riscv64"
 
 
 arches = [arch.value for arch in Arches]
@@ -257,13 +259,21 @@ AARCH64 = get_compiler(
     files=["arm/aarch64.c"]
 )
 
+RISCV64 = get_compiler(
+    host=r'riscv64-linux-gnu',
+    cflags='{}'.format(CFLAGS),
+    compiler_name=Arches.riscv64.value,
+    files=["riscv/riscv64.c"]
+)
+
 compilers = [
     MipsCompiler,
     MipsCompilerBE,
     IntelX32,
     IntelX64,
     ArmX32,
-    AARCH64
+    AARCH64,
+    RISCV64
 ]
 
 # should perform cartesian product on the features

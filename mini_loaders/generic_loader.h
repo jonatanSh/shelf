@@ -19,6 +19,8 @@
     #include "./arm/aarch64.h"
 #elif defined(mips) || defined(__mips__) || defined(__mips)
     #include "./mips/mips.h"
+#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
+    #include "riscv/riscv64.h"
 #elif defined(__sh__)
     #error Not Supported
 #elif defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || defined(__POWERPC__) || defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC)
@@ -32,6 +34,8 @@
 #else
     #error Not Supported
 #endif
+
+
 
 typedef size_t loader_off_t;
 

@@ -8,4 +8,6 @@ ARM_CC=arm-linux-gnueabi-gcc
 ARM_OBJCOPY=arm-linux-gnueabi-objcopy
 AARCH64_CC=aarch64-linux-gnu-gcc
 AARCH64_OBJCOPY=aarch64-linux-gnu-objcopy
+RISCV64_CC=riscv64-linux-gnu-gcc
+RISCV64_OBJCOPY=riscv64-linux-gnu-objcopy
 
