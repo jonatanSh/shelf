@@ -1,7 +1,7 @@
 import os
 import inspect
 import logging
-from importlib.machinery import SourceFileLoader
+from shelf.lib import five
 from shelf import hooks
 
 
@@ -20,7 +20,7 @@ class HookConfiguration(object):
         self.package = ".".join(path.split(os.path.sep))
         if self.package.startswith("."):
             self.package = self.package[1:]
-        self.module = SourceFileLoader(self.package, path).load_module()
+        self.module = five.load_source(self.package, path).load_module()
         self.startup_hooks = []
         self.pre_relocate_write_hooks = []
         self.pre_relocate_execute_hooks = []

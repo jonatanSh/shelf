@@ -75,7 +75,7 @@ class Binary(object):
 
     def get_symbol(self, address):
         for symbol in self.shelf.shelf.find_symbols():
-            name, s_address = symbol
+            name, s_address, size = symbol
             if self.loading_address:
                 s_address -= self.loading_address
             if s_address <= address <= s_address + size:

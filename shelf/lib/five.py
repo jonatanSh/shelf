@@ -9,6 +9,22 @@ else:
     JSONDecodeError = ValueError
 
 
+def get_lief():
+    import lief
+    from lief.ELF import SECTION_FLAGS
+
+    return lief, SECTION_FLAGS
+
+
+def load_source(*args):
+    if is_python3:
+        from importlib.machinery import SourceFileLoader
+        return SourceFileLoader(*args)
+    else:
+        import imp
+        return imp.load_source(*args)
+
+
 def to_disasm(obj):
     if is_python3:
         if type(obj) is not bytes:

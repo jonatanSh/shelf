@@ -6,8 +6,7 @@ import tempfile
 from elftools.elf.constants import P_FLAGS
 from shelf.lib import five
 from elftools.elf.elffile import ELFFile
-import lief
-from lief.ELF import SECTION_FLAGS
+
 from shelf.lib.utils.address_utils import AddressUtils
 from shelf.lib.utils.mini_loader import MiniLoader
 from shelf.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians, \
@@ -65,7 +64,7 @@ class Shellcode(object):
         ))
 
         self.elffile = elffile
-        self.lief_elf = lief.parse(self.args.input)
+        self._lief_elf = None
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
@@ -110,6 +109,21 @@ class Shellcode(object):
 
         # Keep track of offsets inside the relocation table
         self.offsets_in_header = {}
+
+    def _get_lief_imports(self, library=False, section_flags=False):
+        lib, flags = five.get_lief()
+        if library:
+            return lib
+        if section_flags:
+            return flags
+
+    @property
+    def lief_elf(self):
+        lief = self._get_lief_imports(library=True)
+        if not self._lief_elf:
+            self._lief_elf = lief.parse(self.args.input)
+
+        return self._lief_elf
 
     def _generic_do_hooks(self, hooks, hook_type):
         self.logger.info("Adding hooks to: {}".format(hook_type))
@@ -348,6 +362,7 @@ class Shellcode(object):
         return a + (a % b)
 
     def get_section_virtual_address(self, section_name):
+        SECTION_FLAGS = self._get_lief_imports(section_flags=True)
         offset, first_section = self.get_first_executable_section_virtual_address()
         total_size = self.aligned(first_section.size, first_section.alignment) + offset
         should_skip = True
@@ -370,6 +385,7 @@ class Shellcode(object):
          Trying to locate the first executable section
          """
         # calculate all the section size up to the first executable section
+        SECTION_FLAGS = self._get_lief_imports(section_flags=True)
         exclude_sections = [
             '.reginfo',
         ]
@@ -429,11 +445,10 @@ class Shellcode(object):
         symbols = []
         symtab = self.elffile.get_section_by_name(".symtab")
         for sym in symtab.iter_symbols():
-            self.embed(sym=sym)
             address = sym.entry.st_value
             if return_relative_address:
                 address -= self.loading_virtual_address
-            symbols.append((sym.name, address))
+            symbols.append((sym.name, address, sym.entry.st_size))
         if not symbols:
             raise Exception("Shelf symbol: {} not found".format(symbol_name))
 
@@ -513,6 +528,7 @@ class Shellcode(object):
         return shellcode[:index] + shellcode[index + len(self.mini_loader.loader):]
 
     def build_eshelf(self, shellcode_data):
+        lief = self._get_lief_imports(library=True)
         loader = lief.parse(self.mini_loader.path)
         segment = lief.ELF.Segment()
         segment.type = lief.ELF.SEGMENT_TYPES.LOAD
