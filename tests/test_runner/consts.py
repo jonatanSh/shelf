@@ -34,7 +34,7 @@ QEMUS = {
     Arches.intel_x64.value: "qemu-x86_64-static",
     Arches.arm32.value: "qemu-arm-static",
     Arches.aarch64.value: "qemu-aarch64-static",
-    Arches.riscv64: "qemu-riscv64-static"
+    Arches.riscv64.value: "qemu-riscv64-static"
 }
 # Prefer no emulation if running on x64 host !
 if _arch == 'x86_64':

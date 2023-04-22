@@ -13,6 +13,8 @@ shellcode_loader: dir_guard
 	cd shellcode_loader && $(MAKE) CC="$(X64_CC)" ARCH=intel_x64
 	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm32
 	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch64
+	cd shellcode_loader && $(MAKE) CC=$(RISCV64_CC) ARCH=riscv64
+
 mini_loaders: dir_guard
 	cd mini_loaders && python compile.py --action make clean
 

@@ -3,7 +3,13 @@
 #include <stddef.h>
 
 #define ARCH_OPCODE_SIZE 8
-#define TABLE_MAGIC 0x8899aabbccddeeff
+#define GET_TABLE_MAGIC() {     \
+    asm(                        \
+        "li a0, 0x8899aabbccddee00\n" \
+        "addi a0, a0, 0xff\n"       \
+        : "=r"(magic) :         \
+    );                          \
+}                               \
 
 #define get_pc() {      \
     asm(                            \
