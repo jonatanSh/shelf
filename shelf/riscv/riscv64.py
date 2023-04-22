@@ -13,8 +13,8 @@ class Riscv64Shellcode(Shellcode):
             arch="riscv64",
             mini_loader_little_endian="mini_loader_riscv64{}.shellcode",
             mini_loader_big_endian=None,
-            shellcode_table_magic=0xaabbccdd,
-            ptr_fmt="I",
+            shellcode_table_magic=0x8899aabbccddeeff,
+            ptr_fmt="Q",
             sections_to_relocate={
                 '.got': {'align_by': 'sh_entsize', 'relocate_all': True},
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
