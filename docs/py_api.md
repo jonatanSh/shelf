@@ -23,5 +23,10 @@ print(api.shelf.find_symbols("test"))
 # Get relative symbol address
 print(api.shelf.find_symbols("test", return_relative_address=True))
 # Get all symbols:
-print(api.shelf.find_symbols())
+for symbol_name, symbol_address, symbol_size in api.shelf.find_symbols():
+    print("Symbol: {} at: {} size: {}".format(
+        symbol_name,
+        hex(symbol_address),
+        symbol_size
+    ))
 ```
