@@ -2,11 +2,11 @@
 #define LOADER_RISCV64
 #include <stddef.h>
 
-#define ARCH_OPCODE_SIZE 8
+#define ARCH_OPCODE_SIZE 4
 #define GET_TABLE_MAGIC() {     \
     asm(                        \
-        "li a0, 0x8899aabbccddee00\n" \
-        "addi a0, a0, 0xff\n"       \
+        "li %0, 0x8899aabbccddee00\n" \
+        "addi %0, %0, 0xff\n"       \
         : "=r"(magic) :         \
     );                          \
 }                               \
@@ -16,7 +16,7 @@
         "jal get_pc_internal\n"     \
         "j next\n"                  \
         "get_pc_internal:\n"        \
-        "move a0, ra\n"           \
+        "move %0, ra\n"           \
         "jr ra\n"                  \
         "next:"                     \
         : "=r"(pc) :               \

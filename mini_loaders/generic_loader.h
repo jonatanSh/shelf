@@ -6,7 +6,7 @@
 #include "hooks.h"
 
 // I should check this more carfually.
-#define MAX_SEARCH_DEPTH 0x1000
+#define MAX_SEARCH_DEPTH 0x10000
 
 
 #if defined(__x86_64__) || defined(_M_X64)
@@ -70,7 +70,7 @@ typedef void * (*IRELATIVE_T)();
 
 #define advance_pc_to_magic() {                                             \
     size_t i;                                                               \
-    TRACE("Pc at search start = %x", pc);                                   \
+    TRACE("Pc at search start = 0x%llx, opcode=0x%llx", pc, *((size_t*)pc));                                   \
     for(i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {                 \
         if(*((size_t*)pc) == magic) {                                       \
             break;                                                          \
@@ -82,7 +82,7 @@ typedef void * (*IRELATIVE_T)();
     if(i > MAX_SEARCH_DEPTH - 1) {                                          \
         TRACE("Pc search exceded max limit in advance_pc_to_magic macro");  \
     }                                                                       \
-    TRACE("Pc at search end = %x", pc);                                     \
+    TRACE("Pc at search end = 0x%llx", pc);                                     \
 }                                                                           \
 
 
