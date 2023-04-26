@@ -2,7 +2,7 @@
 #define LOADER_RISCV64
 #include <stddef.h>
 
-#define ARCH_OPCODE_SIZE 4
+#define ARCH_OPCODE_SIZE 1
 #define GET_TABLE_MAGIC() {     \
     asm(                        \
         "li %0, 0x8899aabbccddee00\n" \
