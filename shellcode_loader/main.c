@@ -115,8 +115,13 @@ int main(int argc, char **argv, char **envp) {
 #endif
     printf("Jumping to shellcode, address = %p \n", start_address);
     long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
+    long error_code = (value >> 24);
+    long line = (value & ((1<<24) - 1));
     printf("Shellcode returned: %llx\n", value);
-    printf("If this error code seems invalid compile the mini loader in debug mode: MINI_LOADER_DEBUG=1");
+    printf("If this error code seems invalid compile the mini loader in debug mode: MINI_LOADER_DEBUG=1\n");
+    printf("---------------------Mini loader debug info-----------------------\n");
+    printf("error code = 0x%llx\n", (error_code>>2));
+    printf("line = 0x%llx\n", line);
     goto cleanups;
 
 
