@@ -75,17 +75,20 @@ class Arches(enum.Enum):
         'EM_X86_64': intel_x64,
         'EM_ARM': arm32,
         'EM_AARCH64': aarch64,
-        'EM_RISCV': riscv64
+        ('EM_RISCV', "ELFCLASS64"): riscv64,
 
     }
 
     @staticmethod
-    def translate_from_ident(ident):
+    def translate_from_ident(ident, elfclass=None):
+        ident_with_class = (ident, elfclass)
+        if ident_with_class in Arches.from_idents.value:
+            return Arches.from_idents.value[ident_with_class]
         if ident in Arches.from_idents.value:
             return Arches.from_idents.value[ident]
         else:
             raise Exception("Not supported for arch: {}".format(
-                ident
+                ident_with_class
             ))
 
 
