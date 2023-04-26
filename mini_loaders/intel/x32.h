@@ -30,7 +30,7 @@
 
 
 
-#define call_function(main_ptr, a1, a2, a3, a4) {       \
+#define call_function(main_ptr, a1, a2, a3, a4, _out) {       \
    register size_t eax asm("eax") = (size_t)(a1); \
    register size_t ebx asm("ebx") = (size_t)(a2);     \
    register size_t ecx asm("ecx") = (size_t)(a3);     \
@@ -47,7 +47,7 @@
         "pop ebx\n"                                     \
         /*This is important to save the return value*/  \
         "add esp, 4\n"                                  \
-       :  :                                             \
+       : "=r"(_out) :                                             \
        "r"(eax) , "r"(ebx), "r"(ecx), "r"(esi) , "r"(edx)         \
    );                                                   \
 }                                                       \

@@ -124,13 +124,6 @@ typedef void * (*IRELATIVE_T)();
     );                              \
 }                                   \
 
-#define DISPATCHER_GET_CALL_OUT() {   \
-    asm(                            \
-        "\n"                        \
-        : "=r"(_dispatcher_out)     \
-    );                              \
-}                                   \
-
 #include "../headers/mini_loader.h"
 
 
@@ -149,12 +142,11 @@ typedef void * (*IRELATIVE_T)();
 
 #define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
     TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+addresses.loader_base));  \
-    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4);                                                             \
-    DISPATCHER_GET_CALL_OUT();                                                                                                          \
+    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4, _dispatcher_out);                                                             \
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \
 
-#define _DISPATCH_HOOKS(hooks_base_address, hooks_type, a1, a2) {                                                                         \
+#define _DISPATCH_HOOKS(hooks_base_address, hooks_type, a1, a2, _hook_out) {                                                                         \
     TRACE("HookDispatcher %s, hooks base address = 0x%x", #hooks_type, hooks_base_address);                                         \
     for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {                                                                           \
         struct hook * hook = &(table->hook_descriptor.hooks_type[i]);                                                           \
@@ -168,7 +160,7 @@ typedef void * (*IRELATIVE_T)();
             hook_attributes);                                                                                                       \
             TRACE_ADDRESS(hook_address, 24);                                                                                        \
             TRACE_ADDRESS(hook_attributes, 24);                                                                                     \
-            call_function(hook_address, table, hook_attributes, a1, a2);                                                          \
+            call_function(hook_address, table, hook_attributes, a1, a2, _hook_out);                                                          \
         }                                                                                                                       \
     }                                                                                                                           \
 }

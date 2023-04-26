@@ -90,15 +90,15 @@
         "bal get_pc_internal\n"     \
         "b next\n"                  \
         "get_pc_internal:\n"        \
-        "move $v0, $ra\n"           \
+        "move %[pc], $ra\n"           \
         "jr $ra\n"                  \
         "next:"                     \
-        : "=r"(pc) :               \
+        : [pc]"=r"(pc) :               \
                                     \
     );                              \
 }                                   \
 
-#define call_function(main_ptr, arg0, arg1, arg2, arg3) {           \
+#define call_function(main_ptr, arg0, arg1, arg2, arg3, _out) {           \
    register size_t t9 asm("t9") = (size_t)(main_ptr);           \
    register size_t a0 asm("a0") = (size_t)(arg0);               \
    register size_t a1 asm("a1") = (size_t)(arg1);               \
@@ -110,7 +110,8 @@
        "jalr $t9\n"                                             \
        "lw $ra, 0($sp)\n"                                       \
        "addiu $sp, $sp, 4\n"                                    \
-       :  :                                                     \
+       "move %[result], $v0\n"         /* This is required to disable fast return*/ \
+       : [result]"=r"(_out) :                                                     \
        "r"(t9)                                                  \
    );                                                           \
 }                                                               \
@@ -120,7 +121,7 @@ void startup_code(size_t main_ptr, int argc, void * argv);
 #define ARCH_FUNCTION_ENTER(ra) {            \
     register size_t a0 asm("a0");           \
     asm(                                    \
-        "move $a0, $ra\n"                    \
+        "move %0, $ra\n"                    \
         : :                                 \
         "r"(a0)                             \
     );                                      \
@@ -130,7 +131,7 @@ void startup_code(size_t main_ptr, int argc, void * argv);
 #define ARCH_FUNCTION_EXIT(ra) {          \
    register size_t a0 asm("a0") = (size_t)(ra); \
     asm(                                        \
-        "move $ra, $a0\n"                       \
+        "move $ra, %0\n"                       \
         : :                                     \
         "r"(a0)                                 \
     );                                          \

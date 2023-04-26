@@ -23,7 +23,7 @@
     );                              \
 }                                   \
 
-#define call_function(main_ptr, a1, a2, a3, a4) {                           \
+#define call_function(main_ptr, a1, a2, a3, a4, _out) {                           \
    register size_t rdi asm("rdi") = (size_t)(a1);            \
    register size_t rsi asm("rsi") = (size_t)(a2);                \
    register size_t rdx asm("rdx") = (size_t)(a3);                \
@@ -31,7 +31,7 @@
    register size_t rax asm("rax") = (size_t)(main_ptr);  \
    asm(                                                            \
         "call rax\n"                                               \
-       :  :                                                        \
+       : "=r"(_out) :                                                        \
        "r"(rdi),"r"(rsi),"r"(rdx),"r"(rcx),"r"(rax)                \
        : "rsp"\
    );                                                              \

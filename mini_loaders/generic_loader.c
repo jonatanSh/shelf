@@ -39,6 +39,7 @@ void loader_main(
     size_t total_header_plus_table_size = 0;
     long long int _out;
     size_t _dispatcher_out;
+    size_t _hook_out;
     size_t return_address;
     size_t shellcode_main_relative;
     struct addresses addresses;
@@ -88,7 +89,7 @@ void loader_main(
     addresses.hooks_base_address += sizeof(struct relocation_table) + total_header_plus_table_size;
     TRACE("Adding hooks shellcode sizes to total_header_plus_table_size shellcode size = 0x%llx", table->hook_descriptor.size_of_hook_shellcode_data);
     total_header_plus_table_size += table->hook_descriptor.size_of_hook_shellcode_data;
-    DISPATCH_HOOKS(addresses.hooks_base_address, startup_hooks, &addresses, 0x0);
+    DISPATCH_HOOKS(addresses.hooks_base_address, startup_hooks, &addresses, 0x0, _hook_out);
 #endif
     // Size of table header + entries + entry point
     addresses.base_address = (size_t)(table);
@@ -107,7 +108,7 @@ void loader_main(
     TRACE("Shellcode entry point = 0x%llx", entry_point);
     TRACE("Calling shellcode main");
     #ifdef SUPPORT_HOOKS
-        DISPATCH_HOOKS(addresses.hooks_base_address, pre_calling_shellcode_main_hooks, entry_point, &addresses);
+        DISPATCH_HOOKS(addresses.hooks_base_address, pre_calling_shellcode_main_hooks, entry_point, &addresses, _hook_out);
     #endif
     LOADER_DISPATCH(startup_code, entry_point, argc, argv, 0);
 #ifdef ARCH_GET_FUNCTION_OUT
@@ -146,6 +147,7 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
     size_t parsed_entries_size = 0;
     size_t return_address;
     size_t entries_for_attribute = 0;
+    size_t _hook_out;
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     ARCH_FUNCTION_ENTER(&return_address);
     struct entry_attributes * attributes;
@@ -198,7 +200,7 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
                     TRACE_ADDRESS(v_offset, 24);
                 #endif
                 #ifdef SUPPORT_HOOKS
-                    DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_execute_hooks, v_offset, &addresses);
+                    DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_execute_hooks, v_offset, &addresses, _hook_out);
                 #endif
                 attribute_val = (size_t)((IRELATIVE_T)(v_offset))();
                 #ifdef DEBUG
@@ -229,7 +231,7 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
         #endif
         // Fixing the entry
 #ifdef SUPPORT_HOOKS
-        DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_write_hooks, f_offset, &addresses);
+        DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_write_hooks, f_offset, &addresses, _hook_out);
 #endif
         *((size_t*)f_offset) = v_offset;
 

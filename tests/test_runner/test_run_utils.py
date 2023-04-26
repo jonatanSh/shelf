@@ -197,6 +197,8 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
 
     while process.poll() is None:
         if (time.time() - start) > CONSTS.execution_timeout_seconds.value:
+            if is_debug:
+                continue
             timeout_passed = True
             break
     if timeout_passed:
