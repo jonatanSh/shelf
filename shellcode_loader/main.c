@@ -116,6 +116,7 @@ int main(int argc, char **argv, char **envp) {
     printf("Jumping to shellcode, address = %p \n", start_address);
     long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
     printf("Shellcode returned: %llx\n", value);
+    printf("If this error code seems invalid compile the mini loader in debug mode: MINI_LOADER_DEBUG=1");
     goto cleanups;
 
 

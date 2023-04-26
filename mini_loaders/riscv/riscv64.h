@@ -25,7 +25,7 @@
 }                                   \
 
 #define call_function(main_ptr, arg0, arg1, arg2, arg3) {           \
-   register size_t t0 asm("t0") = (size_t)(main_ptr);           \
+   register size_t a4 asm("a4") = (size_t)(main_ptr);           \
    register size_t a0 asm("a0") = (size_t)(arg0);               \
    register size_t a1 asm("a1") = (size_t)(arg1);               \
    register size_t a2 asm("a2") = (size_t)(arg2);               \
@@ -33,11 +33,11 @@
    asm(                                                         \
        "addi sp, sp, -4\n"                                   \
        "sw ra, 0(sp)\n"                                       \
-       "jalr t0\n"                                             \
+       "jalr a4\n"                                             \
        "lw ra, 0(sp)\n"                                       \
        "addi sp, sp, 4\n"                                    \
        :  :                                                     \
-       "r"(t0)                                                  \
+       "r"(a4)                                                  \
    );                                                           \
 }                                                               \
 
