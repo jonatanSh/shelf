@@ -25,7 +25,7 @@
 #define ASSERT(expr, status) {                          \
     if(!(expr)) {                                       \
         TRACE("Asseration failed: %s", #expr);          \
-        SET_STATUS((status << 24)+__LINE__);            \
+        SET_STATUS((status << 24));     \
         goto error;                                     \
     }                                                   \
 }                                                       \

@@ -129,6 +129,7 @@ typedef void * (*IRELATIVE_T)();
 
 #define _SET_STATUS(status) {           \
     mini_loader_status = status;        \
+    mini_loader_status += __LINE__; \
 }                                       \
 
 #ifdef DEBUG
