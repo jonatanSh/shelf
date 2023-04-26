@@ -1,3 +1,4 @@
 ENUM_RELOC_TYPE_RISCV64 = dict(
-    a=1
+    elf_64_reloc=2,
+    JUMP_SLOT=5
 )

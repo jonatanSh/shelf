@@ -1,7 +1,6 @@
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from shelf.riscv.riscv64_dynamic_relocations import Riscv64DynamicRelocations
 
-# https://github.com/ARM-software/abi-aa/blob/main/aaelf64/aaelf64.rst#relocation-codes
 class Riscv64Shellcode(Shellcode):
     def __init__(self, elffile, shellcode_data, args, **kwargs):
         super(Riscv64Shellcode, self).__init__(
