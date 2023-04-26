@@ -111,6 +111,7 @@ void loader_main(
         DISPATCH_HOOKS(addresses.hooks_base_address, pre_calling_shellcode_main_hooks, entry_point, &addresses, _hook_out);
     #endif
     LOADER_DISPATCH(startup_code, entry_point, argc, argv, 0);
+    _out = _dispatcher_out;
 #ifdef ARCH_GET_FUNCTION_OUT
     ARCH_GET_FUNCTION_OUT();
 #endif
