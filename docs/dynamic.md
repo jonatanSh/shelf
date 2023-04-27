@@ -45,5 +45,6 @@ this feature is currently only enabled for:
 * mips
 * arm 32
 * aarch64
+* risc-V rv64
 
 please take a look at the elf_features test and makefile to fully understand how to use this feature

@@ -97,3 +97,4 @@ Loading ../outputs/elf_features_mipsbe.out.hooks.shellcode
 * intel x64
 * arm
 * aarch64
+* risc-V rv64
