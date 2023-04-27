@@ -6,7 +6,7 @@
 #include "hooks.h"
 
 // I should check this more carfually.
-#define MAX_SEARCH_DEPTH 0x1000
+#define MAX_SEARCH_DEPTH 0x10000
 
 
 #if defined(__x86_64__) || defined(_M_X64)
@@ -19,6 +19,8 @@
     #include "./arm/aarch64.h"
 #elif defined(mips) || defined(__mips__) || defined(__mips)
     #include "./mips/mips.h"
+#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
+    #include "riscv/riscv64.h"
 #elif defined(__sh__)
     #error Not Supported
 #elif defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || defined(__POWERPC__) || defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC)
@@ -32,6 +34,8 @@
 #else
     #error Not Supported
 #endif
+
+
 
 typedef size_t loader_off_t;
 
@@ -66,7 +70,7 @@ typedef void * (*IRELATIVE_T)();
 
 #define advance_pc_to_magic() {                                             \
     size_t i;                                                               \
-    TRACE("Pc at search start = %x", pc);                                   \
+    TRACE("Pc at search start = 0x%llx, opcode=0x%llx", pc, *((size_t*)pc));                                   \
     for(i = 0; i < MAX_SEARCH_DEPTH; i+=ARCH_OPCODE_SIZE) {                 \
         if(*((size_t*)pc) == magic) {                                       \
             break;                                                          \
@@ -78,7 +82,7 @@ typedef void * (*IRELATIVE_T)();
     if(i > MAX_SEARCH_DEPTH - 1) {                                          \
         TRACE("Pc search exceded max limit in advance_pc_to_magic macro");  \
     }                                                                       \
-    TRACE("Pc at search end = %x", pc);                                     \
+    TRACE("Pc at search end = 0x%llx", pc);                                     \
 }                                                                           \
 
 
@@ -98,11 +102,11 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #ifndef ARCH_FUNCTION_ENTER
-    #define ARCH_FUNCTION_ENTER
+    #define ARCH_FUNCTION_ENTER()
 #endif
 
 #ifndef ARCH_FUNCTION_EXIT
-    #define ARCH_FUNCTION_EXIT
+    #define ARCH_FUNCTION_EXIT()
 #endif
 
 #ifndef ARCH_TEARDOWN
@@ -120,18 +124,12 @@ typedef void * (*IRELATIVE_T)();
     );                              \
 }                                   \
 
-#define DISPATCHER_GET_CALL_OUT() {   \
-    asm(                            \
-        "\n"                        \
-        : "=r"(_dispatcher_out)     \
-    );                              \
-}                                   \
-
 #include "../headers/mini_loader.h"
 
 
 #define _SET_STATUS(status) {           \
     mini_loader_status = status;        \
+    mini_loader_status += __LINE__; \
 }                                       \
 
 #ifdef DEBUG
@@ -145,12 +143,11 @@ typedef void * (*IRELATIVE_T)();
 
 #define LOADER_DISPATCH(function, a1, a2, a3, a4) {                                                                                     \
     TRACE("Dispatching: %s, relative %x, absoulte %x", #function, table->functions.function, (table->functions.function+addresses.loader_base));  \
-    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4);                                                             \
-    DISPATCHER_GET_CALL_OUT();                                                                                                          \
+    call_function((table->functions.function+addresses.loader_base), a1, a2, a3, a4, _dispatcher_out);                                                             \
     TRACE("%s -> _dispatcher_out = %x", #function, _dispatcher_out);                                                                    \
 }                                                                                                                                       \
 
-#define _DISPATCH_HOOKS(hooks_base_address, hooks_type, a1, a2) {                                                                         \
+#define _DISPATCH_HOOKS(hooks_base_address, hooks_type, a1, a2, _hook_out) {                                                                         \
     TRACE("HookDispatcher %s, hooks base address = 0x%x", #hooks_type, hooks_base_address);                                         \
     for(size_t i = 0; i < MAX_NUMBER_OF_HOOKS; i++) {                                                                           \
         struct hook * hook = &(table->hook_descriptor.hooks_type[i]);                                                           \
@@ -164,7 +161,7 @@ typedef void * (*IRELATIVE_T)();
             hook_attributes);                                                                                                       \
             TRACE_ADDRESS(hook_address, 24);                                                                                        \
             TRACE_ADDRESS(hook_attributes, 24);                                                                                     \
-            call_function(hook_address, table, hook_attributes, a1, a2);                                                          \
+            call_function(hook_address, table, hook_attributes, a1, a2, _hook_out);                                                          \
         }                                                                                                                       \
     }                                                                                                                           \
 }

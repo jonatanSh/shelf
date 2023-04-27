@@ -7,6 +7,18 @@ from enum import Enum
 from parallel_api.api import execute_jobs_in_parallel
 
 local_path = os.path.dirname(__file__)
+MIPS_FLAGS = " ".join(['-mgp32',
+                       '-mfpxx',
+                       '-mno-llsc',
+                       '-mno-dsp',
+                       '-mno-dspr2',
+                       '-mno-smartmips',
+                       '-mno-mt',
+                       '-mno-mcu',
+                       '-mno-eva',
+                       '-mno-gpopt',
+                       '-mno-load-store-pairs'])
+
 
 class Arches(Enum):
     mips = 'mips'
@@ -15,6 +27,7 @@ class Arches(Enum):
     x64 = 'x64'
     arm_x32 = 'arm_x32'
     arm_x64 = 'arm_x64'
+    riscv64 = "riscv64"
 
 
 arches = [arch.value for arch in Arches]
@@ -220,13 +233,13 @@ def get_compiler(host, cflags, compiler_name, files=[]):
 
 MipsCompiler = get_compiler(
     host=r'mips-linux-gnu',
-    cflags='{}'.format(CFLAGS),
+    cflags='{} {}'.format(CFLAGS, MIPS_FLAGS),
     compiler_name=Arches.mips.value,
     files=["mips/mips.c"]
 )
 MipsCompilerBE = get_compiler(
     host=r'mips-linux-gnu',
-    cflags='{} -BE'.format(CFLAGS),
+    cflags='{} {} -BE'.format(CFLAGS, MIPS_FLAGS),
     compiler_name=Arches.mipsbe.value,
     files=["mips/mips.c"]
 )
@@ -257,13 +270,21 @@ AARCH64 = get_compiler(
     files=["arm/aarch64.c"]
 )
 
+RISCV64 = get_compiler(
+    host=r'riscv64-linux-gnu',
+    cflags='{}'.format(CFLAGS),
+    compiler_name=Arches.riscv64.value,
+    files=["riscv/riscv64.c"]
+)
+
 compilers = [
     MipsCompiler,
     MipsCompilerBE,
     IntelX32,
     IntelX64,
     ArmX32,
-    AARCH64
+    AARCH64,
+    RISCV64
 ]
 
 # should perform cartesian product on the features

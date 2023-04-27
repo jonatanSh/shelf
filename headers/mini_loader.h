@@ -34,7 +34,7 @@ struct mini_loader_hooks_descriptor {
 
 struct loader_function_descriptor {
     size_t loader_handle_relocation_table;
-    size_t startup_code;
+    size_t loader_call_main;
 };
 struct relocation_table {
     size_t magic;
@@ -52,8 +52,7 @@ void loader_main(
     int argc,
     char ** argv,
     char ** envp,
-    size_t loader_magic,
-    size_t pc);
+    size_t loader_magic);
 
 int get_elf_information(struct relocation_table ** info);
 // External defines

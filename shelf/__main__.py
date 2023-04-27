@@ -69,7 +69,8 @@ if not os.path.exists(args.input):
 
 with open(args.input, 'rb') as fp:
     elf = ELFFile(fp)
-    setattr(args, "arch", Arches.translate_from_ident(elf.header.e_machine))
+    setattr(args, "arch", Arches.translate_from_ident(elf.header.e_machine,
+                                                      elf.header.e_ident.EI_CLASS))
     endian = elf.header.e_ident.EI_DATA
     endians = {
         'ELFDATA2MSB': 'big',

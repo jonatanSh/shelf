@@ -36,6 +36,9 @@
 
 #define UCONTEXT_PC(context) (context.pc)
 
+#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
+
+#define UCONTEXT_PC(context) (context.__gregs[REG_PC])
 
 #endif
 

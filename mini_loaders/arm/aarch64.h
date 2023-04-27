@@ -18,24 +18,14 @@
     #define HOOK_CALL_EXIT()
 #endif
 
-#define ARCH_FUNCTION_ENTER(ra) {            \
-    register size_t x30 asm("x30");           \
+#define ARCH_FUNCTION_ENTER() {            \
     asm(                                    \
-        "mov %0, x30\n"                    \
+        "\n"                    \
         : :                                 \
-        "r"(x30)                             \
+        : "x30"                             \
     );                                      \
-    *ra = x30;                               \
 }                                           \
 
-#define ARCH_FUNCTION_EXIT(ra) {          \
-   register size_t x30 asm("x30") = (size_t)(ra); \
-    asm(                                        \
-        "mov x30, %0\n"                       \
-        : :                                     \
-        "r"(x30)                                 \
-    );                                          \
-}                                               \
 
 
 #define ARCH_RETURN(_out) {          \
@@ -134,7 +124,7 @@
     );                              \
 }                                   \
 
-#define call_function(main_ptr, a1, a2, a3, a4) {                           \
+#define call_function(main_ptr, a1, a2, a3, a4, _out) {                           \
    register size_t x0 asm("x0") = (size_t)(a1); \
    register size_t x1 asm("x1") = (size_t)(a2); \
    register size_t x2 asm("x2") = (size_t)(a3); \
@@ -146,7 +136,7 @@
         "blr x4\n"                                     \
         "ldr lr, [sp]\n"                                \
         "add sp, sp, #8\n"                              \
-        :  :                                            \
+        : "=r"(_out) :                                            \
         "r"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4)              \
    );                                                   \
 }                                                       \

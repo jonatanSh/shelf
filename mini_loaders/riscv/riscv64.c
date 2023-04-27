@@ -1,22 +1,23 @@
 #include "../generic_loader.h"
-#include "mips.h"
+#include "riscv64.h"
 
 size_t loader_call_main(size_t main_ptr, int argc, void * argv) {
-    ARCH_FUNCTION_ENTER();
     size_t _out;
-    TRACE("Inside startup code going to call %x", main_ptr);
-    register size_t t9 asm("t9") = (size_t)(main_ptr);
+    ARCH_FUNCTION_ENTER();
+    TRACE("Inside startup code going to call 0x%llx", main_ptr);
+    register size_t a4 asm("a4") = (size_t)(main_ptr);
     register size_t a0 asm("a0") = (size_t)(main_ptr);
     register size_t a1 asm("a1") = (size_t)(argc);
     register size_t a2 asm("a2") = (size_t)(argv);
 
 #if !defined(GLIBC_STARTUP)
     asm volatile(
-        "jalr $t9\n"
+        "jalr a4\n"
         : "=r"(_out) :
-        "r"(t9), "r"(a0), "r"(a1), "r"(a2)
+        "r"(a4), "r"(a0), "r"(a1), "r"(a2)
         : "ra"
     );
 #endif
+    TRACE("startup code main return: 0x%llx", _out);
     return _out;
 }

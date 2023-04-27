@@ -3,13 +3,14 @@ import time
 import subprocess
 import itertools
 import logging
+import traceback
 from test_runner.consts import Resolver, CONSTS, TestFeatures, LoaderTypes
 from test_runner.extractor.opcodes import OpcodesExtractor
 from test_runner.extractor.loader_information_extractor import LoaderInformationExtractor
 
 
 class TestOutput(object):
-    def __init__(self, description, arch, test_file, loader_file):
+    def __init__(self, description, arch, test_file, loader_file, args):
         self.description = description
         self.arch = arch
         self.reason = ""
@@ -19,6 +20,7 @@ class TestOutput(object):
         self._stderr = ""
         self.test_file = test_file
         self.loader_file = loader_file
+        self.args = args
         self.extractors = [
             LoaderInformationExtractor,
             OpcodesExtractor
@@ -63,12 +65,16 @@ class TestOutput(object):
     def stdout(self):
         stdout_extracted = self._stdout
         for extractor_cls in self.extractors:
-            extractor = extractor_cls(stdout_extracted, self.context,
-                                      self.extractor_data)
+            try:
+                extractor = extractor_cls(stdout_extracted, self.context,
+                                          self.extractor_data)
 
-            stdout_extracted, extractor_context = extractor.parsed
-            self.extractor_data.update(extractor_context)
-
+                stdout_extracted, extractor_context = extractor.parsed
+                self.extractor_data.update(extractor_context)
+            except Exception as e:
+                if self.args.get("is_verbose", False):
+                    logging.info("Exception: {}".format(e))
+                    traceback.print_exc()
         return stdout_extracted
 
     def __str__(self):
@@ -80,7 +86,8 @@ def get_test_command(test_file, description, loader_type, arch, is_debug, is_str
     if not is_eshelf:
         loader = Resolver.get_loader(loader_type, arch)
     test_output = TestOutput(description=description, arch=arch, test_file=test_file,
-                             loader_file=loader)
+                             loader_file=loader,
+                             args=kwargs)
     assert not all([is_strace, is_debug]), "Only --strace or --debug is available"
     command = [Resolver.get_qemu(arch)]
     if is_debug:
@@ -175,7 +182,8 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
         is_eshelf=TestFeatures.ESHELF in test_features,
         loader_type=loader_type,
         is_debug=is_debug,
-        is_strace=is_strace
+        is_strace=is_strace,
+        is_verbose=is_verbose
 
     )
     if test_output.has_reason:
@@ -189,6 +197,8 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
 
     while process.poll() is None:
         if (time.time() - start) > CONSTS.execution_timeout_seconds.value:
+            if is_debug:
+                continue
             timeout_passed = True
             break
     if timeout_passed:

@@ -27,6 +27,11 @@
 #include "arch/mips/defs.h"
 #include "arch/mips/syscalls.h"
 
+#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
+
+#include "arch/riscv64/defs.h"
+#include "arch/riscv64/syscalls.h"
+
 #endif
 
 #endif //KERNEL_SYSCALLS_HEADER

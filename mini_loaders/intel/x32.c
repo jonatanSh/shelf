@@ -1,10 +1,10 @@
 #include "../generic_loader.h"
 #include "x32.h"
 
-void startup_code(size_t main_ptr, int argc, void * argv) {
-    size_t return_address;
-    ARCH_FUNCTION_ENTER(&return_address);
-    TRACE("Inside startup code going to call %x", main_ptr);
+size_t loader_call_main(size_t main_ptr, int argc, void * argv) {
+    size_t _out;
+    ARCH_FUNCTION_ENTER();
+    TRACE("Inside startup code going to call 0x%x", main_ptr);
     register size_t eax asm("eax") = (size_t)(main_ptr);
     register size_t ebx asm("ebx") = (size_t)(argc);
     register size_t ecx asm("ecx") = (size_t)(argv);
@@ -18,10 +18,10 @@ void startup_code(size_t main_ptr, int argc, void * argv) {
         "pop ecx\n"
         "pop ebx\n"
         "add esp, 4\n" 
-        : :
+        : "=r"(_out) :
         "r"(eax), "r"(ebx), "r"(ecx)
         :
     );
 #endif
-    ARCH_FUNCTION_EXIT(return_address);
+    return _out;
 }
