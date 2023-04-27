@@ -9,8 +9,8 @@ Please read the following documentation and view the examples for this project t
 
 #### Supported architectures
 * mips
-* i386 (32bit)
-* i386 (64bit)
+* i386 (intel x32)
+* x86_64 (intel x64)
 * arm (32bit)
 * aarch64 (arm 64 bit)
 * risc-V rv64
