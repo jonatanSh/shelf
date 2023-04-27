@@ -7,6 +7,17 @@ from enum import Enum
 from parallel_api.api import execute_jobs_in_parallel
 
 local_path = os.path.dirname(__file__)
+MIPS_FLAGS = " ".join(['-mgp32',
+              '-mfpxx',
+              '-mno-llsc',
+              '-mno-dsp',
+              '-mno-dspr2',
+              '-mno-smartmips',
+              '-mno-mt',
+              '-mno-mcu',
+              '-mno-eva',
+              '-mno-gpopt',
+              '-mno-load-store-pairs'])
 
 
 class Arches(Enum):
@@ -222,13 +233,13 @@ def get_compiler(host, cflags, compiler_name, files=[]):
 
 MipsCompiler = get_compiler(
     host=r'mips-linux-gnu',
-    cflags='{}'.format(CFLAGS),
+    cflags='{} {}'.format(CFLAGS, MIPS_FLAGS),
     compiler_name=Arches.mips.value,
     files=["mips/mips.c"]
 )
 MipsCompilerBE = get_compiler(
     host=r'mips-linux-gnu',
-    cflags='{} -BE'.format(CFLAGS),
+    cflags='{} {} -BE'.format(CFLAGS, MIPS_FLAGS),
     compiler_name=Arches.mipsbe.value,
     files=["mips/mips.c"]
 )

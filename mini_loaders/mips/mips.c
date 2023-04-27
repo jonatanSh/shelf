@@ -1,9 +1,8 @@
 #include "../generic_loader.h"
 #include "mips.h"
 
-void startup_code(size_t main_ptr, int argc, void * argv) {
-    size_t return_address;
-    ARCH_FUNCTION_ENTER(&return_address);
+void loader_call_main(size_t main_ptr, int argc, void * argv) {
+    ARCH_FUNCTION_ENTER();
     TRACE("Inside startup code going to call %x", main_ptr);
     register size_t t9 asm("t9") = (size_t)(main_ptr);
     register size_t a0 asm("a0") = (size_t)(main_ptr);
@@ -18,5 +17,4 @@ void startup_code(size_t main_ptr, int argc, void * argv) {
         : "ra"
     );
 #endif
-    ARCH_FUNCTION_EXIT(return_address);
 }

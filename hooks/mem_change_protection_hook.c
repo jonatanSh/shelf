@@ -25,9 +25,8 @@ void hook_main(void * table,
 	) {
 	long long _out;
 	size_t protection = 0x0;
-	size_t return_address;
 	ARCH_GET_FUNCTION_OUT();
-	ARCH_FUNCTION_ENTER(&return_address);
+	ARCH_FUNCTION_ENTER();
 	void * hook_start = (void*)(number_of_attributes)+(1 * sizeof(void*));
 	for(size_t i = 0; i < *number_of_attributes; i++) {
 		void * hook_add;
@@ -53,6 +52,5 @@ void hook_main(void * table,
 		my_syscall3(__NR_mprotect, hook_add, hook->mmap_size, protection);
 	}
 
-	ARCH_FUNCTION_EXIT(return_address);
 	ARCH_RETURN(_out);
 }

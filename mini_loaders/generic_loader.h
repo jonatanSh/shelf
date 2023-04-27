@@ -102,11 +102,11 @@ typedef void * (*IRELATIVE_T)();
 #endif
 
 #ifndef ARCH_FUNCTION_ENTER
-    #define ARCH_FUNCTION_ENTER
+    #define ARCH_FUNCTION_ENTER()
 #endif
 
 #ifndef ARCH_FUNCTION_EXIT
-    #define ARCH_FUNCTION_EXIT
+    #define ARCH_FUNCTION_EXIT()
 #endif
 
 #ifndef ARCH_TEARDOWN

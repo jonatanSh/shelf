@@ -41,26 +41,13 @@
    );                                                           \
 }                                                               \
 
-void startup_code(size_t main_ptr, int argc, void * argv);
-
-#define ARCH_FUNCTION_ENTER(ra) {            \
-    register size_t a0 asm("a0");           \
+#define ARCH_FUNCTION_ENTER() {            \
     asm(                                    \
-        "move a0, ra\n"                    \
+        "\n"                    \
         : :                                 \
-        "r"(a0)                             \
+        : "ra"                             \
     );                                      \
-    *ra = a0;                               \
 }                                           \
-
-#define ARCH_FUNCTION_EXIT(ra) {          \
-   register size_t a0 asm("a0") = (size_t)(ra); \
-    asm(                                        \
-        "move ra, a0\n"                       \
-        : :                                     \
-        "r"(a0)                                 \
-    );                                          \
-}                                               \
 
 
 #define ARCH_RETURN(_out) {          \

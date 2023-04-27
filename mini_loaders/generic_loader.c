@@ -40,10 +40,9 @@ void loader_main(
     long long int _out;
     size_t _dispatcher_out;
     size_t _hook_out;
-    size_t return_address;
     size_t shellcode_main_relative;
     struct addresses addresses;
-    ARCH_FUNCTION_ENTER(&return_address);
+    ARCH_FUNCTION_ENTER();
 #ifdef DEBUG
     TRACE("Loader in debug mode!");
     long long int mini_loader_status = 0;
@@ -110,7 +109,7 @@ void loader_main(
     #ifdef SUPPORT_HOOKS
         DISPATCH_HOOKS(addresses.hooks_base_address, pre_calling_shellcode_main_hooks, entry_point, &addresses, _hook_out);
     #endif
-    LOADER_DISPATCH(startup_code, entry_point, argc, argv, 0);
+    LOADER_DISPATCH(loader_call_main, entry_point, argc, argv, 0);
     _out = _dispatcher_out;
 #ifdef ARCH_GET_FUNCTION_OUT
     ARCH_GET_FUNCTION_OUT();
@@ -133,7 +132,6 @@ exit:
 #endif
     TRACE("Mini loader exit, _out=0x%llx", _out);
     TEARDOWN(1);
-    ARCH_FUNCTION_EXIT(return_address);
     ARCH_RETURN(_out);
 /*
 Some arches still doesn't support ARCH_RETURN
@@ -146,11 +144,9 @@ Think about how to fix this, currently it triggers compiler errors
 
 STATUS loader_handle_relocation_table(struct relocation_table * table, struct addresses * addresses, size_t * out) {
     size_t parsed_entries_size = 0;
-    size_t return_address;
     size_t entries_for_attribute = 0;
     size_t _hook_out;
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
-    ARCH_FUNCTION_ENTER(&return_address);
     struct entry_attributes * attributes;
     while(parsed_entries_size < table->total_size) {
         size_t f_offset;
@@ -247,7 +243,6 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
 error:
     return ERROR;
 success:
-    ARCH_FUNCTION_EXIT(return_address);
     return 0x0;
 }
 
@@ -258,8 +253,7 @@ int get_elf_information(struct relocation_table **info) {
     size_t magic;
     struct relocation_table * table;
     int status = ERROR;
-    size_t return_address;
-    ARCH_FUNCTION_ENTER(&return_address);
+    ARCH_FUNCTION_ENTER();
 
     resolve_table_magic();
 /* If eshelf then get pc was never called and
@@ -279,7 +273,6 @@ int get_elf_information(struct relocation_table **info) {
     *info = table;
     status = OK;
 
-    ARCH_FUNCTION_EXIT(return_address);
 error:
     return status;
 
