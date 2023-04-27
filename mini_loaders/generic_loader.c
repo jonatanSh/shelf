@@ -21,16 +21,15 @@
 void main(int argc, 
     char ** argv, 
     char ** envp,
-    size_t loader_magic, size_t pc) {
-    loader_main(argc, argv,envp,loader_magic, pc);
+    size_t loader_magic) {
+    loader_main(argc, argv,envp,loader_magic);
 }
 #endif
 void loader_main(
     int argc, 
     char ** argv, 
     char ** envp,
-    size_t loader_magic,
-    size_t pc) {
+    size_t loader_magic) {
     size_t table_start;
     size_t table_size = 0;
     struct relocation_table * table;
@@ -43,6 +42,11 @@ void loader_main(
     size_t shellcode_main_relative;
     struct addresses addresses;
     ARCH_FUNCTION_ENTER();
+#if (defined(mips) || defined(__mips__) || defined(__mips)) && !defined(ESHELF)
+    register size_t pc asm("v0");
+#else
+    size_t pc;
+#endif
 #ifdef DEBUG
     TRACE("Loader in debug mode!");
     long long int mini_loader_status = 0;

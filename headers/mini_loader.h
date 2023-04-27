@@ -52,8 +52,7 @@ void loader_main(
     int argc,
     char ** argv,
     char ** envp,
-    size_t loader_magic,
-    size_t pc);
+    size_t loader_magic);
 
 int get_elf_information(struct relocation_table ** info);
 // External defines

@@ -6,6 +6,7 @@
 #define TABLE_MAGIC 0xaabbccdd
 #define ARCH_CALL_GET_PC "bal get_pc_internal\n"
 
+
 #define ARCH_STORE_REGS() {             \
     asm(                                \
        "addiu $sp, $sp, -104\n"         \

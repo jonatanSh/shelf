@@ -8,16 +8,16 @@ from parallel_api.api import execute_jobs_in_parallel
 
 local_path = os.path.dirname(__file__)
 MIPS_FLAGS = " ".join(['-mgp32',
-              '-mfpxx',
-              '-mno-llsc',
-              '-mno-dsp',
-              '-mno-dspr2',
-              '-mno-smartmips',
-              '-mno-mt',
-              '-mno-mcu',
-              '-mno-eva',
-              '-mno-gpopt',
-              '-mno-load-store-pairs'])
+                       '-mfpxx',
+                       '-mno-llsc',
+                       '-mno-dsp',
+                       '-mno-dspr2',
+                       '-mno-smartmips',
+                       '-mno-mt',
+                       '-mno-mcu',
+                       '-mno-eva',
+                       '-mno-gpopt',
+                       '-mno-load-store-pairs'])
 
 
 class Arches(Enum):

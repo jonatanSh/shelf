@@ -13,9 +13,7 @@ class Riscv64Shellcode(Shellcode):
             shellcode_table_magic=0x8899aabbccddeeff,
             ptr_fmt="Q",
             sections_to_relocate={
-                '.got': {'align_by': 'sh_entsize', 'relocate_all': True},
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
-                '.sdata': {'align_by': 'sh_addralign'},
 
             },
             support_dynamic=True,
