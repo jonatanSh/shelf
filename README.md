@@ -13,6 +13,7 @@ Please read the following documentation and view the examples for this project t
 * i386 (64bit)
 * arm (32bit)
 * aarch64 (arm 64 bit)
+* risc-V rv64
 
 #### Installation:
 ```bash
