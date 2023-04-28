@@ -12,6 +12,7 @@ TESTS+=$(INTEL_X64)
 TESTS+=$(AARCH64)
 TESTS+=$(ARM32)
 TESTS+=$(RISCV64_FILES)
+TESTS+=test_framework_tests
 
 C_FILES=../osals/sprintf.c
 OSAL_FILES+=../osals/string.c ../osals/linux/syscalls_wrapper/unistd.c
@@ -37,6 +38,13 @@ no_libc_intel_x32_%: mini_loader_x32
 no_libc_aarch64_%: mini_loader_arm_x64
 	$(AARCH64_CC) -static $(CFLAGS) $(C_FILES) $(OSAL_FILES) -nolibc $(subst no_libc_aarch64_,,$@).c -o $(OUTPUT_DIRECTORY)$@.out
 	python3 -m shelf --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode
+
+test_framework_tests:
+	$(MAKE) intel_x32_test_framework_tests EXCLUDE="dynamic,eshelf,hello_hook,rwx"
+	$(MAKE) intel_x64_test_framework_tests EXCLUDE="dynamic,eshelf,hello_hook,rwx"
+	$(MAKE) aarch64_test_framework_tests EXCLUDE="dynamic,eshelf,hello_hook,rwx"
+	$(MAKE) arm32_test_framework_tests EXCLUDE="dynamic,eshelf,hello_hook,rwx"
+	$(MAKE) riscv64_test_framework_tests EXCLUDE="dynamic,eshelf,hello_hook,rwx"
 
 clean:
 	rm -rf ../outputs/*elf_features*.out*
