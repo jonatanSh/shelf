@@ -18,13 +18,13 @@ mini_loader_%: dir_guard
 
 shellcode: dir_guard
 	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE)$(NAME_ADD).shellcode $(SUPPORT_ARG)
-	@if [ $(EXCLUDE) != \*"hello_hook"\* ]; then\
+	@if [ $(findstring hello_hook,$(EXCLUDE)) != hello_hook ]; then\
 		python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).hooks$(NAME_ADD).shellcode --loader-supports hooks $(SUPPORT) --hooks-configuration ../hook_configurations/simple_hello_hook.py;\
 	fi
-	@if [ $(EXCLUDE) != \*"eshelf"\* ]; then\
+	@if [ $(findstring eshelf,$(EXCLUDE)) != eshelf ]; then\
 		python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf$(NAME_ADD).shellcode --output-format eshelf $(SUPPORT_ARG);\
 	fi
-	@if [ $(EXCLUDE) != \*"rwx"\* ]; then\
+	@if [ $(findstring rwx,$(EXCLUDE)) != rwx ]; then\
 		python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).rwx_bypass$(NAME_ADD).shellcode --mitigation-bypass rwx $(SUPPORT_ARG);\
 	fi
 
@@ -43,10 +43,10 @@ generic_osal_dynamic:
 
 compile_all:
 	$(MAKE) geneirc_compile COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)"
-	@if [ $(EXCLUDE) != \*"eshelf"\* ]; then\
+	@if [ $(findstring eshelf,$(EXCLUDE)) != "eshelf" ]; then\
 		$(MAKE) geneirc_compile_eshelf COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)";\
 	fi
-	@if [ $(EXCLUDE) != \*"dynamic"\* ]; then\
+	@if [ $(findstring dynamic,$(EXCLUDE)) != dynamic ]; then\
 		$(MAKE) generic_osal_dynamic COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)";\
 	fi
 
