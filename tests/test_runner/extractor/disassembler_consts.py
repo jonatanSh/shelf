@@ -6,7 +6,7 @@ ARCHES = {
     Arches.intel_x32.value: capstone.CS_ARCH_X86,
     Arches.intel_x64.value: capstone.CS_ARCH_X86,
     Arches.aarch64.value: capstone.CS_ARCH_ARM64,
-    Arches.arm32.value: capstone.CS_ARCH_ARM
+    Arches.arm32.value: capstone.CS_ARCH_ARM,
 }
 
 ENDIAN = {

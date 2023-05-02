@@ -96,13 +96,13 @@ class SegfaultHandler(object):
         relative_off = off
         if self.dump_address != self.relative_dump_address:
             relative_off = self.elf.translate_to_relative_address(off)
-        print(hex(relative_off))
         sym = self.elf.get_symbol(address=relative_off)
         if not sym:
             sym = "UNKNOWN_SYMBOL"
-        instructions = self.additional_messages + ["\n{}:\n   S:{}:".format(
+        instructions = self.additional_messages + ["\n{}:\n   S:{}:RA:{}".format(
             self.elf.binary_path,
-            sym)]
+            sym,
+            hex(relative_off))]
         for i, instruction in enumerate(_instructions):
             rpr = "      "
             if instruction.address == self.faulting_address:

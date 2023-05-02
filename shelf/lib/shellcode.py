@@ -16,6 +16,8 @@ from shelf.lib.utils.general import get_binary
 from shelf.hooks.hooks_configuration_parser import HookConfiguration
 from shelf.hooks.base_hook import _BaseShelfHook
 from shelf.lib.utils.memory_section import MemorySection, MemoryProtection
+from shelf.lib.plugins.shelf_memory_dumps_plugin import MemoryDumpPlugin
+from shelf.lib.utils.disassembler import Disassembler
 
 PTR_SIZES = {
     4: "I",
@@ -92,7 +94,7 @@ class Shellcode(object):
 
         self.arch = arch
 
-        # self.disassembler = Disassembler(self)
+        self.disassembler = Disassembler(self)
 
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
@@ -109,6 +111,10 @@ class Shellcode(object):
 
         # Keep track of offsets inside the relocation table
         self.offsets_in_header = {}
+        """
+        Shelf plugin
+        """
+        self.memory_dump_plugin = MemoryDumpPlugin(self)
 
     def _get_lief_imports(self, library=False, section_flags=False):
         lib, flags = five.get_lief()

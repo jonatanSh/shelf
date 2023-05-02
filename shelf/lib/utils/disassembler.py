@@ -1,51 +1,72 @@
 import capstone
 from shelf.lib import five
+from shelf.lib.consts import Arches
 
 ARCHES = {
-    "mips": capstone.CS_ARCH_MIPS,
-    "x32": capstone.CS_ARCH_X86,
-    "x64": capstone.CS_ARCH_X86,
-    "arm64": capstone.CS_ARCH_ARM64,
-    "arm32": capstone.CS_ARCH_ARM
+    Arches.mips.value: capstone.CS_ARCH_MIPS,
+    Arches.intel_x32.value: capstone.CS_ARCH_X86,
+    Arches.intel_x64.value: capstone.CS_ARCH_X86,
+    Arches.aarch64.value: capstone.CS_ARCH_ARM64,
+    Arches.arm32.value: capstone.CS_ARCH_ARM,
 }
 
 ENDIAN = {
-    "<": capstone.CS_MODE_LITTLE_ENDIAN,
-    ">": capstone.CS_MODE_BIG_ENDIAN
+    Arches.mips.value: capstone.CS_MODE_BIG_ENDIAN,
+    Arches.intel_x32.value: capstone.CS_MODE_LITTLE_ENDIAN,
+    Arches.intel_x64.value: capstone.CS_MODE_LITTLE_ENDIAN,
+    Arches.aarch64.value: capstone.CS_MODE_LITTLE_ENDIAN,
+    Arches.arm32.value: capstone.CS_MODE_LITTLE_ENDIAN,
+}
+
+BITS = {
+    Arches.mips.value: capstone.CS_MODE_32,
+    Arches.intel_x32.value: capstone.CS_MODE_32,
+    Arches.intel_x64.value: capstone.CS_MODE_64,
+    Arches.aarch64.value: capstone.CS_MODE_ARM,
+    Arches.arm32.value: capstone.CS_MODE_ARM,
 }
 
 
 class Disassembler(object):
     def __init__(self, shellcode):
-        mode = capstone.CS_MODE_32
-        if shellcode.arch in ['x64']:
-            mode = capstone.CS_MODE_64
-        elif shellcode.arch in ["arm32", 'arm64']:
-            mode = capstone.CS_MODE_ARM
+        mode = BITS[shellcode.args.arch]
         self.cs = capstone.Cs(
-            ARCHES[shellcode.arch],
-            ENDIAN[shellcode.endian] | mode
+            ARCHES[shellcode.args.arch],
+            ENDIAN[shellcode.args.arch] | mode
         )
-        self.shellcode = shellcode
-        offset = self.shellcode.linker_base_address
-        self.opcodes = self.shellcode.do_objdump(self.shellcode.shellcode_data)[offset:]
-        self.instructions = [instruction for instruction in self.cs.disasm(
-            five.to_disasm(self.opcodes),
-            offset,
-        )]
 
-    def get_instruction_addresses(self, instruction_filter):
-        addresses = []
-        for instruction in self.instructions:
-            if instruction_filter(instruction):
-                to_off = instruction.size
-                to_off -= self.shellcode.ptr_size
-                addresses.append(instruction.address + to_off)
-        return addresses
-
-    def disassemble(self, code):
-        return self.cs.disasm(code, 0)
+    def _disassemble(self, code, off):
+        return self.cs.disasm(code, off)
 
     @staticmethod
-    def print_instruction(instruction):
-        print("0x%x:\t%s\t%s" % (instruction.address, instruction.mnemonic, instruction.op_str))
+    def instruction_repr(instruction):
+        dis = "0x%x:    %s    %s    " % (instruction.address,
+                                         instruction.mnemonic,
+                                         instruction.op_str)
+        ins_bytes = " ".join([hex(c) for c in instruction.bytes])
+
+        dis = dis.ljust(50, " ") + "# {}".format(ins_bytes)
+        return dis
+
+    def disassemble(self,
+                    opcodes,
+                    address,
+                    mark=None,
+                    binary_path=None):
+        _instructions = [instruction for instruction in self._disassemble(
+            opcodes,
+            address,
+        )]
+
+        instructions = ["\n{}:\n   S:{}:RA:{}".format(
+            binary_path,
+            "UNKNOWN_SYMBOL",
+            "UNKNOWN_RELATIVE_ADDRESS")]
+        for i, instruction in enumerate(_instructions):
+            rpr = "      "
+            if instruction.address == mark:
+                rpr = "----> "
+            dis_out = self.instruction_repr(instruction)
+            rpr += dis_out
+            instructions.append(rpr)
+        return "\n".join(instructions)
