@@ -76,8 +76,6 @@ class Binary(object):
     def get_symbol(self, address):
         for symbol in self.shelf.shelf.find_symbols():
             name, s_address, size = symbol
-            if self.loading_address:
-                s_address -= self.loading_address
             if s_address <= address <= s_address + size:
                 return name
 
@@ -112,6 +110,16 @@ class Binary(object):
             if address_in_region(address=address, start=add, size=size):
                 return True
         return False
+
+    def translate_to_relative_off(self, address):
+        loading_add = self.shelf.shelf.linker_base_address
+        relative = address - self.loading_address
+        return loading_add + relative
+
+    def translate_to_relative_address(self, address):
+        loading_add = self.shelf.shelf.loading_virtual_address
+        relative = address - self.loading_address
+        return loading_add + relative
 
 
 def address_in_region(address, start, size):

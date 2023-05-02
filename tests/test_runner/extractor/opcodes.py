@@ -7,7 +7,7 @@ from test_runner.extractor.disassembler_consts import ENDIAN, BITS, ARCHES
 
 
 class SegfaultHandler(object):
-    def __init__(self, elf, arch, opcodes, dump_address, faulting_address,
+    def __init__(self, elf, arch, opcodes, dump_address, relative_dump_address, faulting_address,
                  error_message="No error", bad_fault=False, additional_messages=[]):
         self.elf = elf
         self.opcodes = opcodes
@@ -16,6 +16,7 @@ class SegfaultHandler(object):
         self.arch = arch
         self.bad_fault = bad_fault
         self.error_message = error_message
+        self.relative_dump_address = relative_dump_address
         mode = BITS[self.arch]
         self.cs = capstone.Cs(
             ARCHES[self.arch],
@@ -36,10 +37,13 @@ class SegfaultHandler(object):
         loader_binary = Binary(binary_path=loader_elf)
         shellcode_binary = Binary(binary_path=shellcode_elf,
                                   loading_address=shellcode_address)
+        relative_dump_address = dump_address
+
         if address_in_region(address=faulting_address,
                              start=shellcode_address,
                              size=mapped_size):
             elf = shellcode_binary
+            relative_dump_address = elf.translate_to_relative_off(dump_address)
         elif loader_binary.in_region_of_loading_addresses(
                 address=faulting_address,
         ):
@@ -51,6 +55,7 @@ class SegfaultHandler(object):
                 opcodes=None,
                 dump_address=dump_address,
                 faulting_address=faulting_address,
+                relative_dump_address=relative_dump_address,
                 error_message="Address not in region of loader nor shellcode",
                 bad_fault=True
             )
@@ -59,6 +64,7 @@ class SegfaultHandler(object):
             arch=arch,
             opcodes=opcodes,
             dump_address=dump_address,
+            relative_dump_address=relative_dump_address,
             faulting_address=faulting_address
         )
 
@@ -67,7 +73,7 @@ class SegfaultHandler(object):
             return False
         opcodes = self.elf.get_bytes_at_virtual_address(
             size=len(self.opcodes),
-            address=self.dump_address,
+            address=self.relative_dump_address,
         )
         if not opcodes:
             self.additional_messages.append(
@@ -87,10 +93,14 @@ class SegfaultHandler(object):
             opcodes,
             off,
         )]
-        sym = self.elf.get_symbol(address=off)
+        relative_off = off
+        if self.dump_address != self.relative_dump_address:
+            relative_off = self.elf.translate_to_relative_address(off)
+        print(hex(relative_off))
+        sym = self.elf.get_symbol(address=relative_off)
         if not sym:
             sym = "UNKNOWN_SYMBOL"
-        instructions = self.additional_messages+["\n{}:\n   S:{}:".format(
+        instructions = self.additional_messages + ["\n{}:\n   S:{}:".format(
             self.elf.binary_path,
             sym)]
         for i, instruction in enumerate(_instructions):
