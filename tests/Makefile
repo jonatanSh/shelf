@@ -40,6 +40,7 @@ no_libc_aarch64_%: mini_loader_arm_x64
 	python3 -m shelf --input ../outputs/$(OUTPUT_DIRECTORY)$@.out --output ../outputs/$(OUTPUT_DIRECTORY)$@.out.shellcode
 
 test_framework_tests:
+	$(MAKE) mips_test_framework_tests EXCLUDE_DYNAMIC=true EXCLUDE_ESHELF=true EXCLUDE_HELLO_HOOK=true
 	$(MAKE) intel_x32_test_framework_tests EXCLUDE_DYNAMIC=true EXCLUDE_ESHELF=true EXCLUDE_HELLO_HOOK=true
 	$(MAKE) intel_x64_test_framework_tests EXCLUDE_DYNAMIC=true EXCLUDE_ESHELF=true EXCLUDE_HELLO_HOOK=true
 	$(MAKE) aarch64_test_framework_tests EXCLUDE_DYNAMIC=true EXCLUDE_ESHELF=true EXCLUDE_HELLO_HOOK=true
