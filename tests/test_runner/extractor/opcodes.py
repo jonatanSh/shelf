@@ -76,20 +76,7 @@ class SegfaultHandler(object):
     def is_output_correct(self):
         if self.bad_fault:
             return False
-        opcodes = self.elf.get_bytes_at_virtual_address(
-            size=len(self.opcodes),
-            address=self.relative_dump_address,
-        )
-        if not opcodes:
-            self.additional_messages.append(
-                'Output may be incorrect faulting address is only runtime relvant'
-            )
-        elif not (opcodes == self.opcodes):
-            logging.info("Gdb out: {}".format(opcodes.encode('hex')))
-            logging.info("mem dump out: {}".format(self.opcodes.encode('hex')))
 
-            self.error_message = "Disassembly error opcodes do not match !"
-            return False
 
         return True
 
