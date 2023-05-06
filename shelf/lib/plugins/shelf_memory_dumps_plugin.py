@@ -28,13 +28,18 @@ class ShelfMemoryDump(object):
         """
         dump_address = self.dump_address + offset
         symbol_name = self.find_symbol_at_address(dump_address)
+        if mark:
+            symbol_at_marked = self.find_symbol_at_address(mark)
+        else:
+            symbol_at_marked = ""
         disassembly_object = self.plugin.shelf.disassembler.disassemble(
             opcodes=self.memory_dump[offset:],
             address=dump_address,
             mark=mark,
             binary_path=self.plugin.shelf.args.input,
             limit=limit,
-            symbol_name=symbol_name
+            symbol_name=symbol_name,
+            symbol_at_marked=symbol_at_marked
         )
         print(disassembly_object)
 

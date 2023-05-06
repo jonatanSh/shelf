@@ -29,7 +29,8 @@ class Disassembler(object):
                     mark=None,
                     binary_path=None,
                     limit=-1,
-                    symbol_name="UNKNOWN_SYMBOL"):
+                    symbol_name="UNKNOWN_SYMBOL",
+                    symbol_at_marked=""):
         _instructions = [instruction for instruction in self._disassemble(
             opcodes,
             address,
@@ -39,9 +40,9 @@ class Disassembler(object):
             binary_path,
             symbol_name)]
         for i, instruction in enumerate(_instructions):
-            rpr = "      "
+            rpr = "        " + len(symbol_at_marked) * " "
             if instruction.address == mark:
-                rpr = "----> "
+                rpr = " {} ----> ".format(symbol_at_marked)
             dis_out = self.instruction_repr(instruction)
             rpr += dis_out
             instructions.append(rpr)

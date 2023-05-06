@@ -80,6 +80,11 @@ class SegfaultHandler(object):
         return True
 
     def disassemble(self, opcodes, off):
+        print("Disassembly information loading_address={}, "
+              "dump_address={}".format(
+            hex(self.elf.loading_address),
+            hex(off)
+        ))
         if not self.use_shelf_to_resolve:
             return self._disassemble(opcodes=opcodes, off=off)
 
