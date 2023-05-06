@@ -77,7 +77,6 @@ class SegfaultHandler(object):
         if self.bad_fault:
             return False
 
-
         return True
 
     def disassemble(self, opcodes, off):
