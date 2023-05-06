@@ -4,13 +4,15 @@ import capstone
 from test_runner.extractor.utils import extract_text_between, Binary, extract_int16, address_in_region
 from test_runner.consts import ShellcodeLoader
 from test_runner.extractor.disassembler_consts import ENDIAN, BITS, ARCHES
+from shelf.lib import five
 
 
 class SegfaultHandler(object):
     def __init__(self, elf, arch, opcodes, dump_address, relative_dump_address, faulting_address,
-                 error_message="No error", bad_fault=False, additional_messages=[]):
+                 error_message="No error", bad_fault=False, additional_messages=[],
+                 use_shelf_to_resolve=False):
         self.elf = elf
-        self.opcodes = opcodes
+        self.opcodes = five.convert_python2_bytes_string_to3(opcodes)
         self.dump_address = dump_address
         self.faulting_address = faulting_address
         self.arch = arch
@@ -23,6 +25,7 @@ class SegfaultHandler(object):
             ENDIAN[self.arch] | mode
         )
         self.additional_messages = additional_messages
+        self.use_shelf_to_resolve = use_shelf_to_resolve
 
     @classmethod
     def create(cls,
@@ -38,11 +41,12 @@ class SegfaultHandler(object):
         shellcode_binary = Binary(binary_path=shellcode_elf,
                                   loading_address=shellcode_address)
         relative_dump_address = dump_address
-
+        use_shelf_to_resolve = False
         if address_in_region(address=faulting_address,
                              start=shellcode_address,
                              size=mapped_size):
             elf = shellcode_binary
+            use_shelf_to_resolve = True
             relative_dump_address = elf.translate_to_relative_off(dump_address)
         elif loader_binary.in_region_of_loading_addresses(
                 address=faulting_address,
@@ -65,7 +69,8 @@ class SegfaultHandler(object):
             opcodes=opcodes,
             dump_address=dump_address,
             relative_dump_address=relative_dump_address,
-            faulting_address=faulting_address
+            faulting_address=faulting_address,
+            use_shelf_to_resolve=use_shelf_to_resolve
         )
 
     def is_output_correct(self):
@@ -89,6 +94,17 @@ class SegfaultHandler(object):
         return True
 
     def disassemble(self, opcodes, off):
+        if not self.use_shelf_to_resolve:
+            return self._disassemble(opcodes=opcodes, off=off)
+
+        dump = self.elf.shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
+            memory_dump=opcodes,
+            dump_address=off,
+            loading_address=self.elf.loading_address
+        )
+        dump.disassemble(mark=self.faulting_address)
+
+    def _disassemble(self, opcodes, off):
         _instructions = [instruction for instruction in self.cs.disasm(
             opcodes,
             off,

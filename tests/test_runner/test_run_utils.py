@@ -141,7 +141,8 @@ def is_return_code_ok(stdout):
 def generic_success_method(stdout, parameters):
     success = True
     reason = ""
-    if not is_return_code_ok(stdout):
+    check_rc = parameters.get("check_rc", True)
+    if check_rc and not is_return_code_ok(stdout):
         return False, "RC"
 
     for success_param in parameters['success']:
@@ -209,6 +210,8 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
         )
 
     stdout, stderr = process.communicate()
+    stdout = stdout.decode('utf-8')
+    stderr = stderr.decode('utf-8')
     if 'core dumped' in stderr or 'core dumped' in stdout:
         return test_output.prepare(
             success=False,

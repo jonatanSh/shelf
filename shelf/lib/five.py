@@ -62,3 +62,9 @@ def ljust(source, size, by):
     source += by * length
     assert len(source) == size, "Error size: {}, len(source) = {}, by = {}".format(size, len(source), by)
     return source
+
+
+# Do not remove this function is api function
+# Used in tests
+def convert_python2_bytes_string_to3(bstr):
+    return bytes(bytearray([ord(b) for b in bstr]))
