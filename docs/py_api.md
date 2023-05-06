@@ -49,4 +49,9 @@ dump = api.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
 # Provide disassembly of the dump
 dump.dissamble()
 
+# Compute absolute memory addresses
+matching_symbols = api.shelf.find_symbols(symbol_name='main')
+symbol_name, symbol_address, function_size = matching_symbols[0]
+absolute_address = dump.compute_absolute_address(symbol_address)
+compute_absolute_address()
 ```

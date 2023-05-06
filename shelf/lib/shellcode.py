@@ -18,6 +18,7 @@ from shelf.hooks.base_hook import _BaseShelfHook
 from shelf.lib.utils.memory_section import MemorySection, MemoryProtection
 from shelf.lib.plugins.shelf_memory_dumps_plugin import MemoryDumpPlugin
 from shelf.lib.utils.disassembler import Disassembler
+from shelf.lib.exceptions import AddressNotInShelf
 
 PTR_SIZES = {
     4: "I",
@@ -93,9 +94,11 @@ class Shellcode(object):
             self.endian = "<"
 
         self.arch = arch
-
-        self.disassembler = Disassembler(self)
-
+        try:
+            self.disassembler = Disassembler(self)
+        except Exception as error:
+            logging.error("Disassembler not supported for architecture!")
+            logging.info(error)
         self.address_utils = AddressUtils(shellcode=self)
         self.mini_loader = MiniLoader(shellcode=self)
         self.hooks_configuration = None
@@ -351,6 +354,7 @@ class Shellcode(object):
                     protection |= MemoryProtection.PROT_WRITE.value
                 sections_in_memory.append(
                     MemorySection(
+                        v_start=header.p_vaddr,
                         start=start,
                         vsize=end,
                         vsize_aligned=AddressUtils.get_alignment(end, segment.header.p_align),
@@ -450,6 +454,8 @@ class Shellcode(object):
                      return_relative_address=False):
         symbols = []
         symtab = self.elffile.get_section_by_name(".symtab")
+        if not symtab:
+            return symbols
         for sym in symtab.iter_symbols():
             address = sym.entry.st_value
             if return_relative_address:
@@ -610,6 +616,21 @@ class Shellcode(object):
         IPython.embed()
         if not kwargs.get("do_not_exit"):
             sys.exit(1)
+
+    def convert_to_shelf_relative_offset(self, address):
+        """
+        Take adress as input and convert to relative offset inside the shelf output
+        :param address: Input address
+        :return: int
+        """
+        relative_offset = 0x0
+        for segment in self.get_segments_in_memory():
+            if segment.v_start <= address <= segment.v_start + segment.vsize_aligned:
+                off = address - segment.v_start
+                return relative_offset + off
+            else:
+                relative_offset += segment.vsize
+        raise AddressNotInShelf(address=address)
 
     @property
     def post_build_length(self):

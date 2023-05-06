@@ -1,38 +1,13 @@
 import capstone
-from shelf.lib import five
-from shelf.lib.consts import Arches
-
-ARCHES = {
-    Arches.mips.value: capstone.CS_ARCH_MIPS,
-    Arches.intel_x32.value: capstone.CS_ARCH_X86,
-    Arches.intel_x64.value: capstone.CS_ARCH_X86,
-    Arches.aarch64.value: capstone.CS_ARCH_ARM64,
-    Arches.arm32.value: capstone.CS_ARCH_ARM,
-}
-
-ENDIAN = {
-    Arches.mips.value: capstone.CS_MODE_BIG_ENDIAN,
-    Arches.intel_x32.value: capstone.CS_MODE_LITTLE_ENDIAN,
-    Arches.intel_x64.value: capstone.CS_MODE_LITTLE_ENDIAN,
-    Arches.aarch64.value: capstone.CS_MODE_LITTLE_ENDIAN,
-    Arches.arm32.value: capstone.CS_MODE_LITTLE_ENDIAN,
-}
-
-BITS = {
-    Arches.mips.value: capstone.CS_MODE_32,
-    Arches.intel_x32.value: capstone.CS_MODE_32,
-    Arches.intel_x64.value: capstone.CS_MODE_64,
-    Arches.aarch64.value: capstone.CS_MODE_ARM,
-    Arches.arm32.value: capstone.CS_MODE_ARM,
-}
+from shelf.lib.consts import DisassemblerConsts
 
 
 class Disassembler(object):
     def __init__(self, shellcode):
-        mode = BITS[shellcode.args.arch]
+        mode = DisassemblerConsts.BITS[shellcode.args.arch]
         self.cs = capstone.Cs(
-            ARCHES[shellcode.args.arch],
-            ENDIAN[shellcode.args.arch] | mode
+            DisassemblerConsts.ARCHES[shellcode.args.arch],
+            DisassemblerConsts.ENDIAN[shellcode.args.arch] | mode
         )
 
     def _disassemble(self, code, off):
@@ -52,16 +27,17 @@ class Disassembler(object):
                     opcodes,
                     address,
                     mark=None,
-                    binary_path=None):
+                    binary_path=None,
+                    limit=-1,
+                    symbol_name="UNKNOWN_SYMBOL"):
         _instructions = [instruction for instruction in self._disassemble(
             opcodes,
             address,
-        )]
+        )][:limit]
 
-        instructions = ["\n{}:\n   S:{}:RA:{}".format(
+        instructions = ["\n{}:\n   S:{}".format(
             binary_path,
-            "UNKNOWN_SYMBOL",
-            "UNKNOWN_RELATIVE_ADDRESS")]
+            symbol_name)]
         for i, instruction in enumerate(_instructions):
             rpr = "      "
             if instruction.address == mark:

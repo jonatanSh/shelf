@@ -1,4 +1,4 @@
-class ExceptionBase(Exception):
+class ShelfException(Exception):
     def __str__(self, **kwargs):
         return "{}({})".format(
             self.__class__.__name__,
@@ -6,7 +6,7 @@ class ExceptionBase(Exception):
         )
 
 
-class PathDoesNotExists(ExceptionBase):
+class PathDoesNotExists(ShelfException):
     def __init__(self, path):
         self.path = path
 
@@ -16,5 +16,16 @@ class PathDoesNotExists(ExceptionBase):
         )
 
 
-class InvalidJson(ExceptionBase):
+class InvalidJson(ShelfException):
     pass
+
+
+class AddressNotInShelf(ShelfException):
+    def __init__(self, address):
+        self.address = address
+
+    def __str__(self):
+        return super(AddressNotInShelf, self).__str__(
+            error="Address not in memory",
+            address=self.address
+        )

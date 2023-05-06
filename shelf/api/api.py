@@ -1,5 +1,5 @@
 from elftools.elf.elffile import ELFFile
-from shelf.lib.consts import Arches, StartFiles
+from shelf.lib.consts import Arches, StartFiles, OUTPUT_FORMATS, OUTPUT_FORMAT_MAP
 from shelf.relocate import shellcode_classes
 from argparse import Namespace
 
@@ -8,11 +8,16 @@ class ShelfApi(object):
     def __init__(self, binary_path,
                  start_method=StartFiles.no_start_files,
                  hooks_configuration=[],
-                 loader_supports=[]):
+                 loader_supports=[],
+                 loader_symbols_path=None,
+                 loader_path=None,
+                 output_format=OUTPUT_FORMAT_MAP.shelf):
+        assert output_format in OUTPUT_FORMATS
         self.binary_path = binary_path
         with open(self.binary_path, 'rb') as fp:
             elf = ELFFile(fp)
-            self.arch = Arches.translate_from_ident(elf.header.e_machine)
+            self.arch = Arches.translate_from_ident(elf.header.e_machine,
+                                                    elf.header.e_ident.EI_CLASS)
             endian = elf.header.e_ident.EI_DATA
             endians = {
                 'ELFDATA2MSB': 'big',
@@ -35,7 +40,10 @@ class ShelfApi(object):
                                             endian=self.endian,
                                             arch=self.arch,
                                             hooks_configuration=hooks_configuration,
-                                            loader_supports=loader_supports
+                                            loader_supports=loader_supports,
+                                            loader_symbols_path=loader_symbols_path,
+                                            loader_path=loader_path,
+                                            output_format=output_format,
                                         ))
 
     def __del__(self):
