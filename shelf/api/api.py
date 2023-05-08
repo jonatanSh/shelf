@@ -2,6 +2,7 @@ from elftools.elf.elffile import ELFFile
 from shelf.lib.consts import Arches, StartFiles, OUTPUT_FORMATS, OUTPUT_FORMAT_MAP
 from shelf.relocate import shellcode_classes
 from argparse import Namespace
+import logging
 
 
 class ShelfApi(object):
@@ -45,6 +46,14 @@ class ShelfApi(object):
                                             loader_path=loader_path,
                                             output_format=output_format,
                                         ))
+
+    @staticmethod
+    def enable_logging():
+        """
+        Enable api logging
+        :return:
+        """
+        logging.basicConfig(level=logging.INFO)
 
     def __del__(self):
         try:

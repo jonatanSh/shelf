@@ -171,8 +171,8 @@ class OpcodesExtractor(object):
             dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
                                        memory_dump,
                                        ShellcodeLoader.MemoryDumpEnd)
-            parsed = "{}\nOpcodes parser for: {}\n{}".format(
-                memory_dump.strip(),
+            parsed = "Faulting address: {}\n{}\n{}".format(
+                hex(segfault_address),
                 self.text_context['arch'],
                 segfault.summary
             )

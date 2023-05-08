@@ -34,16 +34,25 @@ class Disassembler(object):
         _instructions = [instruction for instruction in self._disassemble(
             opcodes,
             address,
-        )][:limit]
+        )]
 
         instructions = ["\n{}:\n   S:{}".format(
             binary_path,
             symbol_name)]
+
         for i, instruction in enumerate(_instructions):
-            rpr = "        " + len(symbol_at_marked) * " "
+            if symbol_at_marked:
+                additional_padding = len(symbol_at_marked) * " "
+            else:
+                additional_padding = ""
+            rpr = "        " + additional_padding
             if instruction.address == mark:
-                rpr = " {} ----> ".format(symbol_at_marked)
+                rpr = " {} ----> ".format(symbol_at_marked if symbol_at_marked else "")
+            elif len(instructions) == limit and instruction.address < mark:
+                for i in range(int(limit / 2)):
+                    if len(instructions) > 1:
+                        instructions.remove(instructions[1])
             dis_out = self.instruction_repr(instruction)
             rpr += dis_out
             instructions.append(rpr)
-        return "\n".join(instructions)
+        return "\n".join(instructions[:limit])

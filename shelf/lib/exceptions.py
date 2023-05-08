@@ -29,3 +29,10 @@ class AddressNotInShelf(ShelfException):
             error="Address not in memory",
             address=self.address
         )
+
+
+class MiniLoaderNotFound(ShelfException):
+    def __str__(self):
+        return super(self).__str__(
+            error="Mini loader was not found in dump",
+        )

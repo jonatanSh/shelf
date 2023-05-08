@@ -104,6 +104,19 @@ class AddressUtils(object):
             ptr_size
         ), data)[0]
 
+    def unpack_pointers(self, stream, number_of_pointers):
+        """
+        Unpack list of pointers
+        :param stream: Stream to unpack from
+        :param number_of_pointers: number of pointers
+        :return:
+        """
+        stream = stream[:self.shellcode.ptr_size * number_of_pointers]
+        return struct.unpack("{}{}".format(
+            self.shellcode.endian,
+            self.shellcode.ptr_fmt * number_of_pointers
+        ), stream)
+
     @staticmethod
     def translate_ptr_size_to_struct_format_unsigned(size):
         """

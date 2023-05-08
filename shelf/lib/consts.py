@@ -140,3 +140,8 @@ class DisassemblerConsts(object):
         Arches.aarch64.value: capstone.CS_MODE_ARM,
         Arches.arm32.value: capstone.CS_MODE_ARM,
     }
+
+
+class ShelfFeatures(enum.Enum):
+    DYNAMIC = (2 << 0)
+    HOOKS = (2 << 1)

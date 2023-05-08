@@ -10,7 +10,7 @@ from elftools.elf.elffile import ELFFile
 from shelf.lib.utils.address_utils import AddressUtils
 from shelf.lib.utils.mini_loader import MiniLoader
 from shelf.lib.consts import StartFiles, OUTPUT_FORMAT_MAP, LoaderSupports, Arches, ArchEndians, \
-    RELOCATION_OFFSETS, RelocationAttributes, HookTypes
+    RELOCATION_OFFSETS, RelocationAttributes, HookTypes, ShelfFeatures
 from shelf.lib.utils.hooks import ShellcodeHooks
 from shelf.lib.utils.general import get_binary
 from shelf.hooks.hooks_configuration_parser import HookConfiguration
@@ -19,6 +19,7 @@ from shelf.lib.utils.memory_section import MemorySection, MemoryProtection
 from shelf.lib.plugins.shelf_memory_dumps_plugin import MemoryDumpPlugin
 from shelf.lib.utils.disassembler import Disassembler
 from shelf.lib.exceptions import AddressNotInShelf
+from shelf.__version__ import MAJOR, MINOR, MINOR_MINOR
 
 PTR_SIZES = {
     4: "I",
@@ -233,6 +234,25 @@ class Shellcode(object):
 
         return packed, i
 
+    @property
+    def version_and_features(self):
+        version = (
+                MAJOR << 8 +
+                MINOR << 4 +
+                MINOR_MINOR
+        )
+        features = 0
+        if LoaderSupports.HOOKS in self.args.loader_supports:
+            features |= ShelfFeatures.HOOKS.value
+        if self.support_dynamic:
+            features |= ShelfFeatures.DYNAMIC.value
+        logging.info("features: {}, version: {}".format(
+            features,
+            version
+        ))
+        version_and_features = (version << 12) + features
+        return version_and_features
+
     def relocation_table(self, padding=0x0):
         table = five.py_obj()
 
@@ -251,7 +271,7 @@ class Shellcode(object):
                                                  len(table),
                                                  len(self.get_shellcode_header()))
 
-        header = self.address_utils.pack_pointer(self.shellcode_table_magic) + sizes
+        header = self.address_utils.pack_pointers(self.shellcode_table_magic, self.version_and_features) + sizes
         self.offsets_in_header[RELOCATION_OFFSETS.table_magic] = 0x0
         self.offsets_in_header[RELOCATION_OFFSETS.padding_between_table_and_loader] = len(header)
         header += self.address_utils.pack_pointer(0x0)  # padding_between_table_and_loader
@@ -334,6 +354,21 @@ class Shellcode(object):
 
         return new_binary  # TODO check if the elf header is really required
 
+    def convert_to_shelf_relative_offset(self, address):
+        """
+        Take adress as input and convert to relative offset inside the shelf output
+        :param address: Input address
+        :return: int
+        """
+        relative_offset = 0x0
+        for segment in self.get_segments_in_memory():
+            if segment.v_start <= address <= segment.v_start + segment.vsize_aligned:
+                off = address - segment.v_start
+                return relative_offset + off
+            else:
+                relative_offset += segment.vsize
+        raise AddressNotInShelf(address=address)
+
     def get_segments_in_memory(self):
         sections_in_memory = []
         # We want the first virtual address
@@ -365,7 +400,7 @@ class Shellcode(object):
                     )
                 )
 
-        return sections_in_memory
+        return sorted(sections_in_memory, key=lambda s: s.v_start)
 
     @staticmethod
     def aligned(a, b):
@@ -616,21 +651,6 @@ class Shellcode(object):
         IPython.embed()
         if not kwargs.get("do_not_exit"):
             sys.exit(1)
-
-    def convert_to_shelf_relative_offset(self, address):
-        """
-        Take adress as input and convert to relative offset inside the shelf output
-        :param address: Input address
-        :return: int
-        """
-        relative_offset = 0x0
-        for segment in self.get_segments_in_memory():
-            if segment.v_start <= address <= segment.v_start + segment.vsize_aligned:
-                off = address - segment.v_start
-                return relative_offset + off
-            else:
-                relative_offset += segment.vsize
-        raise AddressNotInShelf(address=address)
 
     @property
     def post_build_length(self):
