@@ -445,8 +445,6 @@ class Shellcode(object):
                 last_section = section
 
     def get_linker_base_address(self, check_x=True, attribute='p_offset'):
-        if self._linker_base:
-            return self._linker_base
         if self.elffile.num_segments() == 0:
             return 0
 
@@ -458,8 +456,8 @@ class Shellcode(object):
                 if (header.p_flags & P_FLAGS.PF_X) or not check_x:
                     min_s = min(min_s, getattr(header, attribute))
         assert min_s != 2 ** 32
-        self._linker_base = min_s
-        return self._linker_base
+        return min_s
+
 
     @property
     def loading_virtual_address(self):
@@ -472,7 +470,10 @@ class Shellcode(object):
 
     @property
     def linker_base_address(self):
-        return self.get_linker_base_address()
+        if not self._linker_base:
+            self._linker_base = self.get_linker_base_address()
+
+        return self._linker_base
 
     def get_original_symbols_addresses(self):
         symtab = self.elffile.get_section_by_name(".symtab")
