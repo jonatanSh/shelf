@@ -195,8 +195,11 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     start = time.time()
     timeout_passed = False
-
+    stdout, stderr = b"", b""
     while process.poll() is None:
+        stdout = process.stdout.read()
+        stderr += process.stderr.read()
+
         if (time.time() - start) > CONSTS.execution_timeout_seconds.value:
             if is_debug:
                 continue
@@ -209,7 +212,6 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
             reason="Timed out"
         )
 
-    stdout, stderr = process.communicate()
     stdout = stdout.decode('utf-8')
     stderr = stderr.decode('utf-8')
     if 'core dumped' in stderr or 'core dumped' in stdout:
