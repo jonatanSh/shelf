@@ -27,7 +27,7 @@ void segfault_handler(int signal, siginfo_t *info, void *context) {
     size_t rip = UCONTEXT_PC(ucontext->uc_mcontext);
     printf("info->si_addr=%p\n", info->si_addr);
     printf("MemDmpStart Segmentation fault occurred at address: %p\n", rip);
-    memory_dump(start_address, ((size_t)rip-(size_t)start_address) * 4);
+    memory_dump(start_address, ((size_t)rip-(size_t)start_address + 0x100) * sizeof(size_t));
     exit(1);
 }
 

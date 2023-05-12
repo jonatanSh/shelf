@@ -19,6 +19,7 @@ class ShelfMemoryDump(object):
         self.found_mini_loader = False
         self.mini_loader_start_index = -1
         self._base_address_offset = -1
+        self.elf_header_size = -1
         self.find_mini_loader()
 
     @property
@@ -27,7 +28,7 @@ class ShelfMemoryDump(object):
 
     def is_address_in_mini_loader(self, address):
         # Check and returns if and address is inside the mini loader
-        return address < self.loading_address + self.shelf_base_address
+        return address < self.shelf_base_address
 
     def find_mini_loader(self):
         """
@@ -47,7 +48,7 @@ class ShelfMemoryDump(object):
         """
         is_hooks, is_dynamic = (False, False)
         magic, version_and_features, padding, total_size, header_size, \
-        padding_between_table_and_loader, elf_header_size, loader_size = self.plugin.shelf.address_utils.unpack_pointers(
+        padding_between_table_and_loader, self.elf_header_size, loader_size = self.plugin.shelf.address_utils.unpack_pointers(
             self.memory_dump[self.mini_loader_start_index:],
             8
         )
@@ -97,6 +98,12 @@ class ShelfMemoryDump(object):
             The disassembly output start from 0x12344
         :return:
         """
+        if not offset:
+            # Because the mini loader has the relocation will force
+            # Capstone to stop disassemble the opcodes
+            if not self.is_address_in_mini_loader(mark):
+                offset = self._shelf_base_address_offset + self.elf_header_size
+
         dump_address = self.dump_address + offset
         if mark:
             assert mark >= dump_address, "Error invalid mark address"
@@ -190,10 +197,10 @@ class ShelfMemoryDump(object):
             sym = self.find_symbol_at_address_in_mini_loader(
                 address=address
             )
-            sym = "SHELF_SYMBOL:".format(sym)
+            sym = "MINI_LOADER_SYMBOL:".format(sym)
         else:
             sym = self.find_symbol_at_address_in_shelf(address)
-            sym = "MINI_LOADER_SYMBOL:".format(sym)
+            sym = "SHELF_SYMBOL:".format(sym)
         return sym
 
 
