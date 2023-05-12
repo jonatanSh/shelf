@@ -1,6 +1,8 @@
+import json
+import itertools
 import os.path
 from logging import getLogger
-import itertools
+
 from shelf.lib.consts import StartFiles, OUTPUT_FORMAT_MAP
 from shelf.resources import get_resource_path, get_resource
 from shelf.lib.ext.loader_symbols import ShellcodeLoader
@@ -101,6 +103,13 @@ class MiniLoader(object):
         return path
 
     @property
+    def relative_symbols_path(self):
+        path = self.path + ".relative.symbols"
+
+        assert os.path.exists(path)
+        return path
+
+    @property
     def structs_file(self):
         if self.shellcode.args.loader_symbols_path:
             raise Exception("Not implemented yet !")
@@ -126,11 +135,25 @@ class MiniLoader(object):
         return ShellcodeLoader(self.symbols_path,
                                loader_size=len(self.loader))
 
+    def iterate_relative_symbols(self):
+        with open(self.relative_symbols_path, 'rb') as fp:
+            symbols = json.load(fp)
+
+        return symbols
+
+    def get_relative_symbol_at_offset(self, off):
+        for symbol in self.iterate_relative_symbols():
+            symbol_name, symbol_relative_off, symbol_size = symbol
+
+            if symbol_relative_off <= off <= symbol_relative_off + symbol_size:
+                return symbol_name
+
     @property
     def structs(self):
         if not self._structs:
             self._structs = load_structs(self.structs_file)
         return self._structs
+
     @property
     def function_descriptor_header(self):
         functions = self.structs.loader_function_descriptor.__fields__
@@ -140,5 +163,5 @@ class MiniLoader(object):
                 function
             )
         return self.structs.loader_function_descriptor(
-                **kwargs
-            ).pack()
+            **kwargs
+        ).pack()

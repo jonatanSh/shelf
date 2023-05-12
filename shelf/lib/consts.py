@@ -145,3 +145,4 @@ class DisassemblerConsts(object):
 class ShelfFeatures(enum.Enum):
     DYNAMIC = (2 << 0)
     HOOKS = (2 << 1)
+

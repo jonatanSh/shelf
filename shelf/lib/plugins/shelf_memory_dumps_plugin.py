@@ -21,6 +21,14 @@ class ShelfMemoryDump(object):
         self._base_address_offset = -1
         self.find_mini_loader()
 
+    @property
+    def shelf_base_address(self):
+        return self.loading_address + self._shelf_base_address_offset
+
+    def is_address_in_mini_loader(self, address):
+        # Check and returns if and address is inside the mini loader
+        return address < self.loading_address + self.shelf_base_address
+
     def find_mini_loader(self):
         """
         Parses the dump and finds the mini loader within the dump
@@ -72,7 +80,9 @@ class ShelfMemoryDump(object):
         if is_hooks:
             table_struct_size += self.plugin.shelf.mini_loader.structs.mini_loader_hooks_descriptor.size
 
-        self._base_address_offset = loader_size + table_struct_size + total_size + header_size + padding
+        self._shelf_base_address_offset = loader_size + table_struct_size + total_size + header_size + padding
+        elf_magic = self.memory_dump[self._shelf_base_address_offset:self._shelf_base_address_offset + 4]
+        assert elf_magic == b'\x7fELF', 'Error invalid elf magic !: {}'.format(elf_magic)
 
     def disassemble(self, mark=None, limit=30,
                     offset=0x0):
@@ -107,14 +117,14 @@ class ShelfMemoryDump(object):
         )
         print(disassembly_object)
 
-    def compute_absolute_address(self, address):
+    def compute_shelf_absolute_address(self, address):
         """
         Get address from the elf file and translate it to the absolute address in shelf
         This function only works if the mini loader was found inside the dump
         Eg ...
             matching_symbols = api.shelf.find_symbols(symbol_name='main')
             symbol_name, symbol_address, function_size = matching_symbols[0]
-            absolute_address = dump.compute_absolute_address(symbol_address)
+            absolute_address = dump.compute_shelf_absolute_address(symbol_address)
             print("Symbol in memory: {}".format(hex(absolute_address)))
         :param address:
         :return:
@@ -125,25 +135,66 @@ class ShelfMemoryDump(object):
         relative_offset = self.plugin.shelf.convert_to_shelf_relative_offset(
             address=address
         )
+        return self.shelf_base_address + relative_offset
 
-        return self.loading_address + relative_offset + self._base_address_offset
-
-    def find_symbol_at_address(self, address):
+    def find_symbol_at_address_in_shelf(self, address):
         """
-        Find a symbol at address
+        Find a symbol at address inside shelf
         :param address: The address in memory where the requested symbol is required
-        :return:
+        :return: symbol name
+        """
+        return self._generic_find_symbol_at_address(
+            address=address,
+            compute_address=self.compute_shelf_absolute_address
+        )
+
+    def find_symbol_at_address_in_mini_loader(self, address):
+        """
+        Find a symbol at address inside shelf
+        :param address: The address in memory where the requested symbol is required
+        :return: symbol name
+        """
+        off = address - self.loading_address
+        return self.plugin.shelf.mini_loader.get_relative_symbol_at_offset(
+            off=off
+        )
+
+    def _generic_find_symbol_at_address(self, address, compute_address=None):
+        """
+        Generic method to find symbol address
+        :param address: the symbol address to find
+        :param compute_address: Function(address) -> absolute address
+        :return: symbol name
         """
         for symbol in self.plugin.shelf.find_symbols():
             symbol_name, symbol_address, symbol_size = symbol
             try:
-                shelf_absolute = self.compute_absolute_address(address=symbol_address)
-                if shelf_absolute <= address <= shelf_absolute + symbol_size:
+                if compute_address:
+                    absolute_address = compute_address(symbol_address)
+                else:
+                    absolute_address = symbol_address
+                if absolute_address <= address <= absolute_address + symbol_size:
                     return symbol_name
             except exceptions.AddressNotInShelf:
                 continue
             except exceptions.MiniLoaderNotFound:
                 return
+
+    def find_symbol_at_address(self, address):
+        """
+        Get address as input and find the correlated symbol inside shelf or the mini loader
+        :param address: address
+        :return: symbol name
+        """
+        if self.is_address_in_mini_loader(address):
+            sym = self.find_symbol_at_address_in_mini_loader(
+                address=address
+            )
+            sym = "SHELF_SYMBOL:".format(sym)
+        else:
+            sym = self.find_symbol_at_address_in_shelf(address)
+            sym = "MINI_LOADER_SYMBOL:".format(sym)
+        return sym
 
 
 class MemoryDumpPlugin(BaseShelfPlugin):

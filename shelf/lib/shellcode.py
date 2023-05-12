@@ -356,7 +356,7 @@ class Shellcode(object):
 
     def convert_to_shelf_relative_offset(self, address):
         """
-        Take adress as input and convert to relative offset inside the shelf output
+        Take address as input and convert to relative offset inside the shelf output
         :param address: Input address
         :return: int
         """

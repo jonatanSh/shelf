@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -5,6 +6,7 @@ import itertools
 from argparse import ArgumentParser
 from enum import Enum
 from parallel_api.api import execute_jobs_in_parallel
+from compile_lib.shelf_extract_relative_symbols import extract_relative_symbol_address
 
 local_path = os.path.dirname(__file__)
 MIPS_FLAGS = " ".join(['-mgp32',
@@ -184,6 +186,9 @@ class Compiler(object):
         self.gcc(flags, remove_flags, *args)
         resource_out = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode")))
         symbol_filename = os.path.join(RESOURCES, os.path.basename(output_file.replace(".out", ".shellcode.symbols")))
+        relative_symbol_filename = os.path.join(RESOURCES, os.path.basename(
+            output_file.replace(".out", ".shellcode.relative.symbols")))
+
         self.generate_structs(
             output_file,
             "{}.structs.json".format(resource_out)
@@ -209,6 +214,13 @@ class Compiler(object):
             '>',
             symbol_filename
         )
+
+        symbols = extract_relative_symbol_address(
+            binary_path=output_file
+        )
+        with open(relative_symbol_filename, 'wb') as fp:
+            json.dump(symbols, fp)
+
 
     def prepare_compile_kwargs(self, **kwargs):
         self.compile_kwargs = kwargs
