@@ -80,8 +80,8 @@ class SegfaultHandler(object):
         return True
 
     def disassemble(self, opcodes, off):
-        print("Disassembly information loading_address={}, "
-              "dump_address={}".format(
+        logging.info("Disassembly information loading_address={}, "
+                     "dump_address={}".format(
             hex(self.elf.loading_address),
             hex(off)
         ))

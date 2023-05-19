@@ -52,6 +52,7 @@ class Disassembler(object):
             dis_out = self.instruction_repr(instruction)
             rpr += dis_out
             instructions.append(rpr)
+
         if index_at_marked and limit != -1:
             start = int(index_at_marked - (limit / 2))
             end = int(index_at_marked + (limit / 2))
@@ -59,5 +60,4 @@ class Disassembler(object):
             instructions = instructions[start:end]
         elif limit:
             instructions = instructions[:limit]
-
         return "\n".join(instructions)

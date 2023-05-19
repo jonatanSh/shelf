@@ -85,8 +85,6 @@ class ShelfMemoryDump(object):
         elf_magic = self.memory_dump[self._shelf_base_address_offset:self._shelf_base_address_offset + 4]
         assert elf_magic == b'\x7fELF', 'Error invalid elf magic !: {}'.format(elf_magic)
 
-
-
     def disassemble(self, mark=None, limit=30,
                     offset=0x0):
         """
@@ -104,11 +102,10 @@ class ShelfMemoryDump(object):
             # Because the mini loader has the relocation will force
             # Capstone to stop disassemble the opcodes
             if not self.is_address_in_mini_loader(mark):
-                offset = self._shelf_base_address_offset + self.plugin.shelf.get_linker_base_address(
-                    attribute='p_offset',
+                first_exec_section_off = self.plugin.shelf.get_first_section(
                     check_x=True,
                 )
-                print(offset)
+                offset = self._shelf_base_address_offset + first_exec_section_off
 
         dump_address = self.dump_address + offset
         if mark:

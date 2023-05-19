@@ -3,7 +3,7 @@ import struct
 import sys
 import logging
 import tempfile
-from elftools.elf.constants import P_FLAGS
+from elftools.elf.constants import P_FLAGS, SH_FLAGS
 from shelf.lib import five
 from elftools.elf.elffile import ELFFile
 
@@ -458,6 +458,16 @@ class Shellcode(object):
         assert min_s != 2 ** 32
         return min_s
 
+    def get_first_section(self, attribute='sh_offset', check_x=None):
+        # This function return the offset for the first executable section
+        min_s = 2 ** 32
+
+        for section in self.elffile.iter_sections():
+            header = section.header
+            if header.sh_flags & SH_FLAGS.SHF_EXECINSTR:
+                min_s = min(min_s, getattr(header, attribute))
+        assert min_s != 2 ** 32
+        return min_s
 
     @property
     def loading_virtual_address(self):
