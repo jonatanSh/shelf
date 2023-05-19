@@ -133,12 +133,10 @@ class ShelfMemoryDump(object):
         :param address:
         :return:
         """
-        shelf_loading_virtual_offset = 0
         if not self.found_mini_loader:
             raise exceptions.MiniLoaderNotFound()
-        off = self.loading_address + shelf_loading_virtual_offset
-        assert address > off
-        return address - off
+        assert address > self.loading_address
+        return address - self.loading_address
 
     def find_symbol_at_address_in_shelf(self, address):
         """
