@@ -9,7 +9,7 @@ void main() {
 }
 
 void my_test_error_function() {
-    int * address = (int*)(0x0);
+    size_t * address = (size_t*)(0x0);
     print_out("Causing segfault accessing address: *0x0=0xdeadbeff");
     *(address) = 0xdeadbeff;
 }

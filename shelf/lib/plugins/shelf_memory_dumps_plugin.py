@@ -135,8 +135,8 @@ class ShelfMemoryDump(object):
         """
         if not self.found_mini_loader:
             raise exceptions.MiniLoaderNotFound()
-        assert address > self.loading_address
-        return address - self.loading_address
+        assert address > self.shelf_base_address
+        return address - self.shelf_base_address
 
     def find_symbol_at_address_in_shelf(self, address):
         """
@@ -167,9 +167,6 @@ class ShelfMemoryDump(object):
         """
         for symbol in self.plugin.shelf.find_symbols(return_relative_address=True):
             symbol_name, relative_symbol_address, symbol_size = symbol
-            if symbol_name != 'my_test_error_function':
-                continue
-            print(symbol_name, relative_symbol_address, symbol_size, address)
             if relative_symbol_address <= address <= relative_symbol_address + symbol_size:
                 return symbol_name
 
