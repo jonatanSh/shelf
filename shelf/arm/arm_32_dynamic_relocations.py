@@ -26,4 +26,4 @@ class Arm32DynamicRelocations(BaseDynamicRelocations):
         a = relocation.addend
         v_offset = s + a
         offset = self.shellcode.make_relative(relocation.address)
-        self.shellcode.addresses_to_patch[offset] = v_offset
+        self.shellcode.add_symbol_relocation_to_relocation_table(offset, v_offset, symbol.name)

@@ -64,8 +64,10 @@ class BaseDynamicRelocations(object):
             jmp_slot_address = self.shellcode.mini_loader.symbols.get_relative_symbol_address(
                 symbol_name=symbol.name
             )
-            self.shellcode.addresses_to_patch[offset] = [jmp_slot_address,
-                                                         RelocationAttributes.relative_to_loader_base]
+            self.shellcode.add_symbol_relocation_to_relocation_table(offset,
+                                                                     [jmp_slot_address,
+                                                                      RelocationAttributes.relative_to_loader_base],
+                                                                     symbol.name)
 
             return True
 
@@ -81,4 +83,4 @@ class BaseDynamicRelocations(object):
                 symbol.name
             ))
         relative_sym = self.shellcode.make_relative(symbol.value)
-        self.shellcode.addresses_to_patch[offset] = relative_sym
+        self.shellcode.add_symbol_relocation_to_relocation_table(offset, relative_sym, symbol.name)

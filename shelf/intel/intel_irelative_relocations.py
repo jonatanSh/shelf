@@ -40,8 +40,8 @@ class IntelIrelativeRelocs(object):
                 hex(shellcode.address_utils.make_absolute(virtual_offset)),
                 hex(shellcode.address_utils.make_absolute(function_offset))
             ))
-            shellcode.addresses_to_patch[virtual_offset] = [function_offset,
-                                                            RelocationAttributes.call_to_resolve]
+            shellcode.add_to_relocation_table(virtual_offset, [function_offset,
+                                                               RelocationAttributes.call_to_resolve])
         return shellcode_data
 
     def relocation_for_rel_plt_got_plt(self, shellcode, shellcode_data):
@@ -92,10 +92,12 @@ class IntelIrelativeRelocs(object):
 
         if shellcode.args.start_method != StartFiles.glibc:
             hdr = "IRELATIVE_CALL_TO_RESOLVE"
-            shellcode.addresses_to_patch[virtual_offset] = [function_offset,
-                                                            RelocationAttributes.call_to_resolve]
+            shellcode.add_to_relocation_table(virtual_offset,
+                                              [function_offset,
+                                               RelocationAttributes.call_to_resolve]
+                                              )
         else:
-            shellcode.addresses_to_patch[virtual_offset] = function_offset
+            shellcode.add_to_relocation_table(virtual_offset, function_offset)
 
         self.logger.info("| {} | Relative(*{}={}()) Absolute(*{}={}())".format(
             hdr,
@@ -122,7 +124,7 @@ class IntelIrelativeRelocs(object):
                         hex(shellcode.address_utils.make_absolute(index)),
                         hex(shellcode.address_utils.make_absolute(relocation_entry_relative))
                     ))
-                    shellcode.addresses_to_patch[index] = relocation_entry_relative
+                    shellcode.add_to_relocation_table(index, relocation_entry_relative)
                     address_not_relative = shellcode.loading_virtual_address + index
 
                     self.glibc_irelative_first_reference = min(self.glibc_irelative_first_reference,

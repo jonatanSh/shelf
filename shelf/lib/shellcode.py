@@ -48,6 +48,7 @@ class Shellcode(object):
                  reloc_types=None,
                  support_dynamic=False,
                  **kwargs):
+        self.shellcode_compiled = False
         self._ptr_size = None
         self._loading_virtual_addr = None
         self._linker_base = None
@@ -72,6 +73,7 @@ class Shellcode(object):
         self.shellcode_table_magic = shellcode_table_magic
         # Key is the file offset, value is the offset to correct to
         self.addresses_to_patch = {}
+        self.patched_symbols_mapping = {}
         self.sections_to_relocate = sections_to_relocate
 
         self.shellcode_data = shellcode_data
@@ -306,6 +308,13 @@ class Shellcode(object):
             )
         return shellcode_data
 
+    def add_to_relocation_table(self, virtual_offset, offset):
+        self.addresses_to_patch[virtual_offset] = offset
+
+    def add_symbol_relocation_to_relocation_table(self, virtual_offset, offset, symbol_name):
+        self.patched_symbols_mapping[symbol_name] = [virtual_offset, offset]
+        self.add_to_relocation_table(virtual_offset, offset)
+
     def section_build_relocations_table(self, section_name, relocate_all, shellcode_data):
         data_section = self.elffile.get_section_by_name(section_name)
         original_symbol_addresses = self.get_original_symbols_addresses()
@@ -336,7 +345,7 @@ class Shellcode(object):
                     hex(self.address_utils.make_absolute(sym_offset)),
                 ))
                 virtual_offset, sym_offset = self.relocation_hook(section_name, virtual_offset, sym_offset, index)
-                self.addresses_to_patch[virtual_offset] = sym_offset
+                self.add_to_relocation_table(virtual_offset, sym_offset)
                 index += 1
 
         return shellcode_data
@@ -406,44 +415,6 @@ class Shellcode(object):
     def aligned(a, b):
         return a + (a % b)
 
-    def get_section_virtual_address(self, section_name):
-        SECTION_FLAGS = self._get_lief_imports(section_flags=True)
-        offset, first_section = self.get_first_executable_section_virtual_address()
-        total_size = self.aligned(first_section.size, first_section.alignment) + offset
-        should_skip = True
-        for section in self.lief_elf.sections:
-            if should_skip:
-                should_skip = not (section.name == first_section.name)
-                continue
-            if section.flags & SECTION_FLAGS.ALLOC:
-                if section.name == section_name:
-                    return total_size
-                else:
-                    total_size += self.aligned(section.size, section.alignment)
-
-        raise Exception("Section: {} is not allocatable".format(
-            section_name
-        ))
-
-    def get_first_executable_section_virtual_address(self):
-        """
-         Trying to locate the first executable section
-         """
-        # calculate all the section size up to the first executable section
-        SECTION_FLAGS = self._get_lief_imports(section_flags=True)
-        exclude_sections = [
-            '.reginfo',
-        ]
-        last_section = None
-        for section in self.lief_elf.sections:
-            if section.flags & SECTION_FLAGS.EXECINSTR:
-                last_offset = 0
-                if last_section:
-                    last_offset = last_section.offset + last_section.size
-                return [section.offset - last_offset, section]
-            elif section.name not in exclude_sections and section.flags & SECTION_FLAGS.ALLOC:
-                last_section = section
-
     def get_linker_base_address(self, check_x=True, attribute='p_offset'):
         if self.elffile.num_segments() == 0:
             return 0
@@ -458,14 +429,18 @@ class Shellcode(object):
         assert min_s != 2 ** 32
         return min_s
 
-    def get_first_section(self, attribute='sh_offset', check_x=None):
+    def get_first_section(self, attribute='sh_offset', check_x=None,
+                          section_name=None):
         # This function return the offset for the first executable section
         min_s = 2 ** 32
 
         for section in self.elffile.iter_sections():
             header = section.header
-            if header.sh_flags & SH_FLAGS.SHF_EXECINSTR:
-                min_s = min(min_s, getattr(header, attribute))
+            if section_name and section.name == section_name:
+                return getattr(header, attribute)
+            if not header.sh_flags & SH_FLAGS.SHF_EXECINSTR and check_x:
+                continue
+            min_s = min(min_s, getattr(header, attribute))
         assert min_s != 2 ** 32
         return min_s
 
@@ -506,8 +481,10 @@ class Shellcode(object):
             address = sym.entry.st_value
             if return_relative_address:
                 address -= self.loading_virtual_address
+            else:
+                address = sym.entry.st_value
             symbols.append((sym.name, address, sym.entry.st_size))
-        if not symbols:
+        if not symbols and symbol_name:
             raise Exception("Shelf symbol: {} not found".format(symbol_name))
 
         if symbol_name:
@@ -527,6 +504,7 @@ class Shellcode(object):
     def get_shellcode_header(self):
         original_entry_point = self.elffile.header.e_entry
         new_entry_point = (original_entry_point - self.loading_virtual_address)
+        self.shellcode_compiled = True
         return self.address_utils.pack_pointer(new_entry_point)
 
     def build_shellcode_from_header_and_code(self, header, code):

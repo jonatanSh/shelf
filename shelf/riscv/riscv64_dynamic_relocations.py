@@ -15,7 +15,7 @@ class Riscv64DynamicRelocations(BaseDynamicRelocations):
         f_offset_r = self.shellcode.make_relative(relocation.address)
         v_offset_r = self.shellcode.make_relative(v_offset)
 
-        self.shellcode.addresses_to_patch[f_offset_r] = v_offset_r
+        self.shellcode.add_symbol_relocation_to_relocation_table(f_offset_r, v_offset_r, relocation.symbol.name)
 
     def jump_slot(self, relocation):
         return self.jump_slot_generic_handle(relocation)

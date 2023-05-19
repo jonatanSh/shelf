@@ -15,10 +15,10 @@ class AArch64DynamicRelocations(BaseDynamicRelocations):
         f_offset_r = self.shellcode.make_relative(relocation.address)
         v_offset_r = self.shellcode.make_relative(v_offset)
 
-        self.shellcode.addresses_to_patch[f_offset_r] = [
+        self.shellcode.add_symbol_relocation_to_relocation_table(f_offset_r, [
             v_offset_r,
             RelocationAttributes.call_to_resolve
-        ]
+        ], relocation.symbol.name)
 
     def r_aarch64_abs64(self, relocation):
         self.r_aarch64_jmp_slot(relocation)
