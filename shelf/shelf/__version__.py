@@ -1,0 +1,5 @@
+MAJOR = 3
+MINOR = 0
+MINOR_MINOR = 3
+
+FULL = "{}.{}.{}".format(MAJOR, MINOR, MINOR_MINOR)

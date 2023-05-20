@@ -1,6 +1,7 @@
 from setuptools import find_packages, setup
 import os
 import sys
+from shelf.__version__ import FULL
 
 disable_checks = '--force-disable-py2-check' in sys.argv
 
@@ -21,10 +22,10 @@ py_specific_req = py_specific_req_2
 if version >= 3:
     py_specific_req = py_specific_req_3
 try:
-    with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'r') as fp:
+    with open(os.path.join(os.path.dirname(__file__), '..', 'README.md'), 'r') as fp:
         README = str(fp.read())
-except:
-    print("Readme error")
+except Exception as e:
+    print("Readme error: {}".format(e))
 
 
 def filter_out(p):
@@ -33,11 +34,10 @@ def filter_out(p):
     return False
 
 
-packages = [package for package in find_packages() if not filter_out(package)]
 setup(
     name='py_shelf',
-    version='3.0.2',
-    packages=packages,
+    version=FULL,
+    packages=find_packages(),
     include_package_data=True,
     install_requires=[
                          'pyelftools',

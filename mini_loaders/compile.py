@@ -55,7 +55,7 @@ TARGET_FILES = [
 
 
 def print_header(message):
-    padding = (40 - len(message)) / 2
+    padding = int((40 - len(message)) / 2)
     print("@" * 40)
     print("{}{}{}".format("@" * padding, message, "@" * padding))
     print("@" * 40)
@@ -64,7 +64,7 @@ def print_header(message):
 if options.debug:
     CFLAGS += ["-DDEBUG"]
 OUTPUT_BASE = '../outputs/mini_loader_{}.out'
-RESOURCES = '../shelf/resources'
+RESOURCES = '../shelf/shelf/resources'
 CFLAGS += ['-fno-stack-protector', '-g', '-static', '-Wno-stack-protector']
 CFLAGS += ['-nolibc', '--entry=loader_main', '-nostartfiles', '-fno-plt', '-fno-pic']
 CFLAGS = ' '.join(CFLAGS)
@@ -218,9 +218,8 @@ class Compiler(object):
         symbols = extract_relative_symbol_address(
             binary_path=output_file
         )
-        with open(relative_symbol_filename, 'wb') as fp:
+        with open(relative_symbol_filename, 'w') as fp:
             json.dump(symbols, fp)
-
 
     def prepare_compile_kwargs(self, **kwargs):
         self.compile_kwargs = kwargs
@@ -331,7 +330,7 @@ def _clean(directory):
 
 def clean():
     _clean('../outputs')
-    _clean('../shelf/resources')
+    _clean('../shelf/shelf/resources')
 
 
 def prepare_jobs():

@@ -17,7 +17,7 @@ dir_guard:
 
 
 mini_loader_%: dir_guard
-	cd $(SELF_DIR)/../mini_loaders && python compile.py --action make --arch $(subst mini_loader_,,$@) $(MINI_LOADER_ARGS)
+	cd $(SELF_DIR)/../mini_loaders && python3 compile.py --action make --arch $(subst mini_loader_,,$@) $(MINI_LOADER_ARGS)
 
 shellcode: dir_guard
 	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE)$(NAME_ADD).shellcode $(SUPPORT_ARG)

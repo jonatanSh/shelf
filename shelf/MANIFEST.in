@@ -1,0 +1,9 @@
+recursive-include shelf/resources/ *.shellcode
+recursive-include shelf/resources/ *.symbols
+recursive-include shelf/resources/ *.shellcode.structs.json
+recursive-include shelf/resources/ *.hook
+recursive-include shellcode_loader/shelf_loader/resources/ *.hook
+
+global-exclude *.pyc
+global-exclude mini_loaders/*
+global-exclude shellcode_loader/*

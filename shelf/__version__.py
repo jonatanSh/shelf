@@ -1,5 +1,0 @@
-MAJOR = 3
-MINOR = 0
-MINOR_MINOR = 3
-
-FULL = MAJOR + float(MINOR) / 10 + float(MINOR) / 100

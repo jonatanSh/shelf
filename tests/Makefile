@@ -50,4 +50,4 @@ test_framework_tests:
 clean:
 	rm -rf ../outputs/*elf_features*.out*
 	rm -rf ../outputs/*no_relocations*.out*
-	cd ../mini_loaders && python compile.py --action clean
+	cd ../mini_loaders && python3 compile.py --action clean

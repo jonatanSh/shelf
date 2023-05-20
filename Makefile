@@ -16,7 +16,7 @@ shellcode_loader: dir_guard
 	cd shellcode_loader && $(MAKE) CC=$(RISCV64_CC) ARCH=riscv64 HOST=$(RISCV64_HOST)
 
 mini_loaders: dir_guard
-	cd mini_loaders && python compile.py --action make clean
+	cd mini_loaders && python3 compile.py --action make clean
 
 examples: hooks
 	cd examples && $(MAKE)

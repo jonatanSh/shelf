@@ -1,8 +1,8 @@
 from multiprocessing import Process
-from multi_process_comm import MultiProcessClientComm, MultiProcessServerComm, Protocol
+from parallel_api.multi_process_comm import MultiProcessClientComm, MultiProcessServerComm, Protocol
 import logging
 import time
-from consts import CONSTS
+from parallel_api.consts import CONSTS
 
 
 class Messages(object):
