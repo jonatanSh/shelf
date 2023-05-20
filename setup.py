@@ -26,10 +26,18 @@ try:
 except:
     print("Readme error")
 
+
+def filter_out(p):
+    if p.startswith('shellcode_loader') or p.startswith('mini_loaders'):
+        return True
+    return False
+
+
+packages = [package for package in find_packages() if not filter_out(package)]
 setup(
     name='py_shelf',
     version='3.0.2',
-    packages=find_packages(),
+    packages=packages,
     include_package_data=True,
     install_requires=[
                          'pyelftools',
@@ -44,6 +52,6 @@ setup(
     url='https://github.com/jonatanSh/shelf',
     author='Jonathan Shimon',
     author_email='jonatanshimon@gmail.com',
-    package_data={'': ['*.shellcode']}
+    package_data={'': ['*.shellcode', "*.hooks", "*.json", "*.symbols"]}
 
 )
