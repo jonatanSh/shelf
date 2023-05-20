@@ -22,6 +22,8 @@ parser.add_argument("--timeout", help="Timeout for process to die in seconds", r
 parser.add_argument("--source-elf", help="""Source elf file if you provide the source elf file
 The library provide more useful debug information on case of crash
                                          """)
+parser.add_argument("--no-rwx-memory", default=False, action="store_true",
+                    help="Use a loader that doesn't allocate RWX memory")
 
 args = parser.parse_args()
 

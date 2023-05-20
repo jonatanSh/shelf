@@ -8,8 +8,14 @@ from shelf_loader.resources import get_resource_path
 from shelf_loader import consts
 from shelf_loader.extractors import all as extractors
 
-def get_loader(arch):
-    return get_resource_path("shellcode_loader_{}.out".format(
+
+def get_loader(args, arch):
+    postfix = ""
+    if args.no_rwx_memory:
+        postfix = "no_rwx_"
+
+    return get_resource_path("shellcode_loader_{}{}.out".format(
+        postfix,
         arch
     ))
 
@@ -30,7 +36,7 @@ class ShellcodeLoaderGeneric(object):
         self.arch = self.features.arch.value
         setattr(self.args, 'arch', self.arch)
 
-        self.loader = get_loader(self.arch)
+        self.loader = get_loader(self.args, self.arch)
         if not os.path.exists(self.loader):
             parser.error("Shellcode loader: {} not found change loader directory".format(
                 self.loader

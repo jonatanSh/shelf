@@ -77,6 +77,8 @@ def get_test_command(test_file, description, loader_type, arch, is_debug, is_str
         )
     test_elf = test_file[:test_file.find(".out") + len(".out")]
     command = ["python3", "-m", 'shelf_loader', test_file, '--source-elf', test_elf]
+    if loader_type == LoaderTypes.RX_LOADER:
+        command += ["--no-rwx-memory"]
     if is_eshelf:
         command.append("First_Argument_for_argv")
         command.append("Second argument for argv")
