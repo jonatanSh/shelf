@@ -7,7 +7,7 @@ if version == 2:
     raise Exception("Only supported in python3 to force install use --force-disable-py2-check")
 
 try:
-    with open(os.path.join('..', os.path.dirname(__file__), 'docs', 'shelf_loader.md'), 'r') as fp:
+    with open(os.path.join('..','..', os.path.dirname(__file__), 'docs', 'shelf_loader.md'), 'r') as fp:
         README = str(fp.read())
 except Exception as e:
     print("Readme error: {}".format(e))

@@ -4,8 +4,8 @@ import sys
 import os
 import logging
 from shelf.api import ShelfBinaryApi
-from shellcode_loader.library.shelf_loader.resources import get_resource_path
-from shellcode_loader.library.shelf_loader import consts
+from shelf_loader.resources import get_resource_path
+from shelf_loader import consts
 
 
 def get_loader(arch):

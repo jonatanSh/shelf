@@ -2,8 +2,8 @@ import os
 import sys
 import argparse
 import logging
-from shellcode_loader.library.shelf_loader.consts import LoaderTypes
-from shellcode_loader.library.shelf_loader.loader import LOADER_CLS
+from shelf_loader.consts import LoaderTypes
+from shelf_loader.loader import LOADER_CLS
 
 parser = argparse.ArgumentParser("ShellcodeLoader")
 parser.add_argument('shellcode_path', help='Path to shellcode file to load')
