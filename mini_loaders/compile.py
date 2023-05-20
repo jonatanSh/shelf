@@ -172,7 +172,7 @@ class Compiler(object):
 
     def generate_structs(self, *options):
         return self.execute(
-            sys.executable,
+            'python',
             "-m",
             "py_elf_structs",
             *options
