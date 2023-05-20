@@ -6,7 +6,7 @@ import logging
 from shelf.api import ShelfBinaryApi
 from shelf_loader.resources import get_resource_path
 from shelf_loader import consts
-
+from shelf_loader.extractors import all as extractors
 
 def get_loader(arch):
     return get_resource_path("shellcode_loader_{}.out".format(
@@ -28,6 +28,7 @@ class ShellcodeLoaderGeneric(object):
             self.features
         ))
         self.arch = self.features.arch.value
+        setattr(self.args, 'arch', self.arch)
 
         self.loader = get_loader(self.arch)
         if not os.path.exists(self.loader):
@@ -65,6 +66,14 @@ class ShellcodeLoaderGeneric(object):
             subprocess.call("kill -9 {}".format(process.pid), shell=True)
         stdout = stdout.decode("utf-8")
         stderr = stderr.decode("utf-8")
+        extractor_data = {}
+        for extractor_cls in extractors:
+            extractor = extractor_cls(stdout, self.args,
+                                      extractor_data)
+
+            stdout, extractor_context = extractor.parsed
+            extractor_data.update(extractor_context)
+
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
 

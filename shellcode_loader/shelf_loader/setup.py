@@ -19,6 +19,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'py_shelf',
+        'capstone'
     ],
     license='MIT License',
     description='The loader of the py_shelf package',

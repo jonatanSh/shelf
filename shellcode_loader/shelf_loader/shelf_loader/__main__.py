@@ -19,6 +19,9 @@ parser.add_argument("--loader-type", choices=[loader_type.value for loader_type 
                     required=False, default=LoaderTypes.REGULAR.value)
 parser.add_argument("--timeout", help="Timeout for process to die in seconds", required=False,
                     type=int, default=5)
+parser.add_argument("--source-elf", help="""Source elf file if you provide the source elf file
+The library provide more useful debug information on case of crash
+                                         """)
 
 args = parser.parse_args()
 

@@ -15,3 +15,10 @@ class LoaderTypes(Enum):
     REGULAR = "regular"
     NO_RWX = "no_rwx"
     ESHELF = "eshelf"
+
+
+class ShellcodeLoader(object):
+    MemoryDumpStart = "MemDmpStart"
+    MemoryDumpEnd = "MemDmpEnd"
+    DumpAddressStart = "Dumping memory at "
+    DumpAddressEnd = "\n"
