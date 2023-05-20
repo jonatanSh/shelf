@@ -96,6 +96,10 @@ to test you shellcodes
 qemu-mips ./shellcode_loader ./myshellcode.out
 ```
 
+#### Using the shelf loader library
+it is advised to use the shelf loader library to tests your shellcode
+here you can read more about it: [Shelf loader documentation](https://github.com/jonatanSh/shelf/tree/master/docs/shelf_loader.md)
+
 ### Output example
 ```bash
 Shellcode size = 66620
