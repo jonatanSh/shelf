@@ -145,4 +145,17 @@ class DisassemblerConsts(object):
 class ShelfFeatures(enum.Enum):
     DYNAMIC = (2 << 0)
     HOOKS = (2 << 1)
+    ARCH_MAPPING = {
+        Arches.mips.value: (2 << 2),
+        Arches.intel_x32.value: (2 << 3),
+        Arches.intel_x64.value: (2 << 4),
+        Arches.arm32.value: (2 << 5),
+        Arches.aarch64.value: (2 << 6),
+        Arches.riscv64.value: (2 << 7),
 
+    }
+
+
+class ShellcodeMagics(enum.Enum):
+    arch32 = 0xaabbccdd
+    arch64 = 0x8899aabbccddeeff

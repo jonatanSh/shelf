@@ -1,6 +1,7 @@
 from elftools.elf.elffile import ELFFile
 from shelf.lib.consts import Arches, StartFiles, OUTPUT_FORMATS, OUTPUT_FORMAT_MAP
 from shelf.relocate import shellcode_classes
+from shelf.api.utilities.binary import ShelfBinaryUtils
 from argparse import Namespace
 import logging
 
@@ -60,3 +61,11 @@ class ShelfApi(object):
             self.fd.close()
         except:
             pass
+
+
+class ShelfBinaryApi(object):
+    def __init__(self, binary_data):
+        self.binary_data = binary_data
+        self.format_utils = ShelfBinaryUtils(
+            self.binary_data
+        )

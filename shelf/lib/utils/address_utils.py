@@ -5,8 +5,13 @@ from shelf.lib import five
 
 
 class AddressUtils(object):
-    def __init__(self, shellcode):
+    def __init__(self, shellcode=None, ptr_fmt=None, endian=None):
+        if not shellcode:
+            assert all([ptr_fmt, endian]), "Error either shellcode or ptr format and endian must be supplied"
         self.shellcode = shellcode
+        self.ptr_fmt = ptr_fmt if not shellcode else self.shellcode.ptr_fmt
+        self.endian = endian if not shellcode else self.shellcode.endian
+        self.ptr_size = struct.calcsize(self.ptr_fmt)
         self.logger = getLogger(self.__class__.__name__)
 
     def section_get_ptr_at_address(self, section, address, alignment):
@@ -26,7 +31,7 @@ class AddressUtils(object):
         index_start = address - start
         index_end = index_start + alignment
 
-        return self.shellcode.address_utils.unsigned_unpack_size(
+        return self.unsigned_unpack_size(
             size=alignment,
             data=section.data()[index_start:index_end]
         )
@@ -47,9 +52,9 @@ class AddressUtils(object):
         :return: Packed value
         """
         try:
-            return struct.pack("{}{}".format(self.shellcode.endian, fmt), n)
+            return struct.pack("{}{}".format(self.endian, fmt), n)
         except Exception as e:
-            logging.error("Pack exception: {} {} {}".format(self.shellcode.endian, fmt, n))
+            logging.error("Pack exception: {} {} {}".format(self.endian, fmt, n))
             raise e
 
     def pack_pointer(self, n):
@@ -58,7 +63,7 @@ class AddressUtils(object):
         :param n: The value of pack
         :return: packed pointer
         """
-        return self.pack(self.shellcode.ptr_fmt, n)
+        return self.pack(self.ptr_fmt, n)
 
     def signed_pack_pointer(self, n):
         """
@@ -66,7 +71,7 @@ class AddressUtils(object):
         :param n: The value of pack
         :return: packed pointer
         """
-        return self.pack(self.shellcode.ptr_fmt.lower(), n)
+        return self.pack(self.ptr_fmt.lower(), n)
 
     def pack_list_of(self, fmt, *args):
         """
@@ -87,7 +92,7 @@ class AddressUtils(object):
         :return: packed argument
         """
         return self.pack_list_of(
-            self.shellcode.ptr_fmt,
+            self.ptr_fmt,
             *pointers
         )
 
@@ -100,7 +105,7 @@ class AddressUtils(object):
         """
         ptr_size = self.translate_ptr_size_to_struct_format_unsigned(size)
         return struct.unpack("{}{}".format(
-            self.shellcode.endian,
+            self.endian,
             ptr_size
         ), data)[0]
 
@@ -111,10 +116,10 @@ class AddressUtils(object):
         :param number_of_pointers: number of pointers
         :return:
         """
-        stream = stream[:self.shellcode.ptr_size * number_of_pointers]
+        stream = stream[:self.ptr_size * number_of_pointers]
         return struct.unpack("{}{}".format(
-            self.shellcode.endian,
-            self.shellcode.ptr_fmt * number_of_pointers
+            self.endian,
+            self.ptr_fmt * number_of_pointers
         ), stream)
 
     @staticmethod
@@ -130,9 +135,9 @@ class AddressUtils(object):
         }[size]
 
     def _align(self, data, direction, padding=b'\x00'):
-        if len(data) % self.shellcode.ptr_size == 0x0:
+        if len(data) % self.ptr_size == 0x0:
             return data
-        alignment = len(data) + (self.shellcode.ptr_size - (len(data) % self.shellcode.ptr_size))
+        alignment = len(data) + (self.ptr_size - (len(data) % self.ptr_size))
         if direction == 'left':
             return data.ljust(alignment, padding)
         elif direction == 'right':
@@ -152,3 +157,31 @@ class AddressUtils(object):
             return size + (aligned - (size % aligned))
         else:
             return aligned - size
+
+    @classmethod
+    def for_32_bit_little_endian(cls):
+        return cls(
+            endian="<",
+            ptr_fmt="I"
+        )
+
+    @classmethod
+    def for_32_bit_big_endian(cls):
+        return cls(
+            endian=">",
+            ptr_fmt="I"
+        )
+
+    @classmethod
+    def for_64_bit_little_endian(cls):
+        return cls(
+            endian="<",
+            ptr_fmt="Q"
+        )
+
+    @classmethod
+    def for_64_bit_big_endian(cls):
+        return cls(
+            endian=">",
+            ptr_fmt="Q"
+        )

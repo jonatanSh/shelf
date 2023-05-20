@@ -16,7 +16,7 @@ from shelf.lib.utils.general import get_binary
 from shelf.hooks.hooks_configuration_parser import HookConfiguration
 from shelf.hooks.base_hook import _BaseShelfHook
 from shelf.lib.utils.memory_section import MemorySection, MemoryProtection
-from shelf.lib.plugins.shelf_memory_dumps_plugin import MemoryDumpPlugin
+from shelf.lib.plugins.memory_dump.shelf_memory_dumps_plugin import MemoryDumpPlugin
 from shelf.lib.utils.disassembler import Disassembler
 from shelf.lib.exceptions import AddressNotInShelf
 from shelf.__version__ import MAJOR, MINOR, MINOR_MINOR
@@ -248,11 +248,13 @@ class Shellcode(object):
             features |= ShelfFeatures.HOOKS.value
         if self.support_dynamic:
             features |= ShelfFeatures.DYNAMIC.value
+        features |= ShelfFeatures.ARCH_MAPPING.value[self.args.arch]
         logging.info("features: {}, version: {}".format(
             features,
             version
         ))
         version_and_features = (version << 12) + features
+
         return version_and_features
 
     def relocation_table(self, padding=0x0):

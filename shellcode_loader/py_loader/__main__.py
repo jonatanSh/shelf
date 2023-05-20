@@ -1,7 +1,8 @@
 import os
 import sys
 import argparse
-from consts import Arches, LoaderTypes
+import logging
+from consts import LoaderTypes
 from loader import LOADER_CLS
 
 parser = argparse.ArgumentParser("ShellcodeLoader")
@@ -11,8 +12,6 @@ parser.add_argument("--originating-binary", help="The binary the shellcode was c
                                                  "Such as disassembly this argument is required")
 parser.add_argument("--verbose", action="store_true", default=False, required=False,
                     help="Verbose logging")
-parser.add_argument("--arch", help="Architectures to use when loading the binary", required=True,
-                    choices=[arch.value for arch in Arches])
 parser.add_argument("--strace", help="Run strace against the shellcode", required=False,
                     default=False, action="store_true")
 
@@ -25,6 +24,10 @@ parser.add_argument("--loader-directory", required=False, default="../outputs",
                     )
 args = parser.parse_args()
 
+if args.verbose:
+    logging.basicConfig(level=logging.INFO)
+else:
+    logging.basicConfig(level=logging.CRITICAL)
 
 def exit(message=None):
     if message:

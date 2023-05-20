@@ -2,8 +2,7 @@ import logging
 
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from shelf.arm.aarch64_dynamic_relocations import AArch64DynamicRelocations
-from elftools.elf.enums import ENUM_RELOC_TYPE_AARCH64
-from shelf.lib.consts import LoaderSupports
+from shelf.lib.consts import ShellcodeMagics
 
 
 # Refernce: https://static1.squarespace.com/static/59c4375b8a02c798d1cce06f/t/59d55a7bf5e2319471bb94a4/1507154557709/ELF+for+ARM64.pdf
@@ -17,7 +16,7 @@ class ArmX64Shellcode(Shellcode):
             arch="arm64",
             mini_loader_little_endian="mini_loader_arm_x64{}.shellcode",
             mini_loader_big_endian=None,
-            shellcode_table_magic=0x8899aabbccddeeff,
+            shellcode_table_magic=ShellcodeMagics.arch64.value,
             ptr_fmt="Q",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},

@@ -2,7 +2,7 @@ from elftools.elf.enums import ENUM_RELOC_TYPE_x64
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from shelf.intel.intel_irelative_relocations import IntelIrelativeRelocs
 from shelf.intel.x64_dynamic_relocations import X64DynamicRelocations
-from shelf.lib.consts import RELOC_TYPES
+from shelf.lib.consts import ShellcodeMagics
 
 
 class IntelX64Shellcode(Shellcode):
@@ -14,7 +14,7 @@ class IntelX64Shellcode(Shellcode):
             arch="x64",
             mini_loader_little_endian="mini_loader_x64{}.shellcode",
             mini_loader_big_endian=None,
-            shellcode_table_magic=0x8899aabbccddeeff,
+            shellcode_table_magic=ShellcodeMagics.arch64.value,
             ptr_fmt="Q",
 
             sections_to_relocate={

@@ -3,6 +3,7 @@ from elftools.elf.enums import ENUM_RELOC_TYPE_i386
 from shelf.intel.intel_irelative_relocations import IntelIrelativeRelocs
 from shelf.lib.consts import StartFiles
 from shelf.intel.x32_dynamic_relocations import X32DynamicRelocations
+from shelf.lib.consts import ShellcodeMagics
 
 
 def get_glibc_instructions_filter(address):
@@ -23,7 +24,7 @@ class IntelX32Shellcode(Shellcode):
             arch="x32",
             mini_loader_little_endian="mini_loader_x32{}.shellcode",
             mini_loader_big_endian=None,
-            shellcode_table_magic=0xaabbccdd,
+            shellcode_table_magic=ShellcodeMagics.arch32.value,
             ptr_fmt="I",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},

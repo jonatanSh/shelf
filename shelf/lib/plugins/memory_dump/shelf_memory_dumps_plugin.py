@@ -20,6 +20,8 @@ class ShelfMemoryDump(object):
         self.mini_loader_start_index = -1
         self._base_address_offset = -1
         self.elf_header_size = -1
+        self.shelf_version = None
+        self.shelf_features = None
         self.find_mini_loader()
 
     @property
@@ -52,17 +54,17 @@ class ShelfMemoryDump(object):
             self.memory_dump[self.mini_loader_start_index:],
             8
         )
-        features = (version_and_features & ((2 ** 12) - 1))
+        self.shelf_features = (version_and_features & ((2 ** 12) - 1))
         _version = (version_and_features >> 12)
-        if features & consts.ShelfFeatures.HOOKS.value:
+        if self.shelf_features & consts.ShelfFeatures.HOOKS.value:
             is_hooks = True
 
-        if features & consts.ShelfFeatures.DYNAMIC.value:
+        if self.shelf_features & consts.ShelfFeatures.DYNAMIC.value:
             is_dynamic = True
 
-        version = float(_version >> 8)
-        version += float((_version >> 4) & ((2 ** 4) - 1)) / 10
-        version += float(_version & ((2 ** 4) - 1)) / 100
+        self.shelf_version = float(_version >> 8)
+        self.shelf_version += float((_version >> 4) & ((2 ** 4) - 1)) / 10
+        self.shelf_version += float(_version & ((2 ** 4) - 1)) / 100
 
         logging.info("Found magic: {}, padding: {}, total_size: {},"
                      "is_dynamic: {}, is_hooks: {}, version: {}".format(
@@ -71,7 +73,7 @@ class ShelfMemoryDump(object):
             hex(total_size),
             is_dynamic,
             is_hooks,
-            version
+            self.shelf_version
         ))
         # 6 Elements in the header
         table_struct_size = self.plugin.shelf.ptr_size * 6

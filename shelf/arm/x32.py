@@ -1,5 +1,6 @@
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from shelf.arm.arm_32_dynamic_relocations import Arm32DynamicRelocations
+from shelf.lib.consts import ShellcodeMagics
 
 
 class ArmX32Shellcode(Shellcode):
@@ -11,7 +12,7 @@ class ArmX32Shellcode(Shellcode):
             arch="arm32",
             mini_loader_little_endian="mini_loader_arm_x32{}.shellcode",
             mini_loader_big_endian="mini_loader_arm_x32be{}.shellcode",
-            shellcode_table_magic=0xaabbccdd,
+            shellcode_table_magic=ShellcodeMagics.arch32.value,
             ptr_fmt="I",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
