@@ -8,12 +8,12 @@ hooks: dir_guard
 	cd hooks && $(MAKE)
 
 shellcode_loader: dir_guard
-	cd shellcode_loader && $(MAKE) CC=$(MIPS_CC) ARCH=mips
-	cd shellcode_loader && $(MAKE) CC=$(X32_CC) ARCH=intel_x32
-	cd shellcode_loader && $(MAKE) CC="$(X64_CC)" ARCH=intel_x64
-	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm32
-	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch64
-	cd shellcode_loader && $(MAKE) CC=$(RISCV64_CC) ARCH=riscv64
+	cd shellcode_loader && $(MAKE) CC=$(MIPS_CC) ARCH=mips HOST=$(MIPS_HOST)
+	cd shellcode_loader && $(MAKE) CC=$(X32_CC) ARCH=intel_x32 HOST=$(INTEL_HOST)
+	cd shellcode_loader && $(MAKE) CC="$(X64_CC)" ARCH=intel_x64 HOST=$(INTEL_HOST)
+	cd shellcode_loader && $(MAKE) CC=$(ARM_CC) ARCH=arm32 HOST=$(ARM_HOST)
+	cd shellcode_loader && $(MAKE) CC=$(AARCH64_CC) ARCH=aarch64 HOST=$(AARCH64_HOST)
+	cd shellcode_loader && $(MAKE) CC=$(RISCV64_CC) ARCH=riscv64 HOST=$(RISCV64_HOST)
 
 mini_loaders: dir_guard
 	cd mini_loaders && python compile.py --action make clean

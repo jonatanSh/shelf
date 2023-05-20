@@ -2,8 +2,8 @@ import os
 import sys
 import argparse
 import logging
-from consts import LoaderTypes
-from loader import LOADER_CLS
+from shelf_loader.consts import LoaderTypes
+from shelf_loader.loader import LOADER_CLS
 
 parser = argparse.ArgumentParser("ShellcodeLoader")
 parser.add_argument('shellcode_path', help='Path to shellcode file to load')
@@ -19,15 +19,14 @@ parser.add_argument("--loader-type", choices=[loader_type.value for loader_type 
                     required=False, default=LoaderTypes.REGULAR.value)
 parser.add_argument("--timeout", help="Timeout for process to die in seconds", required=False,
                     type=int, default=5)
-parser.add_argument("--loader-directory", required=False, default="../outputs",
-                    help="Directory where loaders are located",
-                    )
+
 args = parser.parse_args()
 
 if args.verbose:
     logging.basicConfig(level=logging.INFO)
 else:
     logging.basicConfig(level=logging.CRITICAL)
+
 
 def exit(message=None):
     if message:
