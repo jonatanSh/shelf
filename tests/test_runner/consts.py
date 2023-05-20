@@ -28,17 +28,6 @@ class CONSTS(Enum):
 
 
 _arch = os.uname()[-1]
-QEMUS = {
-    Arches.MIPS.value: "qemu-mips-static",
-    Arches.intel_x32.value: "qemu-i386-static",
-    Arches.intel_x64.value: "qemu-x86_64-static",
-    Arches.arm32.value: "qemu-arm-static",
-    Arches.aarch64.value: "qemu-aarch64-static",
-    Arches.riscv64.value: "qemu-riscv64-static"
-}
-# Prefer no emulation if running on x64 host !
-if _arch == 'x86_64':
-    QEMUS[Arches.intel_x64] = ""
 
 
 class LoaderTypes(Enum):
@@ -46,26 +35,8 @@ class LoaderTypes(Enum):
     RX_LOADER = "rx"
 
 
-LOADERS = {
-    LoaderTypes.RWX_LOADER: "../outputs/shellcode_loader_{}.out",
-    LoaderTypes.RX_LOADER: "../outputs/shellcode_loader_no_rwx_{}.out"
-
-}
-
-
 class ShellcodeLoader(object):
     MemoryDumpStart = "MemDmpStart"
     MemoryDumpEnd = "MemDmpEnd"
     DumpAddressStart = "Dumping memory at "
     DumpAddressEnd = "\n"
-
-
-class Resolver(object):
-    @staticmethod
-    def get_qemu(arch):
-        return QEMUS[arch]
-
-    @staticmethod
-    def get_loader(loader_type, arch):
-        assert isinstance(loader_type, LoaderTypes)
-        return LOADERS[loader_type].format(arch)
