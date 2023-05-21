@@ -22,3 +22,4 @@ class ShellcodeLoader(object):
     MemoryDumpEnd = "MemDmpEnd"
     DumpAddressStart = "Dumping memory at "
     DumpAddressEnd = "\n"
+

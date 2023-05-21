@@ -107,6 +107,7 @@ else:
 with open(output_file, "wb") as fp:
     if args.run_profiler:
         import cProfile
+
         pr = cProfile.Profile()
         pr.enable()
     shellcode, shellcode_repr = make_shellcode(arch=args.arch, endian=args.endian,
