@@ -135,6 +135,7 @@ def test_find_file(test_fmt, arch, features):
 
 def run_test(key, test_parameters, test_features, description, arch, is_strace, is_debug,
              is_verbose=False,
+             verbose_on_failed=False,
              success_method=generic_success_method):
     test_file = test_find_file(test_parameters['test_file_fmt'], arch, test_features)
     if not test_file:
@@ -220,9 +221,9 @@ def arch_banner(arch):
     print("\n".join(banner))
 
 
-def display_output(test_output, is_verbose):
+def display_output(test_output, is_verbose, verbose_on_failed):
     print(test_output)
-    if is_verbose:
+    if is_verbose or (verbose_on_failed and not test_output.success):
         print("Stdout:")
         print(test_output.stdout)
         print("Stderr:")

@@ -14,7 +14,7 @@ parser.add_argument("--debug", default=False, action="store_true", required=Fals
 parser.add_argument("--verbose", default=False, action="store_true", required=False)
 parser.add_argument("--test-verbose", default=False, action="store_true", help="Test runner verbose logging")
 parser.add_argument("--strace", default=False, action="store_true", required=False)
-
+parser.add_argument("--verbose-on-failed", default=False, action="store_true", required=False)
 args = parser.parse_args()
 sys.modules['__global_args'] = args
 if args.test_verbose:
@@ -46,9 +46,12 @@ def main():
                     test_features=test_features,
                     is_debug=args.debug,
                     is_strace=args.strace,
-                    is_verbose=args.verbose)
+                    is_verbose=args.verbose,
+                    verbose_on_failed=args.verbose_on_failed
+                )
 
-                display_output(test_output, is_verbose=args.verbose)
+                display_output(test_output, is_verbose=args.verbose,
+                               verbose_on_failed=args.verbose_on_failed)
                 if test_output.success:
                     success += 1
                 else:
