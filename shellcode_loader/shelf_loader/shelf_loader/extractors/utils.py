@@ -44,14 +44,14 @@ def extract_int16(stream, start, end):
 
 
 class Binary(object):
-    def __init__(self, binary_path, loading_address=None):
+    def __init__(self, binary_path, loading_address=None, **shelf_kwargs):
         self.binary_path = binary_path
         self.symbols = ""
         self.program_headers = ""
         self.load_and_get_binary_program_headers()
         self.load_and_get_binary_symbols()
         self.loading_address = loading_address
-        self.shelf = ShelfApi(self.binary_path)
+        self.shelf = ShelfApi(self.binary_path, **shelf_kwargs)
 
     def get_symbol(self, address):
         for symbol in self.shelf.shelf.find_symbols():

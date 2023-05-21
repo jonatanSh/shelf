@@ -23,12 +23,12 @@ class SegfaultHandler(object):
                other_context,
                arch,
                shellcode_elf,
-               opcodes, dump_address, faulting_address):
+               opcodes, dump_address, faulting_address, **shelf_kwargs):
         shellcode_address = other_context['shellcode_address']
         mapped_size = other_context['mapped_memory_size']
 
         shellcode_binary = Binary(binary_path=shellcode_elf,
-                                  loading_address=shellcode_address)
+                                  loading_address=shellcode_address, **shelf_kwargs)
         if address_in_region(address=faulting_address,
                              start=shellcode_address,
                              size=mapped_size):
@@ -106,7 +106,8 @@ class OpcodesExtractor(BaseExtractor):
                 shellcode_elf=self.args.source_elf,
                 opcodes=opcodes,
                 dump_address=address,
-                faulting_address=segfault_address
+                faulting_address=segfault_address,
+                **self.extractor_data['shelf_kwargs']
             )
             parsed_data['segfaults'].append(segfault)
 

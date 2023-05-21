@@ -6,6 +6,7 @@ import logging
 import select
 from elftools.elf.elffile import ELFFile
 from shelf.lib.consts import Arches as ShelfArches
+from shelf.lib.consts import LoaderSupports
 from shelf.api import ShelfBinaryApi
 from shelf_loader.resources import get_resource_path
 from shelf_loader import consts
@@ -31,6 +32,8 @@ class ShellcodeLoaderGeneric(object):
         self._argv = argv
         self.disable_timeout = False
         mode = consts.LoaderTypes.REGULAR
+        self.shelf_kwargs = {'loader_supports': []}
+
         with open(self.args.shellcode_path, 'rb') as fp:
             arch = "Unknown"
             data = fp.read()
@@ -46,6 +49,11 @@ class ShellcodeLoaderGeneric(object):
                     data
                 )
                 version, features = binary_api.format_utils.get_shelf_features()
+                if features.is_dynamic:
+                    self.shelf_kwargs['loader_supports'].append(LoaderSupports.DYNAMIC)
+                if features.has_hooks:
+                    self.shelf_kwargs['loader_supports'].append(LoaderSupports.HOOKS)
+
                 logging.info("Shelf version: {}, shelf features: {}".format(
                     version,
                     features
@@ -110,13 +118,17 @@ class ShellcodeLoaderGeneric(object):
 
         stdout = stdout.decode("utf-8")
         stderr = stderr.decode("utf-8")
-        extractor_data = {}
+        extractor_data = {'shelf_kwargs': self.shelf_kwargs}
         for extractor_cls in extractors:
-            extractor = extractor_cls(stdout, self.args,
-                                      extractor_data)
+            try:
+                extractor = extractor_cls(stdout, self.args,
+                                          extractor_data)
 
-            stdout, extractor_context = extractor.parsed
-            extractor_data.update(extractor_context)
+                stdout, extractor_context = extractor.parsed
+                extractor_data.update(extractor_context)
+            except Exception as e:
+                logging.error("Extractor error: {}".format(e))
+                pass
 
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)

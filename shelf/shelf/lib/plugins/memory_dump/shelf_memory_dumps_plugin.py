@@ -81,8 +81,13 @@ class ShelfMemoryDump(object):
         table_struct_size += self.plugin.shelf.mini_loader.structs.loader_function_descriptor.size
 
         if is_hooks:
+            #TODO WIP 
+            size_of_hook_shellcode_data = self.plugin.shelf.address_utils.unpack_pointers(
+                self.memory_dump[table_struct_size+4:],
+                number_of_pointers=1
+            )[0]
             table_struct_size += self.plugin.shelf.mini_loader.structs.mini_loader_hooks_descriptor.size
-
+            table_struct_size += size_of_hook_shellcode_data
         self._shelf_base_address_offset = loader_size + table_struct_size + total_size + header_size + padding
         elf_magic = self.memory_dump[self._shelf_base_address_offset:self._shelf_base_address_offset + 4]
         assert elf_magic == b'\x7fELF', 'Error invalid elf magic !: {}'.format(elf_magic)
