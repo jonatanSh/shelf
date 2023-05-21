@@ -1,4 +1,5 @@
 import os
+import select
 import time
 import subprocess
 import itertools
@@ -161,12 +162,15 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
     if is_verbose:
         print(command)
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    start = time.time()
     timeout_passed = False
     stdout, stderr = b"", b""
+    start = time.time()
     while process.poll() is None:
-        stdout = process.stdout.read()
-        stderr += process.stderr.read()
+        rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
+        if process.stdout in rlist:
+            stdout += process.stdout.read()
+        if process.stderr in rlist:
+            stderr += process.stderr.read()
 
         if (time.time() - start) > CONSTS.execution_timeout_seconds.value:
             if is_debug:
@@ -179,7 +183,11 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
             success=False,
             reason="Timed out"
         )
-
+    rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
+    if process.stdout in rlist:
+        stdout += process.stdout.read()
+    if process.stderr in rlist:
+        stderr += process.stderr.read()
     stdout = stdout.decode('utf-8')
     stderr = stderr.decode('utf-8')
     if 'core dumped' in stderr or 'core dumped' in stdout:

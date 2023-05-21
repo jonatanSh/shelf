@@ -19,46 +19,55 @@ args = parser.parse_args()
 sys.modules['__global_args'] = args
 if args.test_verbose:
     logging.basicConfig(level=logging.INFO)
-summary_failed = []
-failed = 0
-success = 0
-for arch in args.arch:
-    arch_banner(arch)
-    for case in args.test:
-        logging.info("Finding key for: {}".format(case))
-        test_description, test_features = get_test_with_features(case)
-        logging.info("Key found: {}".format(test_description))
-        test_parameters = TESTS[test_description]
-        if arch not in test_parameters['supported_arches']:
-            continue
-        if test_features in test_parameters.get("disabled_features", []):
-            continue
-        try:
-            test_output = run_test(
-                key=test_description,
-                test_parameters=test_parameters,
-                arch=arch,
-                description=case,
-                test_features=test_features,
-                is_debug=args.debug,
-                is_strace=args.strace,
-                is_verbose=args.verbose)
-            display_output(test_output, is_verbose=args.verbose)
-            if test_output.success:
-                success += 1
-            else:
-                failed += 1
-            test_banner()
-        except Exception as e:
-            if args.test_verbose:
-                traceback.print_exc()
-            summary_failed.append(e)
-            failed += 1
 
-print("Success: {} Failed: {}".format(
-    success,
-    failed
-))
-if args.verbose:
-    for failed in summary_failed:
-        print(failed)
+
+def main():
+    summary_failed = []
+    failed = 0
+    success = 0
+    for arch in args.arch:
+        arch_banner(arch)
+        for case in args.test:
+            logging.info("Finding key for: {}".format(case))
+            test_description, test_features = get_test_with_features(case)
+            logging.info("Key found: {}".format(test_description))
+            test_parameters = TESTS[test_description]
+            if arch not in test_parameters['supported_arches']:
+                continue
+            if test_features in test_parameters.get("disabled_features", []):
+                continue
+            try:
+
+                test_output = run_test(
+                    key=test_description,
+                    test_parameters=test_parameters,
+                    arch=arch,
+                    description=case,
+                    test_features=test_features,
+                    is_debug=args.debug,
+                    is_strace=args.strace,
+                    is_verbose=args.verbose)
+
+                display_output(test_output, is_verbose=args.verbose)
+                if test_output.success:
+                    success += 1
+                else:
+                    failed += 1
+                test_banner()
+            except Exception as e:
+                if args.test_verbose:
+                    traceback.print_exc()
+                summary_failed.append(e)
+                failed += 1
+
+    print("Success: {} Failed: {}".format(
+        success,
+        failed
+    ))
+    if args.verbose:
+        for failed in summary_failed:
+            print(failed)
+
+
+if __name__ == "__main__":
+    main()

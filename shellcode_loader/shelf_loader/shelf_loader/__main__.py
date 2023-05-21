@@ -25,7 +25,7 @@ The library provide more useful debug information on case of crash
 parser.add_argument("--no-rwx-memory", default=False, action="store_true",
                     help="Use a loader that doesn't allocate RWX memory")
 
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 if args.verbose:
     logging.basicConfig(level=logging.INFO)
@@ -43,7 +43,7 @@ def main():
     if not os.path.exists(args.shellcode_path):
         exit("Shellcode path doesn't exists")
     cls = LOADER_CLS[args.loader_type]
-    loader = cls(args=args, parser=parser)
+    loader = cls(args=args, argv=unknown, parser=parser)
     loader.run()
 
 
