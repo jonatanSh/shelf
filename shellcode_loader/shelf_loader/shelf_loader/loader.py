@@ -119,16 +119,17 @@ class ShellcodeLoaderGeneric(object):
         stdout = stdout.decode("utf-8")
         stderr = stderr.decode("utf-8")
         extractor_data = {'shelf_kwargs': self.shelf_kwargs}
-        for extractor_cls in extractors:
-            try:
-                extractor = extractor_cls(stdout, self.args,
-                                          extractor_data)
+        if not self.args.disable_extractors:
+            for extractor_cls in extractors:
+                try:
+                    extractor = extractor_cls(stdout, self.args,
+                                              extractor_data)
 
-                stdout, extractor_context = extractor.parsed
-                extractor_data.update(extractor_context)
-            except Exception as e:
-                logging.error("Extractor error: {}".format(e))
-                pass
+                    stdout, extractor_context = extractor.parsed
+                    extractor_data.update(extractor_context)
+                except Exception as e:
+                    logging.error("Extractor error: {}".format(e))
+                    pass
 
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)

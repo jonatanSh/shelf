@@ -25,6 +25,8 @@ The library provide more useful debug information on case of crash
 parser.add_argument("--no-rwx-memory", default=False, action="store_true",
                     help="Use a loader that doesn't allocate RWX memory")
 
+parser.add_argument("--disable-extractors", default=False, action="store_true",
+                    help="Disable text extractors running on shellcode stdout such as the segfault handler extractor")
 args, unknown = parser.parse_known_args()
 
 if args.verbose:

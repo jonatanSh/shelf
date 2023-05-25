@@ -92,13 +92,20 @@ class OpcodesExtractor(BaseExtractor):
 
     @property
     def parsed(self):
-        if not self.args.source_elf:
-            logging.critical("Critical information can't be parsed because --source-elf is missing")
-            return self.stream, {}
         parsed_data = {
             'segfaults': []
         }
         for memory_dump in self.memory_dumps:
+            dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
+                                       memory_dump,
+                                       ShellcodeLoader.MemoryDumpEnd)
+            if not self.args.source_elf:
+                logging.critical("Critical information can't be parsed because --source-elf is missing")
+                self.stream = self.stream.replace(dmp_full, dmp_full[:400] +
+                                                  "....\n[This line ist trunked by the loader to view the full line use --disable-extractors]\n"
+                                                  "To view a full disassembly use --source-elf")
+                continue
+
             opcodes, address, segfault_address = self.extract_bytes_address(memory_dump)
             segfault = SegfaultHandler.create(
                 other_context=self.extractor_data,
@@ -111,9 +118,6 @@ class OpcodesExtractor(BaseExtractor):
             )
             parsed_data['segfaults'].append(segfault)
 
-            dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
-                                       memory_dump,
-                                       ShellcodeLoader.MemoryDumpEnd)
             parsed = "Faulting address: {}\n{}\n{}".format(
                 hex(segfault_address),
                 self.args.arch,
