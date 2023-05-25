@@ -27,6 +27,9 @@ parser.add_argument("--no-rwx-memory", default=False, action="store_true",
 
 parser.add_argument("--disable-extractors", default=False, action="store_true",
                     help="Disable text extractors running on shellcode stdout such as the segfault handler extractor")
+parser.add_argument("--attach-debugger", help="Run with qemu gdb support", required=False, action="store_true")
+parser.add_argument("--debugger-port", required=False, type=int, default=1234,
+                    help="used with --attach-debugger chooses the debugger port")
 args, unknown = parser.parse_known_args()
 
 if args.verbose:

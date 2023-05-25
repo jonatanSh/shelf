@@ -83,7 +83,10 @@ class ShellcodeLoaderGeneric(object):
     def get_loading_command(self):
         prefix = []
         if self.args.strace:
+            assert not self.args.attach_debugger, "Error --strace and --attach-debugger can't be used together"
             prefix += ["-strace"]
+        if self.args.attach_debugger:
+            prefix += ["-g", str(self.args.debugger_port)]
 
         return " ".join(self._get_loading_command(prefix))
 
@@ -94,18 +97,21 @@ class ShellcodeLoaderGeneric(object):
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         start = time.time()
         timeout_passed = False
-        while process.poll() is None:
-            rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
-            if process.stdout in rlist:
-                stdout += process.stdout.read()
-            if process.stderr in rlist:
-                stderr += process.stderr.read()
+        try:
+            while process.poll() is None:
+                rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
+                if process.stdout in rlist:
+                    stdout += process.stdout.read()
+                if process.stderr in rlist:
+                    stderr += process.stderr.read()
 
-            if (time.time() - start) > self.args.timeout:
-                if self.disable_timeout:
-                    continue
-                timeout_passed = True
-                break
+                if (time.time() - start) > self.args.timeout:
+                    if self.disable_timeout:
+                        continue
+                    timeout_passed = True
+                    break
+        except KeyboardInterrupt:
+            timeout_passed = True
         if timeout_passed:
             subprocess.call("kill -9 {}".format(process.pid), shell=True)
             print("Timeout reached, use --timeout to extend execution time")

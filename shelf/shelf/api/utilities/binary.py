@@ -1,3 +1,5 @@
+import logging
+
 from shelf.lib.utils.address_utils import AddressUtils
 from shelf.lib import consts
 
@@ -57,10 +59,12 @@ class ShelfBinaryUtils(object):
             for util in self._all_address_utils:
                 try:
                     # Skip all address utils with ptr size then the current one
-                    if ptr_size < util.ptr_size:
+                    if util.ptr_size < ptr_size:
                         continue
                     index = self.memory_dump.find(util.pack_pointer(magic))
                     if index >= 0:
+                        if ptr_size < util.ptr_size:
+                            index_first = 2 ** 32
                         # We use <= because it can be matched for 32 bit and 64 bit
                         if index_first >= index:
                             best_util = util
@@ -75,6 +79,10 @@ class ShelfBinaryUtils(object):
         assert index_first != 2 ** 32
         self.address_utils = best_util
         self.shellcode_table_magic = best_magic
+        logging.info("Magic: {}, utils: {}".format(
+            hex(magic),
+            best_util
+        ))
 
     def find_mini_loader(self):
         """
@@ -100,9 +108,7 @@ class ShelfBinaryUtils(object):
             8
         )
         self.shelf_features = FeaturesDescriptor((version_and_features & ((2 ** 12) - 1)))
-        _version = (version_and_features >> 12)
-        self.shelf_version = float(_version >> 8)
-        self.shelf_version += float((_version >> 4) & ((2 ** 4) - 1)) / 10
-        self.shelf_version += float(_version & ((2 ** 4) - 1)) / 100
+        _version = (version_and_features >> 16)
+        self.shelf_version = _version / 100.0
 
         return self.shelf_version, self.shelf_features

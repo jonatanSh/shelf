@@ -185,3 +185,9 @@ class AddressUtils(object):
             endian=">",
             ptr_fmt="Q"
         )
+
+    def __repr__(self):
+        return "AddressUtils(endian={}, format={})".format(
+            self.endian,
+            self.ptr_fmt
+        )

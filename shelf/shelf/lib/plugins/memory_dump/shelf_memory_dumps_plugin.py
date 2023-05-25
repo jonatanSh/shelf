@@ -54,16 +54,14 @@ class ShelfMemoryDump(object):
         )
         is_hooks, is_dynamic = (False, False)
         self.shelf_features = (relocation_table.version_and_fatures & ((2 ** 12) - 1))
-        _version = (relocation_table.version_and_fatures >> 12)
+        _version = (relocation_table.version_and_fatures >> 16)
         if self.shelf_features & consts.ShelfFeatures.HOOKS.value:
             is_hooks = True
 
         if self.shelf_features & consts.ShelfFeatures.DYNAMIC.value:
             is_dynamic = True
 
-        self.shelf_version = float(_version >> 8)
-        self.shelf_version += float((_version >> 4) & ((2 ** 4) - 1)) / 10
-        self.shelf_version += float(_version & ((2 ** 4) - 1)) / 100
+        self.shelf_version = _version / 100.0
 
         logging.info("Found table: {}"
                      "is_dynamic: {}, is_hooks: {}, version: {}\n".format(

@@ -19,7 +19,7 @@ from shelf.lib.utils.memory_section import MemorySection, MemoryProtection
 from shelf.lib.plugins.memory_dump.shelf_memory_dumps_plugin import MemoryDumpPlugin
 from shelf.lib.utils.disassembler import Disassembler
 from shelf.lib.exceptions import AddressNotInShelf
-from shelf.__version__ import MAJOR, MINOR, MINOR_MINOR
+from shelf.__version__ import VERSION_FOR_PACK
 
 PTR_SIZES = {
     4: "I",
@@ -238,11 +238,6 @@ class Shellcode(object):
 
     @property
     def version_and_features(self):
-        version = (
-                MAJOR << 8 +
-                MINOR << 4 +
-                MINOR_MINOR
-        )
         features = 0
         if LoaderSupports.HOOKS in self.args.loader_supports:
             features |= ShelfFeatures.HOOKS.value
@@ -251,9 +246,10 @@ class Shellcode(object):
         features |= ShelfFeatures.ARCH_MAPPING.value[self.args.arch]
         logging.info("features: {}, version: {}".format(
             features,
-            version
+            VERSION_FOR_PACK
         ))
-        version_and_features = (version << 12) + features
+
+        version_and_features = (VERSION_FOR_PACK << 16) + features
 
         return version_and_features
 
