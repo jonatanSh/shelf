@@ -83,12 +83,28 @@ class ShelfMemoryDump(object):
         table_struct_size += self.plugin.shelf.mini_loader.structs.elf_information_struct.size
         table_struct_size += self.plugin.shelf.mini_loader.structs.loader_function_descriptor.size
 
-        if is_hooks:
-            pass
         self._shelf_base_address_offset = relocation_table.elf_information.loader_size + table_struct_size
         self._shelf_base_address_offset += relocation_table.total_size + relocation_table.header_size
         self._shelf_base_address_offset += relocation_table.padding
 
+        if is_hooks:
+            self._shelf_base_address_offset += relocation_table.hook_descriptor.size_of_hook_shellcode_data
+            hooks = [
+                relocation_table.hook_descriptor.startup_hooks,
+                relocation_table.hook_descriptor.pre_relocate_write_hooks,
+                relocation_table.hook_descriptor.pre_relocate_execute_hooks,
+                relocation_table.hook_descriptor.pre_calling_shellcode_main_hooks,
+
+            ]
+            for hook in hooks:
+                if type(hook) is not list:
+                    hook = [hook]
+                for hook_attribute in hook:
+                    self._shelf_base_address_offset += hook_attribute.shellcode_size
+        print("A={}, b={}".format(
+            self._shelf_base_address_offset,
+            self.memory_dump.rfind(b"\x7fELF")
+        ))
         elf_magic = self.memory_dump[self._shelf_base_address_offset:self._shelf_base_address_offset + 4]
         assert elf_magic == b'\x7fELF', 'Error invalid elf magic !: {}'.format(elf_magic)
 
