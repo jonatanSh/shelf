@@ -137,8 +137,10 @@ class ShellcodeLoaderGeneric(object):
                     logging.error("Extractor error: {}".format(e))
                     pass
 
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
+        sys.stdout.write(stdout[:self.args.limit_stdout])
+        if stderr:
+            sys.stderr.write("\n")
+            sys.stderr.write(stderr)
         sys.stdout.flush()
         sys.stderr.flush()
 
