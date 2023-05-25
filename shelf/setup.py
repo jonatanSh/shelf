@@ -42,7 +42,7 @@ setup(
     install_requires=[
                          'pyelftools',
                          'capstone',
-                         'py_elf_structs>=1.4.1'
+                         'py_elf_structs>=1.4.2'
                      ] + py_specific_req,
     license='MIT License',
     description='Python package to create shellcodes from elfs supported arch '

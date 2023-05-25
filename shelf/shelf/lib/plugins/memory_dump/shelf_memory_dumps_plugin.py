@@ -41,21 +41,26 @@ class ShelfMemoryDump(object):
         self.mini_loader_start_index = self.memory_dump.find(magic)
         if self.mini_loader_start_index >= 0:
             self.found_mini_loader = True
-            self._parse_relocation_table()
+            try:
+                self._parse_relocation_table()
+            except:
+                import traceback
+                traceback.print_exc()
+                import sys
+                sys.exit(1)
 
     def _parse_relocation_table(self):
         """
         This function parsers the mini loader header and calculate the base address offset within the dump
         :return:
         """
-        is_hooks, is_dynamic = (False, False)
-        magic, version_and_features, padding, total_size, header_size, \
-        padding_between_table_and_loader, self.elf_header_size, loader_size = self.plugin.shelf.address_utils.unpack_pointers(
-            self.memory_dump[self.mini_loader_start_index:],
-            8
+        rstruct = self.plugin.shelf.mini_loader.structs.relocation_table
+        relocation_table = rstruct(
+            self.memory_dump[self.mini_loader_start_index: self.mini_loader_start_index + rstruct.size]
         )
-        self.shelf_features = (version_and_features & ((2 ** 12) - 1))
-        _version = (version_and_features >> 12)
+        is_hooks, is_dynamic = (False, False)
+        self.shelf_features = (relocation_table.version_and_fatures & ((2 ** 12) - 1))
+        _version = (relocation_table.version_and_fatures >> 12)
         if self.shelf_features & consts.ShelfFeatures.HOOKS.value:
             is_hooks = True
 
@@ -66,11 +71,9 @@ class ShelfMemoryDump(object):
         self.shelf_version += float((_version >> 4) & ((2 ** 4) - 1)) / 10
         self.shelf_version += float(_version & ((2 ** 4) - 1)) / 100
 
-        logging.info("Found magic: {}, padding: {}, total_size: {},"
-                     "is_dynamic: {}, is_hooks: {}, version: {}".format(
-            magic,
-            hex(padding),
-            hex(total_size),
+        logging.info("Found table: {}"
+                     "is_dynamic: {}, is_hooks: {}, version: {}\n".format(
+            relocation_table,
             is_dynamic,
             is_hooks,
             self.shelf_version
@@ -81,14 +84,11 @@ class ShelfMemoryDump(object):
         table_struct_size += self.plugin.shelf.mini_loader.structs.loader_function_descriptor.size
 
         if is_hooks:
-            #TODO WIP 
-            size_of_hook_shellcode_data = self.plugin.shelf.address_utils.unpack_pointers(
-                self.memory_dump[table_struct_size+4:],
-                number_of_pointers=1
-            )[0]
-            table_struct_size += self.plugin.shelf.mini_loader.structs.mini_loader_hooks_descriptor.size
-            table_struct_size += size_of_hook_shellcode_data
-        self._shelf_base_address_offset = loader_size + table_struct_size + total_size + header_size + padding
+            pass
+        self._shelf_base_address_offset = relocation_table.elf_information.loader_size + table_struct_size
+        self._shelf_base_address_offset += relocation_table.total_size + relocation_table.header_size
+        self._shelf_base_address_offset += relocation_table.padding
+
         elf_magic = self.memory_dump[self._shelf_base_address_offset:self._shelf_base_address_offset + 4]
         assert elf_magic == b'\x7fELF', 'Error invalid elf magic !: {}'.format(elf_magic)
 
