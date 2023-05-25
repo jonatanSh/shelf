@@ -132,6 +132,8 @@ class ShellcodeLoaderGeneric(object):
 
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
 
 
 class RegularShellcodeLoader(ShellcodeLoaderGeneric):
