@@ -12,6 +12,7 @@ from shelf.api import ShelfBinaryApi
 from shelf_loader.resources import get_resource_path
 from shelf_loader import consts
 from shelf_loader.extractors import all as extractors
+from shelf_loader.interactive_debugger.interactive_debugger import InteractiveDebugger
 
 
 def get_loader(mode, arch):
@@ -32,6 +33,7 @@ class ShellcodeLoaderGeneric(object):
         self.args = args
         self._argv = argv
         self.disable_timeout = self.args.attach_debugger
+        self.shell = InteractiveDebugger(self)
         mode = consts.LoaderTypes.REGULAR
         self.shelf_kwargs = {'loader_supports': []}
 
@@ -98,6 +100,8 @@ class ShellcodeLoaderGeneric(object):
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         start = time.time()
         timeout_passed = False
+        if self.args.attach_debugger:
+            self.shell.embed()
         try:
             while process.poll() is None:
                 rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)

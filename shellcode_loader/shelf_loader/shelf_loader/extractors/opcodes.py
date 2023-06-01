@@ -54,7 +54,6 @@ class SegfaultHandler(object):
         return True
 
     def disassemble(self, opcodes, off):
-        main_address = "Unknown"
         dump = self.elf.shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
             memory_dump=opcodes,
             dump_address=off,
