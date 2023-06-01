@@ -32,6 +32,8 @@ parser.add_argument("--debugger-port", required=False, type=int, default=1234,
                     help="used with --attach-debugger chooses the debugger port")
 parser.add_argument("--limit-stdout", type=int, required=False, default=-1,
                     help="Limit stdout up to limit-stdout bytes")
+parser.add_argument("--verbose-exceptions", required=False, action="store_true",
+                    help="Print full traceback on exception")
 args, unknown = parser.parse_known_args()
 
 if args.verbose:

@@ -19,7 +19,11 @@ def extract_text_between(stream, start_s, end_s, times=-1,
             end = stream[start:].find(end_s)
 
         if end < 0:
-            raise Exception("Infinite loop detected")
+            raise Exception("Infinite loop detected: start_s={}, end_s={}, r_index_start={}".format(
+                start_s,
+                end_s,
+                rindex_start
+            ))
         end += start
         sub = stream[start:end]
         stream = stream[end + len(end_s):]

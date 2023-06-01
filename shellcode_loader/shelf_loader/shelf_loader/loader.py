@@ -4,6 +4,7 @@ import sys
 import os
 import logging
 import select
+import traceback
 from elftools.elf.elffile import ELFFile
 from shelf.lib.consts import Arches as ShelfArches
 from shelf.lib.consts import LoaderSupports
@@ -135,6 +136,8 @@ class ShellcodeLoaderGeneric(object):
                     extractor_data.update(extractor_context)
                 except Exception as e:
                     logging.error("Extractor error: {}".format(e))
+                    if self.args.verbose_exceptions:
+                        traceback.print_exc()
                     pass
 
         sys.stdout.write(stdout[:self.args.limit_stdout])
