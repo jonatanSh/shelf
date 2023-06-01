@@ -31,7 +31,7 @@ class ShellcodeLoaderGeneric(object):
     def __init__(self, args, argv, parser):
         self.args = args
         self._argv = argv
-        self.disable_timeout = False
+        self.disable_timeout = self.args.attach_debugger
         mode = consts.LoaderTypes.REGULAR
         self.shelf_kwargs = {'loader_supports': []}
 
