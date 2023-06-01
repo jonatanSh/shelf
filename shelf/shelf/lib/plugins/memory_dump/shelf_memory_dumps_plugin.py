@@ -153,6 +153,18 @@ class ShelfMemoryDump(object):
         assert address > self.shelf_base_address
         return address - self.shelf_base_address
 
+    def convert_to_memory_absolute_address(self, relative_address):
+        """
+        Doing the exact revese operation from convert to shelf address
+        This function gets a relative_address and return absolute address in memory
+        :param relative_address:
+        :return:
+        """
+        if not self.found_mini_loader:
+            raise exceptions.MiniLoaderNotFound()
+
+        return relative_address + self.shelf_base_address
+
     def find_symbol_at_address_in_shelf(self, address):
         """
         Find a symbol at address inside shelf
@@ -200,6 +212,23 @@ class ShelfMemoryDump(object):
             sym = self.find_symbol_at_address_in_shelf(address)
             sym = "SHELF:{}".format(sym)
         return sym
+
+    def get_symbol_by_name(self, symbol_name):
+        """
+        Compute and return the symbol in memory
+        :param symbol_name: the symbol to locate
+        :return: SymbolObject(Tuple)
+        """
+        symbols = self.plugin.shelf.find_symbols(
+            return_relative_address=True, symbol_name=symbol_name
+        )
+        if not symbols:
+            return None, None, None
+        if len(symbols) > 1:
+            raise Exception("More then one symbol with the name: {} found".format(symbol_name))
+        symbol_name, relative_symbol_address, symbol_size = symbols[0]
+        symbol_address = self.convert_to_memory_absolute_address(relative_symbol_address)
+        return symbol_name, symbol_address, symbol_size
 
 
 class MemoryDumpPlugin(BaseShelfPlugin):

@@ -54,17 +54,20 @@ class SegfaultHandler(object):
         return True
 
     def disassemble(self, opcodes, off):
-        logging.info("Disassembly information loading_address={}, "
-                     "dump_address={}".format(
-            hex(self.elf.loading_address),
-            hex(off)
-        ))
-
+        main_address = "Unknown"
         dump = self.elf.shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
             memory_dump=opcodes,
             dump_address=off,
             loading_address=self.elf.loading_address
         )
+        _, main_address, _ = dump.get_symbol_by_name("main")
+        logging.info("Disassembly information loading_address={}, "
+                     "dump_address={}, *main={}".format(
+            hex(self.elf.loading_address),
+            hex(off),
+            hex(main_address)
+        ))
+
         dump.disassemble(mark=self.faulting_address)
 
     @property
