@@ -53,7 +53,7 @@ class ShelfMemoryDump(object):
             self.memory_dump[self.mini_loader_start_index: self.mini_loader_start_index + rstruct.size]
         )
         is_hooks, is_dynamic = (False, False)
-        self.shelf_features = (relocation_table.version_and_fatures & ((2 ** 12) - 1))
+        self.shelf_features = (relocation_table.version_and_fatures & ((2 ** 16) - 1))
         _version = (relocation_table.version_and_fatures >> 16)
         if self.shelf_features & consts.ShelfFeatures.HOOKS.value:
             is_hooks = True

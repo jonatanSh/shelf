@@ -9,11 +9,16 @@ class FeaturesDescriptor(object):
         self.features_mask = features_mask
         self.is_dynamic = (features_mask & consts.ShelfFeatures.DYNAMIC.value) > 0
         self.has_hooks = (features_mask & consts.ShelfFeatures.HOOKS.value) > 0
+        self.arch = None
         for arch in consts.Arches:
             if type(arch.value) is dict:
                 continue
             if features_mask & consts.ShelfFeatures.ARCH_MAPPING.value[arch.value]:
                 self.arch = arch
+        if not self.arch:
+            raise Exception("Arch not found bitmap: {}".format(
+                features_mask
+            ))
 
     def __str__(self):
         return "ShelfFeatures(dynamic={}, hooks={}, arch={})".format(
@@ -51,36 +56,35 @@ class ShelfBinaryUtils(object):
         :return:
         """
         ptr_size = min(self._all_address_utils, key=lambda x: x.ptr_size).ptr_size
-        magics = [magic.value for magic in consts.ShellcodeMagics]
         index_first = 2 ** 32
-        best_util = None
-        best_magic = None
-        for magic in magics:
-            for util in self._all_address_utils:
-                try:
-                    # Skip all address utils with ptr size then the current one
-                    if util.ptr_size < ptr_size:
-                        continue
-                    index = self.memory_dump.find(util.pack_pointer(magic))
-                    if index >= 0:
-                        if ptr_size < util.ptr_size:
-                            index_first = 2 ** 32
-                        # We use <= because it can be matched for 32 bit and 64 bit
-                        if index_first >= index:
-                            best_util = util
-                            index_first = index
-                            best_magic = magic
-                            ptr_size = max([ptr_size, util.ptr_size])
-
-                except:
-                    # This exception is when the magic is larger then the util ptr size
-                    pass
+        best_magic = -1
+        best_util = self._all_address_utils[0]
+        for util in self._all_address_utils:
+            if util.ptr_size == 8:
+                magic = consts.ShellcodeMagics.arch64.value
+            elif util.ptr_size == 4:
+                magic = consts.ShellcodeMagics.arch32.value
+            else:
+                raise Exception("Unknown arch")
+            # Skip all address utils with ptr size then the current one
+            if util.ptr_size < ptr_size:
+                continue
+            index = self.memory_dump.find(util.pack_pointer(magic))
+            if index >= 0:
+                if ptr_size > util.ptr_size:
+                    continue
+                # We use <= because it can be matched for 32 bit and 64 bit
+                if index_first >= index or ptr_size < util.ptr_size:
+                    best_util = util
+                    best_magic = magic
+                    index_first = index
+                    ptr_size = max([ptr_size, util.ptr_size])
 
         assert index_first != 2 ** 32
         self.address_utils = best_util
         self.shellcode_table_magic = best_magic
         logging.info("Magic: {}, utils: {}".format(
-            hex(magic),
+            hex(best_magic),
             best_util
         ))
 
@@ -107,7 +111,8 @@ class ShelfBinaryUtils(object):
             self.memory_dump[self.mini_loader_start_index:],
             8
         )
-        self.shelf_features = FeaturesDescriptor((version_and_features & ((2 ** 12) - 1)))
+
+        self.shelf_features = FeaturesDescriptor((version_and_features & ((2 ** 16) - 1)))
         _version = (version_and_features >> 16)
         self.shelf_version = _version / 100.0
 

@@ -244,13 +244,13 @@ class Shellcode(object):
         if self.support_dynamic:
             features |= ShelfFeatures.DYNAMIC.value
         features |= ShelfFeatures.ARCH_MAPPING.value[self.args.arch]
-        logging.info("features: {}, version: {}".format(
-            features,
-            VERSION_FOR_PACK
-        ))
-
         version_and_features = (VERSION_FOR_PACK << 16) + features
-
+        logging.info("features: {}, version: {}, fused: {}-{}".format(
+            hex(features),
+            hex(VERSION_FOR_PACK),
+            hex(version_and_features),
+            bin(version_and_features)
+        ))
         return version_and_features
 
     def relocation_table(self, padding=0x0):

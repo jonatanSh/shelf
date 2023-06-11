@@ -1,4 +1,6 @@
 import readline
+import subprocess
+import sys
 
 BANNER = """
     Interactive shell, to view all commands use ?
@@ -31,6 +33,7 @@ class InteractiveDebugger(object):
         print(args)
 
     def embed(self):
+        subprocess.call("gdb", stdout=sys.stdout, stdin=sys.stdin, stderr=sys.stderr)
         should_break = False
         self.shell_print(BANNER)
         while not should_break:
