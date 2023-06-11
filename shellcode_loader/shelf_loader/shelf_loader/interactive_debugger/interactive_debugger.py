@@ -1,6 +1,9 @@
+import sys
+import logging
+import os.path
 import readline
 import subprocess
-import sys
+from shelf_loader import consts
 
 BANNER = """
     Interactive shell, to view all commands use ?
@@ -66,7 +69,14 @@ class InteractiveDebugger(object):
         self.base_address = value
 
     def gdb(self):
-        subprocess.call("gdb", stdout=sys.stdout, stdin=sys.stdin, stderr=sys.stderr)
+        script_directory = os.path.join(consts.BASE_DIR, 'interactive_debugger',
+                                        'gdb_scripts')
+        gdb_main_script = os.path.join(script_directory, 'gdb_main.py')
+        setup_commands = ['set architecture {}'.format(consts.GDB_ARCHES[self.loader.arch])]
+        command = ["gdb-multiarch", '-iex "source {}"'.format(gdb_main_script)
+                   ] + ['-iex "{}"'.format(s) for s in setup_commands]
+        logging.info("Executing: {}".format(command))
+        subprocess.call(command)
 
     def exit(self):
         self.should_break = True
