@@ -1,3 +1,4 @@
+import signal
 import time
 import subprocess
 import sys
@@ -102,6 +103,7 @@ class ShellcodeLoaderGeneric(object):
         timeout_passed = False
         if self.args.attach_debugger:
             self.shell.embed()
+            os.kill(process.pid, signal.SIGKILL)
         try:
             while process.poll() is None:
                 rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)

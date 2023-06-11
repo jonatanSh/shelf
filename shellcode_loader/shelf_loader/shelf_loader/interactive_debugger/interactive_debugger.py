@@ -17,14 +17,16 @@ def get_auto_complete(options):
 
 class InteractiveDebugger(object):
     def __init__(self, loader):
+        self.should_break = False
         self.loader = loader
         self.commands = {
             '?': self.help,
             'help': self.help,
-            'rebase': self.rebase
+            'rebase': self.rebase,
+            'gdb': self.gdb,
+            'exit': self.exit
         }
         self.auto_complete = get_auto_complete(self.commands.keys())
-        self.base_address = 0x0
         readline.parse_and_bind("history")
         readline.set_completer(self.auto_complete)
 
@@ -33,14 +35,12 @@ class InteractiveDebugger(object):
         print(args)
 
     def embed(self):
-        subprocess.call("gdb", stdout=sys.stdout, stdin=sys.stdin, stderr=sys.stderr)
-        should_break = False
         self.shell_print(BANNER)
-        while not should_break:
+        while not self.should_break:
             try:
                 self.handle_commands()
             except KeyboardInterrupt:
-                should_break = True
+                self.should_break = True
 
     @staticmethod
     def shell_read_arguments(prompt):
@@ -64,3 +64,9 @@ class InteractiveDebugger(object):
         value = int(self.shell_read_arguments('> Enter the loading address in hex'), 16)
         self.shell_print("Rebasing to: {}".format(hex(value)))
         self.base_address = value
+
+    def gdb(self):
+        subprocess.call("gdb", stdout=sys.stdout, stdin=sys.stdin, stderr=sys.stderr)
+
+    def exit(self):
+        self.should_break = True
