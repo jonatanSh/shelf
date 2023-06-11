@@ -73,8 +73,10 @@ class InteractiveDebugger(object):
                                         'gdb_scripts')
         gdb_main_script = os.path.join(script_directory, 'gdb_main.py')
         setup_commands = ['set architecture {}'.format(consts.GDB_ARCHES[self.loader.arch])]
-        command = ["gdb-multiarch", '-iex "source {}"'.format(gdb_main_script)
-                   ] + ['-iex "{}"'.format(s) for s in setup_commands]
+        command = ["gdb-multiarch", '-iex', '"source {}"'.format(gdb_main_script)
+                   ]
+        for setup_command in setup_commands:
+            command += ['-iex', "{}".format(setup_command)]
         logging.info("Executing: {}".format(command))
         subprocess.call(command)
 
