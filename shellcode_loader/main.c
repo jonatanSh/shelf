@@ -31,6 +31,11 @@ void segfault_handler(int signal, siginfo_t *info, void *context) {
     exit(1);
 }
 
+long long execute_shellcode(int argc, char **argv, char **envp) {
+    return ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
+
+}
+
 int main(int argc, char **argv, char **envp) {
     struct stat stat_buffer;
     int shellcode_fd;
@@ -115,7 +120,7 @@ int main(int argc, char **argv, char **envp) {
     mprotect(start_address, buff_size, PROT_EXEC | PROT_READ);
 #endif
     printf("Jumping to shellcode, address = %p \n", start_address);
-    long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
+    long long value = execute_shellcode(argc, argv, envp);
     long error_code = (value >> 24);
     long line = (value & ((1<<24) - 1));
     printf("Shellcode returned: %llx\n", value);

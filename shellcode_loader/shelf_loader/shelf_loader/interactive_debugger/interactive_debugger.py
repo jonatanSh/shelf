@@ -81,11 +81,18 @@ class InteractiveDebugger(object):
         setup_commands = ['set architecture {}'.format(consts.GDB_ARCHES[self.loader.arch]),
                           'source {}'.format(gdb_main_script),
                           'source {}'.format(gdb_utils_script),
-                          'target extended-remote localhost:{}'.format(self.loader.args.debugger_port)]
+                          ]
 
         # Adding intel disassembly flavor
         if self.loader.arch in [consts.Arches.intel_x32.value, consts.Arches.intel_x64.value]:
             setup_commands.append('set disassembly-flavor intel')
+
+        # Add loader symbols, think about eshelf ?
+        if self.loader.loader:
+            setup_commands.append("file {}".format(self.loader.loader))
+
+        # This must be the last setup command
+        setup_commands.append('target extended-remote localhost:{}'.format(self.loader.args.debugger_port))
 
         command = ["gdb-multiarch"]
         for setup_command in setup_commands:

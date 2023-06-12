@@ -17,6 +17,6 @@ define get_stdout
     python get_stdout()
 end
 
-define break_on_jump_to_shellcode
-    python break_on_jump_to_shellcode()
+define execute_shellcode
+    python execute_shellcode()
 end

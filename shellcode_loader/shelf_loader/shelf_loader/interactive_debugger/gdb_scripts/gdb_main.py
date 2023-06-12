@@ -20,15 +20,17 @@ def get_shellcode_address():
     if consts.ShellcodeLoader.JumpingToShellcode in data:
         return extract_int16(
             data,
-            '',
+            consts.ShellcodeLoader.JumpingToShellcode,
             '\n'
         )
     return None
 
 
-def break_on_jump_to_shellcode():
+def execute_shellcode():
     address = get_shellcode_address()
     if not address:
+        gdb.execute("b *execute_shellcode")
+        gdb.execute("c")
         last_ms = gdb.execute("mni", to_string=True)
         while last_ms != gdb.execute("mni", to_string=True):
             address = get_shellcode_address()
@@ -38,5 +40,9 @@ def break_on_jump_to_shellcode():
 
     if address:
         print("Shellcode loaded to: {}".format(hex(address)))
+        gdb.execute("b *{}".format(address))
+        gdb.execute("c")
+        print("Shellcode loaded displaying stdout")
+        get_stdout()
     else:
         print("Address not found, probably crashed before ?")
