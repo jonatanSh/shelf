@@ -103,7 +103,7 @@ class ShellcodeLoaderGeneric(object):
         if self.args.attach_debugger:
             stdout_f = open(consts.debugger_stdout, 'w')
             stderr_f = open(consts.debugger_stderr, 'w')
-        process = subprocess.Popen(command, stdout=stdout_f, stderr=stderr_f, bufsize=1)
+        process = subprocess.Popen(command, stdout=stdout_f, stderr=stderr_f)
         start = time.time()
         timeout_passed = False
         if self.args.attach_debugger:
