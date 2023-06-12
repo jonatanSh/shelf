@@ -47,6 +47,13 @@ def extract_int16(stream, start, end):
     return
 
 
+def extract_int10(stream, start, end):
+    value = extract_text_between(stream, start, end, times=1)
+    if value and type(value) is str:
+        return int(value)
+    return
+
+
 class Binary(object):
     def __init__(self, binary_path, loading_address=None, **shelf_kwargs):
         self.binary_path = binary_path
