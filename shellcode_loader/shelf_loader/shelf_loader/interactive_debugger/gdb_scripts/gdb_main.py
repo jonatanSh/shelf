@@ -18,12 +18,15 @@ def create_shelf(source_elf_path):
 
 def get_dump():
     global shelf_dump
-    if not shelf:
-        print("Shelf not declared yet")
+    address = get_shellcode_address()
+    memory_dump = get_memory_dump_for_shellcode()
+
+    if not shelf or not address or not memory_dump:
+        print("Error shellcode not mapped yet")
         return
+
     if not shelf_dump:
-        address = get_shellcode_address()
-        memory_dump = get_memory_dump_for_shellcode()
+
         shelf_dump = shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
             memory_dump=memory_dump,
             dump_address=address,
