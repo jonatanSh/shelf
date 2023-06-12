@@ -98,7 +98,12 @@ class ShellcodeLoaderGeneric(object):
         command = self.get_loading_command()
         print(" ".join(command))
         stdout, stderr = b'', b''
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout_f = subprocess.PIPE
+        stderr_f = subprocess.PIPE
+        if self.args.attach_debugger:
+            stdout_f = open(consts.debugger_stdout, 'w')
+            stderr_f = open(consts.debugger_stderr, 'w')
+        process = subprocess.Popen(command, stdout=stdout_f, stderr=stderr_f, bufsize=1)
         start = time.time()
         timeout_passed = False
         if self.args.attach_debugger:
@@ -124,7 +129,10 @@ class ShellcodeLoaderGeneric(object):
             os.kill(process.pid, signal.SIGKILL)
         if timeout_passed:
             print("Timeout reached, use --timeout to extend execution time")
-
+        if self.args.attach_debugger:
+            stdout_f.close()
+            stderr_f.close()
+            return
         rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
         if process.stdout in rlist:
             stdout += process.stdout.read()

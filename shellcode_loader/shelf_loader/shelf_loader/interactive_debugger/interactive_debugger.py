@@ -80,13 +80,20 @@ class InteractiveDebugger(object):
         """
         setup_commands = ['set architecture {}'.format(consts.GDB_ARCHES[self.loader.arch]),
                           'source {}'.format(gdb_main_script),
-                          'source {}'.format(gdb_utils_script)]
+                          'source {}'.format(gdb_utils_script),
+                          'target extended-remote localhost:{}'.format(self.loader.args.debugger_port)]
+
+        # Adding intel disassembly flavor
+        if self.loader.arch in [consts.Arches.intel_x32.value, consts.Arches.intel_x64.value]:
+            setup_commands.append('set disassembly-flavor intel')
 
         command = ["gdb-multiarch"]
         for setup_command in setup_commands:
             command += ['-iex', "{}".format(setup_command)]
+
         logging.info("Executing: {}".format(command))
         subprocess.call(command)
+        self.exit()
 
     def exit(self):
         self.should_break = True

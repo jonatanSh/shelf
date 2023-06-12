@@ -41,6 +41,8 @@ int main(int argc, char **argv, char **envp) {
     int bytes_read = 0;
     int read_chunk = _POSIX_SSIZE_MAX;
     struct sigaction sa;
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stderr, NULL, _IOLBF, 0);
 
     sa.sa_sigaction = segfault_handler;
     sigemptyset(&sa.sa_mask);

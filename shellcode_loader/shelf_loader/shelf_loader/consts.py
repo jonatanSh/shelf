@@ -28,4 +28,9 @@ class ShellcodeLoader(object):
     MemoryDumpStart = "MemDmpStart"
     MemoryDumpEnd = "MemDmpEnd"
     DumpAddressStart = "Dumping memory at "
+    JumpingToShellcode = "Jumping to shellcode, address = "
     DumpAddressEnd = "\n"
+
+
+debugger_stdout = '/tmp/_shelf_loader_stdout'
+debugger_stderr = '/tmp/_shelf_loader_stderr'
