@@ -1,10 +1,36 @@
 import gdb
 from shelf_loader import consts
 from shelf_loader.extractors.utils import extract_int16, extract_int10
+from shelf.api import ShelfApi
 
 HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
 
+shelf = None
+shelf_dump = None
+
+
+def create_shelf(source_elf_path):
+    global shelf
+    shelf_kwargs = {'loader_supports': []}
+    shelf = ShelfApi(binary_path=source_elf_path, **shelf_kwargs)
+
+
+def get_dump():
+    global shelf_dump
+    if not shelf:
+        print("Shelf not declared yet")
+        return
+    if not shelf_dump:
+        address = get_shellcode_address()
+        memory_dump = get_memory_dump_for_shellcode()
+        shelf_dump = shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
+            memory_dump=memory_dump,
+            dump_address=address,
+            loading_address=address
+        )
+
+    return shelf_dump
 
 # Define a Python function as a GDB macro
 def get_stdout():

@@ -9,7 +9,7 @@ import traceback
 from elftools.elf.elffile import ELFFile
 from shelf.lib.consts import Arches as ShelfArches
 from shelf.lib.consts import LoaderSupports
-from shelf.api import ShelfBinaryApi, ShelfApi
+from shelf.api import ShelfBinaryApi
 from shelf_loader.resources import get_resource_path
 from shelf_loader import consts
 from shelf_loader.extractors import all as extractors
@@ -77,12 +77,6 @@ class ShellcodeLoaderGeneric(object):
                 self.loader
             ))
 
-    @property
-    def shelf(self):
-        return ShelfApi(
-            self.args.shellcode_path,
-            **self.shelf_kwargs
-        )
 
     @property
     def argv(self):

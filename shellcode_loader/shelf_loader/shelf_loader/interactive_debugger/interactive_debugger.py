@@ -93,7 +93,7 @@ class InteractiveDebugger(object):
 
         # This must be the last setup command
         setup_commands.append('target extended-remote localhost:{}'.format(self.loader.args.debugger_port))
-
+        setup_commands.append("python create_shelf(r'{}')".format(self.loader.args.source_elf))
         command = ["gdb-multiarch"]
         for setup_command in setup_commands:
             command += ['-iex', "{}".format(setup_command)]
