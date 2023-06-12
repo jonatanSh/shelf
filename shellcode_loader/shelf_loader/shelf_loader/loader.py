@@ -92,20 +92,19 @@ class ShellcodeLoaderGeneric(object):
         if self.args.attach_debugger:
             prefix += ["-g", str(self.args.debugger_port)]
 
-        return " ".join(self._get_loading_command(prefix))
+        return self._get_loading_command(prefix)
 
     def run(self):
         command = self.get_loading_command()
-        print(command)
+        print(" ".join(command))
         stdout, stderr = b'', b''
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         start = time.time()
         timeout_passed = False
         if self.args.attach_debugger:
             self.shell.embed()
-            os.kill(process.pid, signal.SIGKILL)
         try:
-            while process.poll() is None:
+            while process.poll() is None and not self.args.attach_debugger:
                 rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
                 if process.stdout in rlist:
                     stdout += process.stdout.read()
@@ -119,8 +118,11 @@ class ShellcodeLoaderGeneric(object):
                     break
         except KeyboardInterrupt:
             timeout_passed = True
+            pass
+        if process.poll() is None:
+            logging.info("Killing pid: {}".format(process.pid))
+            os.kill(process.pid, signal.SIGKILL)
         if timeout_passed:
-            subprocess.call("kill -9 {}".format(process.pid), shell=True)
             print("Timeout reached, use --timeout to extend execution time")
 
         rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)

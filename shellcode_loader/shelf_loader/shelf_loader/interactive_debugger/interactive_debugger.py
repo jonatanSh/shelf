@@ -72,9 +72,17 @@ class InteractiveDebugger(object):
         script_directory = os.path.join(consts.BASE_DIR, 'interactive_debugger',
                                         'gdb_scripts')
         gdb_main_script = os.path.join(script_directory, 'gdb_main.py')
-        setup_commands = ['set architecture {}'.format(consts.GDB_ARCHES[self.loader.arch])]
-        command = ["gdb-multiarch", '-iex', '"source {}"'.format(gdb_main_script)
-                   ]
+        gdb_utils_script = os.path.join(script_directory, 'gdb_utils.gdb')
+
+        """
+            Basic gdb setup command including setting the architecture
+            and initializing gdb scripts
+        """
+        setup_commands = ['set architecture {}'.format(consts.GDB_ARCHES[self.loader.arch]),
+                          'source {}'.format(gdb_main_script),
+                          'source {}'.format(gdb_utils_script)]
+
+        command = ["gdb-multiarch"]
         for setup_command in setup_commands:
             command += ['-iex', "{}".format(setup_command)]
         logging.info("Executing: {}".format(command))
