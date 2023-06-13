@@ -103,7 +103,7 @@ def execute_shellcode():
         print("Address not found, probably crashed before ?")
 
 
-def display_shellcode_symbols():
+def display_shellcode_symbols(name=None):
     syms = get_symbols()
     if not syms:
         print("Shellcode not executed yet !")
@@ -111,6 +111,8 @@ def display_shellcode_symbols():
 
     for symbol_object in syms:
         symbol_name, symbol_address, symbol_size = symbol_object
+        if name and name != symbol_name:
+            continue
         print("{}-{}: {}".format(
             hex(symbol_address),
             hex(symbol_address + symbol_size),
@@ -134,7 +136,7 @@ def find_symbol_at_address(address):
     if not dump:
         return
     return dump.find_symbol_at_address(address=address)
-    
+
 
 def add_symbols_to_disassembly(disassembly):
     lines = []

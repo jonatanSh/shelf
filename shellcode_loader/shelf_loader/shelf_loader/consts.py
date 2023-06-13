@@ -14,7 +14,8 @@ QEMUS = {
 
 GDB_ARCHES = {
     Arches.mips.value: "mips",
-    Arches.intel_x32.value: 'i386'
+    Arches.intel_x32.value: 'i386',
+    Arches.aarch64.value: 'aarch64'
 }
 
 
