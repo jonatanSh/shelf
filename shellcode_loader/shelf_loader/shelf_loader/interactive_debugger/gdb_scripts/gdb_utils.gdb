@@ -1,14 +1,10 @@
-define _ms
-    x/20i $pc
+define ms
+    disassm
     si
 end
 
-define ms
-    python py_ms()
-end
-
 define mni
-    x/20i $pc
+    disassm
     nexti
 end
 
@@ -27,4 +23,15 @@ end
 
 define display_shellcode_symbols
     python display_shellcode_symbols()
+end
+
+define break_on_shellcode_main
+    execute_shellcode
+    python break_on_symbol('main')
+    c
+    disassm
+end
+
+define disassm
+    python disassm()
 end

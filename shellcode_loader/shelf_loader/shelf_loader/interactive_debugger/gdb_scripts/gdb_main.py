@@ -103,7 +103,7 @@ def execute_shellcode():
         print("Address not found, probably crashed before ?")
 
 
-def display_shellcode_symbols(name=None):
+def display_shellcode_symbols(name=None, only_return_address=False):
     syms = get_symbols()
     if not syms:
         print("Shellcode not executed yet !")
@@ -113,6 +113,8 @@ def display_shellcode_symbols(name=None):
         symbol_name, symbol_address, symbol_size = symbol_object
         if name and name != symbol_name:
             continue
+        if only_return_address:
+            return symbol_address
         print("{}-{}: {}".format(
             hex(symbol_address),
             hex(symbol_address + symbol_size),
@@ -167,8 +169,13 @@ def add_symbols_to_disassembly(disassembly):
     return "\n".join(lines)
 
 
-def py_ms():
-    gdb.execute("si", to_string=True)
+def break_on_symbol(sym_name):
+    address = display_shellcode_symbols(only_return_address=True, name=sym_name)
+    if address:
+        gdb.execute("b *{}".format(hex(address)))
+
+
+def disassm():
     disassembly = gdb.execute("x/10i $pc", to_string=True)
     try:
         disassembly = add_symbols_to_disassembly(disassembly)
