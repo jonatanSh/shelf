@@ -61,3 +61,24 @@ Faulting address: 0xff6f4404
                                               0xff6f4434:    ldr    r2, [fp, #-8]               # 0x8 0x20 0x1b 0xe5
                                               0xff6f4438:    cmp    r2, r3                      # 0x3 0x0 0x52 0xe1
 ```
+
+## Debugging with the loader
+by adding the following to the command line
+```bash
+--attach-debugger
+```
+you will be prompted into the loader interactive disassembler
+from there you can fork into gdb using the gdb command.
+inside gdb many specific commands are defined
+
+### Commands inside gdb
+#### Disassm command
+The disassm command use gdb to disassemble the code where pc is pointed to.
+it will also try to resolve symbols inside the shellcode and display them beside the disassembly output/
+
+
+#### execute_shellcode
+break on shellcode entry point
+
+#### break_on_shellcode_main
+break on shellcode main function it does this by locating the address of the shellcode main function.
