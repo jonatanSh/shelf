@@ -171,8 +171,7 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
         if process.stdout in rlist:
             stdout += process.stdout.read()
         if process.stderr in rlist:
-            stderr += process.stderr.read()
-
+            stderr += process.stderr.read(1)
         if (time.time() - start) > CONSTS.execution_timeout_seconds.value:
             if is_debug:
                 continue

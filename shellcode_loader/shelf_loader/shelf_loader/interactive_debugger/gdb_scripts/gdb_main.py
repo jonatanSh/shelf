@@ -8,6 +8,7 @@ print(HEADER)
 
 shelf = None
 shelf_dump = None
+symbols = None
 
 
 def create_shelf(source_elf_path):
@@ -18,15 +19,13 @@ def create_shelf(source_elf_path):
 
 def get_dump():
     global shelf_dump
-    address = get_shellcode_address()
-    memory_dump = get_memory_dump_for_shellcode()
-
-    if not shelf or not address or not memory_dump:
-        print("Error shellcode not mapped yet")
-        return
 
     if not shelf_dump:
+        address = get_shellcode_address()
+        memory_dump = get_memory_dump_for_shellcode()
 
+        if not shelf or not address or not memory_dump:
+            return
         shelf_dump = shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
             memory_dump=memory_dump,
             dump_address=address,
@@ -34,6 +33,7 @@ def get_dump():
         )
 
     return shelf_dump
+
 
 # Define a Python function as a GDB macro
 def get_stdout():
@@ -72,7 +72,6 @@ def get_memory_dump_for_shellcode():
     shellcode_address = get_shellcode_address()
     shellcode_size = get_shellcode_mapped_size()
     if not shellcode_address or not shellcode_size:
-        print("Error shellcode not mapped yet !")
         return
     # Read the memory
     memory_data = gdb.selected_inferior().read_memory(shellcode_address, shellcode_size)
@@ -102,3 +101,79 @@ def execute_shellcode():
         get_stdout()
     else:
         print("Address not found, probably crashed before ?")
+
+
+def display_shellcode_symbols():
+    syms = get_symbols()
+    if not syms:
+        print("Shellcode not executed yet !")
+        return
+
+    for symbol_object in syms:
+        symbol_name, symbol_address, symbol_size = symbol_object
+        print("{}-{}: {}".format(
+            hex(symbol_address),
+            hex(symbol_address + symbol_size),
+            symbol_name
+        ))
+
+
+def get_symbols():
+    global symbols
+    dump = get_dump()
+    if not dump:
+        return
+
+    if not symbols:
+        symbols = dump.get_symbol_by_name()
+    return symbols
+
+
+def find_symbol_at_address(address):
+    syms = get_symbols()
+    if not syms:
+        return
+    for symbol_object in syms:
+        symbol_name, symbol_address, symbol_size = symbol_object
+        if symbol_address <= address <= symbol_address + symbol_size:
+            return symbol_name
+
+
+def add_symbols_to_disassembly(disassembly):
+    lines = []
+    for line in disassembly.split("\n"):
+        address_start = line.find(" ") + 1
+        while line[address_start:].startswith(" "):
+            address_start += 1
+
+        address_end = line[address_start:].find(" ") + address_start
+        address_other_end = line[address_start:].find(":") + address_start
+        address_end = min(address_other_end, address_end)
+        address = line[address_start: address_end].strip()
+        if address.startswith(" "):
+            address = address[1:]
+        if not address:
+            continue
+        address = int(address, 16)
+        symbol_name = find_symbol_at_address(address)
+        symbol_end = line.find(":")
+        symbol_start = line[:symbol_end].rfind(' ') + 1
+        potential_symbol_part = line[symbol_start:symbol_end]
+        if potential_symbol_part.startswith("<") and potential_symbol_part.endswith(">"):
+            # Found gdb symbol
+            pass
+        else:
+            line = line[:symbol_start] + "<{}>".format(symbol_name) + line[symbol_end:]
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def py_ms():
+    gdb.execute("si", to_string=True)
+    disassembly = gdb.execute("x/10i $pc", to_string=True)
+    try:
+        disassembly = add_symbols_to_disassembly(disassembly)
+    except Exception as e:
+        print("Disassembly exception: {}".format(e))
+        pass
+    print(disassembly)

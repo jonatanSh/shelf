@@ -213,22 +213,26 @@ class ShelfMemoryDump(object):
             sym = "SHELF:{}".format(sym)
         return sym
 
-    def get_symbol_by_name(self, symbol_name):
+    def get_symbol_by_name(self, symbol_name=None):
         """
         Compute and return the symbol in memory
         :param symbol_name: the symbol to locate
         :return: SymbolObject(Tuple)
         """
+        empty_symbol = (None, None, None)
+        symbols_mapped = []
         symbols = self.plugin.shelf.find_symbols(
             return_relative_address=True, symbol_name=symbol_name
         )
-        if not symbols:
-            return None, None, None
-        if len(symbols) > 1:
-            raise Exception("More then one symbol with the name: {} found".format(symbol_name))
-        symbol_name, relative_symbol_address, symbol_size = symbols[0]
-        symbol_address = self.convert_to_memory_absolute_address(relative_symbol_address)
-        return symbol_name, symbol_address, symbol_size
+
+        for symbol_object in symbols:
+            sym_name, relative_symbol_address, symbol_size = symbol_object
+            symbol_address = self.convert_to_memory_absolute_address(relative_symbol_address)
+            if not symbol_name or symbol_name == sym_name:
+                symbols_mapped.append((sym_name, symbol_address, symbol_size))
+        if symbol_name:
+            return empty_symbol if len(symbols_mapped) <= 0 else symbols_mapped[0]
+        return symbols_mapped
 
 
 class MemoryDumpPlugin(BaseShelfPlugin):
