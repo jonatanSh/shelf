@@ -130,14 +130,11 @@ def get_symbols():
 
 
 def find_symbol_at_address(address):
-    syms = get_symbols()
-    if not syms:
+    dump = get_dump()
+    if not dump:
         return
-    for symbol_object in syms:
-        symbol_name, symbol_address, symbol_size = symbol_object
-        if symbol_address <= address <= symbol_address + symbol_size:
-            return symbol_name
-
+    return dump.find_symbol_at_address(address=address)
+    
 
 def add_symbols_to_disassembly(disassembly):
     lines = []
