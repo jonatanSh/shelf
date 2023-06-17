@@ -1,4 +1,3 @@
-import sys
 import logging
 import os.path
 import readline
@@ -27,7 +26,8 @@ class InteractiveDebugger(object):
             'help': self.help,
             'rebase': self.rebase,
             'gdb': self.gdb,
-            'exit': self.exit
+            'exit': self.exit,
+            'ipython': self.ipython
         }
         self.auto_complete = get_auto_complete(self.commands.keys())
         readline.parse_and_bind("history")
@@ -101,6 +101,11 @@ class InteractiveDebugger(object):
         logging.info("Executing: {}".format(command))
         subprocess.call(command)
         self.exit()
+
+    def ipython(self):
+        print("Embeding ipython interactive shell")
+        import IPython
+        IPython.embed()
 
     def exit(self):
         self.should_break = True

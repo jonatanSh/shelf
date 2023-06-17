@@ -125,7 +125,7 @@ def merge_features(first_dict, second_dict):
 
 
 class Compiler(object):
-    def __init__(self, host, cflags, compiler_name, files=[]):
+    def __init__(self, host, cflags, compiler_name, files=[], is_eshelf=False):
         self._gcc = "{}-gcc".format(host)
         self._objcopy = "{}-objcopy".format(host)
         self._strip = "{}-strip".format(host)
@@ -133,6 +133,7 @@ class Compiler(object):
         self.compiler_name = compiler_name
         self.compile_kwargs = None
         self.files = files
+        self.is_eshelf = is_eshelf
 
     @staticmethod
     def execute(*cmd):
@@ -216,7 +217,8 @@ class Compiler(object):
         )
 
         symbols = extract_relative_symbol_address(
-            binary_path=output_file
+            binary_path=output_file,
+            is_eshelf=self.is_eshelf
         )
         with open(relative_symbol_filename, 'w') as fp:
             json.dump(symbols, fp)
@@ -231,12 +233,13 @@ class Compiler(object):
 
 
 def get_compiler(host, cflags, compiler_name, files=[]):
-    def cls():
+    def cls(is_eshelf=False):
         return Compiler(
             host=host,
             cflags=cflags,
             compiler_name=compiler_name,
-            files=files
+            files=files,
+            is_eshelf=is_eshelf
         )
 
     return cls
@@ -309,7 +312,8 @@ features = {
                'files': ['generic_loader.c'] + OSAL_DEBUG_FILES,
                'supported': arches,
                "strip_flags": "--strip-all --strip-debug --strip-dwo --strip-unneeded",
-               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc']}
+               'remove_cflags': ['-nostartfiles', '--entry=loader_main', '-nolibc'],
+               'is_eshelf': True}
 }
 # Removing generic loader key
 all_feature_keys = [key for key in features.keys() if key]
@@ -337,7 +341,6 @@ def prepare_jobs():
     jobs = []
     for compiler_cls in compilers:
         for feature_keys in all_features:
-            compiler = compiler_cls()
             feature_name = "_".join(feature_keys)
             attributes = {'supported': arches}  # Always set all arches to support
             for key in feature_keys:
@@ -345,6 +348,9 @@ def prepare_jobs():
             supported = attributes.get('supported', [])
             flags = attributes.get("cflags", [])
             remove_flags = attributes.get("remove_cflags", [])
+            is_eshelf = attributes.get("is_eshelf", False)
+            compiler = compiler_cls(is_eshelf=is_eshelf)
+
             if compiler.compiler_name not in supported or should_skip_features(compiler.compiler_name, feature_name):
                 print("[-] Skipping feature: {} - {}".format(
                     feature_name,
