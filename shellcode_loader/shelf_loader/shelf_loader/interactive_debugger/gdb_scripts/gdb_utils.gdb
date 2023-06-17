@@ -35,3 +35,7 @@ end
 define disassm
     python disassm()
 end
+
+define shelf_trace
+    python debug_flow_manager_generate_flow()
+end

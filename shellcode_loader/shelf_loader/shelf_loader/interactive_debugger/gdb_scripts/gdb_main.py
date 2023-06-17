@@ -2,6 +2,7 @@ import gdb
 from shelf_loader import consts
 from shelf_loader.extractors.utils import extract_int16, extract_int10
 from shelf.api import ShelfApi
+from shelf_loader.interactive_debugger.gdb_scripts.shelf_debug_flow import DebugFlowManager
 
 HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
@@ -9,6 +10,12 @@ print(HEADER)
 shelf = None
 shelf_dump = None
 symbols = None
+
+debug_flow_manager = DebugFlowManager()
+
+
+def debug_flow_manager_generate_flow():
+    debug_flow_manager.run()
 
 
 def create_shelf(source_elf_path):

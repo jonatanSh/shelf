@@ -224,12 +224,17 @@ class ShelfMemoryDump(object):
         symbols = self.plugin.shelf.find_symbols(
             return_relative_address=True, symbol_name=symbol_name
         )
-
         for symbol_object in symbols:
             sym_name, relative_symbol_address, symbol_size = symbol_object
             symbol_address = self.convert_to_memory_absolute_address(relative_symbol_address)
             if not symbol_name or symbol_name == sym_name:
                 symbols_mapped.append((sym_name, symbol_address, symbol_size))
+
+        for mini_loader_symbol_object in self.plugin.shelf.mini_loader.iterate_relative_symbols():
+            sym_name, relative_symbol_address, symbol_size = mini_loader_symbol_object
+            relative_symbol_address += self.loading_address
+            symbols_mapped.append((sym_name, relative_symbol_address, symbol_size))
+
         if symbol_name:
             return empty_symbol if len(symbols_mapped) <= 0 else symbols_mapped[0]
         return symbols_mapped
