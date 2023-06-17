@@ -7,6 +7,8 @@ class DebugFlowManager(object):
             'loader_main',
             'loader_handle_relocation_table',
             'loader_call_main',
+            'loader_handle_irelative_relocs',
+            'loader_handle_relative_to_loader_base'
         ]
 
     def install_breakpoints(self):

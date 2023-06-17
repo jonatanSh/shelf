@@ -180,6 +180,8 @@ def break_on_symbol(sym_name):
     address = display_shellcode_symbols(only_return_address=True, name=sym_name)
     if address:
         gdb.execute("b *{}".format(hex(address)))
+    else:
+        print("Address for symbol: {} not found !".format(sym_name))
 
 
 def disassm():
