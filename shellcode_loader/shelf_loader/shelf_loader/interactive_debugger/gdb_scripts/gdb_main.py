@@ -1,3 +1,5 @@
+import binascii
+
 import gdb
 from shelf_loader import consts
 from shelf_loader.extractors.utils import extract_int16, extract_int10
@@ -153,10 +155,14 @@ def add_symbols_to_disassembly(disassembly):
         address_start = line.find(" ") + 1
         while line[address_start:].startswith(" "):
             address_start += 1
+        matches = [line[address_start:].find(" "), line[address_start:].find(":")]
+        while -1 in matches:
+            matches.remove(-1)
+        if not matches:
+            lines.append(line)
+            continue
 
-        address_end = line[address_start:].find(" ") + address_start
-        address_other_end = line[address_start:].find(":") + address_start
-        address_end = min(address_other_end, address_end)
+        address_end = min(matches) + address_start
         address = line[address_start: address_end].strip()
         if address.startswith(" "):
             address = address[1:]
@@ -171,7 +177,7 @@ def add_symbols_to_disassembly(disassembly):
             # Found gdb symbol
             pass
         else:
-            line = line[:symbol_start] + "<{}>".format(symbol_name) + line[symbol_end:]
+            line = line[:symbol_start] + "<{} {}>".format(symbol_name, hex(address)) + line[symbol_end:]
         lines.append(line)
     return "\n".join(lines)
 
