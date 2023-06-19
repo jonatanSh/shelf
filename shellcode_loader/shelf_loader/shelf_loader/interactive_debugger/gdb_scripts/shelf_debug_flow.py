@@ -20,7 +20,7 @@ class DebugFlowManager(object):
         print("Running Shelf interactive flow manager")
         self.install_breakpoints()
         print("Executing")
-        self.execute("c")
+        self.execute("mc")
 
     @staticmethod
     def add_breakpoint_for_symbol(sym_name):

@@ -92,7 +92,7 @@ def execute_shellcode():
     address = get_shellcode_address()
     if not address:
         gdb.execute("b *execute_shellcode")
-        gdb.execute("c")
+        gdb.execute("mc")
         last_ms = gdb.execute("mni", to_string=True)
         while last_ms != gdb.execute("mni", to_string=True):
             address = get_shellcode_address()
@@ -103,7 +103,7 @@ def execute_shellcode():
     if address:
         print("Shellcode loaded to: {}".format(hex(address)))
         gdb.execute("b *{}".format(address))
-        gdb.execute("c")
+        gdb.execute("mc")
         print("Shellcode loaded displaying stdout")
         get_stdout()
     else:
@@ -147,8 +147,31 @@ def find_symbol_at_address(address, **kwargs):
     return dump.find_symbol_at_address(address=address, **kwargs)
 
 
-def add_symbols_to_disassembly(disassembly):
+def add_sym_address_to_line(line, address, with_symbol=False):
+    address = int(address, 16)
+    original_name, symbol_name = find_symbol_at_address(address, with_original=True)
+    symbol_end = line.find(":")
+    symbol_start = line[:symbol_end].rfind(' ') + 1
+    potential_symbol_part = line[symbol_start:symbol_end]
+    if potential_symbol_part.startswith("<") and potential_symbol_part.endswith(">"):
+        # Found gdb symbol
+        pass
+    else:
+        sym_add = display_shellcode_symbols(only_return_address=True, name=original_name)
+        if sym_add:
+            off = "+{}".format(hex(address - sym_add))
+        else:
+            off = hex(address)
+        symbol_name = "{} {}".format(symbol_name, off)
+        line = line[:symbol_start] + "<{}>".format(symbol_name) + line[symbol_end:]
+    if with_symbol:
+        line = (line, symbol_name)
+    return line
+
+
+def add_symbols_to_disassembly(disassembly, with_symbols=False):
     lines = []
+    symbols = []
     for line in disassembly.split("\n"):
         address_start = line.find(" ") + 1
         while line[address_start:].startswith(" "):
@@ -166,23 +189,16 @@ def add_symbols_to_disassembly(disassembly):
             address = address[1:]
         if not address:
             continue
-        address = int(address, 16)
-        original_name, symbol_name = find_symbol_at_address(address, with_original=True)
-        symbol_end = line.find(":")
-        symbol_start = line[:symbol_end].rfind(' ') + 1
-        potential_symbol_part = line[symbol_start:symbol_end]
-        if potential_symbol_part.startswith("<") and potential_symbol_part.endswith(">"):
-            # Found gdb symbol
-            pass
-        else:
-            sym_add = display_shellcode_symbols(only_return_address=True, name=original_name)
-            if sym_add:
-                off = "+{}".format(hex(address - sym_add))
-            else:
-                off = hex(address)
-            line = line[:symbol_start] + "<{} {}>".format(symbol_name, off) + line[symbol_end:]
+        line = add_sym_address_to_line(line, address, with_symbol=with_symbols)
+        if with_symbols:
+            line, symbol = line
+            symbols.append(symbol)
         lines.append(line)
-    return "\n".join(lines)
+
+    out = "\n".join(lines)
+    if with_symbols:
+        out = (out, symbols)
+    return out
 
 
 def break_on_symbol(sym_name):
@@ -191,6 +207,20 @@ def break_on_symbol(sym_name):
         gdb.execute("b *{}".format(hex(address)))
     else:
         print("Address for symbol: {} not found !".format(sym_name))
+
+
+def get_current_symbol():
+    disassembly = gdb.execute("x/1i $pc", to_string=True)
+    data, symbols = add_symbols_to_disassembly(disassembly, True)
+    if symbols:
+        return symbols[0]
+
+
+def my_continue():
+    gdb.execute("c")
+    sym = get_current_symbol()
+    if sym:
+        print("----> {}".format(sym))
 
 
 def disassm():

@@ -28,7 +28,7 @@ end
 define break_on_shellcode_main
     execute_shellcode
     python break_on_symbol('main')
-    c
+    mc
     disassm $pc
 end
 
@@ -38,4 +38,8 @@ end
 
 define shelf_trace
     python debug_flow_manager_generate_flow()
+end
+
+define mc
+    python my_continue()
 end
