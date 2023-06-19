@@ -1,5 +1,3 @@
-import binascii
-
 import gdb
 from shelf_loader import consts
 from shelf_loader.extractors.utils import extract_int16, extract_int10
@@ -142,11 +140,11 @@ def get_symbols():
     return symbols
 
 
-def find_symbol_at_address(address):
+def find_symbol_at_address(address, **kwargs):
     dump = get_dump()
     if not dump:
         return
-    return dump.find_symbol_at_address(address=address)
+    return dump.find_symbol_at_address(address=address, **kwargs)
 
 
 def add_symbols_to_disassembly(disassembly):
@@ -169,7 +167,7 @@ def add_symbols_to_disassembly(disassembly):
         if not address:
             continue
         address = int(address, 16)
-        symbol_name = find_symbol_at_address(address)
+        original_name, symbol_name = find_symbol_at_address(address, with_original=True)
         symbol_end = line.find(":")
         symbol_start = line[:symbol_end].rfind(' ') + 1
         potential_symbol_part = line[symbol_start:symbol_end]
@@ -177,7 +175,12 @@ def add_symbols_to_disassembly(disassembly):
             # Found gdb symbol
             pass
         else:
-            line = line[:symbol_start] + "<{} {}>".format(symbol_name, hex(address)) + line[symbol_end:]
+            sym_add = display_shellcode_symbols(only_return_address=True, name=original_name)
+            if sym_add:
+                off = "+{}".format(hex(address - sym_add))
+            else:
+                off = hex(address)
+            line = line[:symbol_start] + "<{} {}>".format(symbol_name, off) + line[symbol_end:]
         lines.append(line)
     return "\n".join(lines)
 
@@ -191,7 +194,15 @@ def break_on_symbol(sym_name):
 
 
 def disassm():
-    disassembly = gdb.execute("x/10i $pc", to_string=True)
+    return _disassm("$pc")
+
+
+def _disassm(add):
+    try:
+        add = eval(add)
+    except Exception as e:
+        pass
+    disassembly = gdb.execute("x/10i {}".format(add), to_string=True)
     try:
         disassembly = add_symbols_to_disassembly(disassembly)
     except Exception as e:

@@ -197,21 +197,25 @@ class ShelfMemoryDump(object):
             if relative_symbol_address <= address <= relative_symbol_address + symbol_size:
                 return symbol_name
 
-    def find_symbol_at_address(self, address):
+    def find_symbol_at_address(self, address, with_original=False):
         """
         Get address as input and find the correlated symbol inside shelf or the mini loader
         :param address: address
+        :param with_original: Also return the original symbol name
         :return: symbol name
         """
         if self.is_address_in_mini_loader(address):
-            sym = self.find_symbol_at_address_in_mini_loader(
+            original_name = self.find_symbol_at_address_in_mini_loader(
                 address=address
             )
-            sym = "MLOADER:{}".format(sym)
+            sym = "MLOADER:{}".format(original_name)
         else:
-            sym = self.find_symbol_at_address_in_shelf(address)
-            sym = "SHELF:{}".format(sym)
-        return sym
+            original_name = self.find_symbol_at_address_in_shelf(address)
+            sym = "SHELF:{}".format(original_name)
+        if with_original:
+            return original_name, sym
+        else:
+            return sym
 
     def get_symbol_by_name(self, symbol_name=None):
         """

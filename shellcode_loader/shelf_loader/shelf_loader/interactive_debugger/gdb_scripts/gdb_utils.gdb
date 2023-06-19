@@ -1,10 +1,10 @@
 define ms
-    disassm
+    disassm $pc
     si
 end
 
 define mni
-    disassm
+    disassm $pc
     nexti
 end
 
@@ -29,11 +29,11 @@ define break_on_shellcode_main
     execute_shellcode
     python break_on_symbol('main')
     c
-    disassm
+    disassm $pc
 end
 
 define disassm
-    python disassm()
+    python _disassm("$arg0")
 end
 
 define shelf_trace
