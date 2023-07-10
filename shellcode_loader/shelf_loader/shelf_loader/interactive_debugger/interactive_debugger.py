@@ -109,3 +109,7 @@ class InteractiveDebugger(object):
 
     def exit(self):
         self.should_break = True
+
+    def terminate(self):
+        # Termination methods for shell
+        pass

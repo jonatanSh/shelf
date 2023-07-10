@@ -108,7 +108,13 @@ class ShellcodeLoaderGeneric(object):
         start = time.time()
         timeout_passed = False
         if self.args.attach_debugger:
-            self.shell.embed()
+            try:
+                self.shell.embed()
+            except Exception as error:
+                if self.args.verbose_exceptions:
+                    traceback.print_exc()
+                else:
+                    logging.error("In occurred in shell: {}".format(error))
         try:
             while process.poll() is None and not self.args.attach_debugger:
                 rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
@@ -125,6 +131,7 @@ class ShellcodeLoaderGeneric(object):
         except KeyboardInterrupt:
             timeout_passed = True
             pass
+        self.shell.terminate()
         if process.poll() is None:
             logging.info("Killing pid: {}".format(process.pid))
             os.kill(process.pid, signal.SIGKILL)
