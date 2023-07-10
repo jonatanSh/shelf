@@ -104,7 +104,7 @@ class OpcodesExtractor(BaseExtractor):
             if not self.args.source_elf:
                 logging.critical("Critical information can't be parsed because --source-elf is missing")
                 self.stream = self.stream.replace(dmp_full, dmp_full[:400] +
-                                                  "....\n[This line ist trunked by the loader to view the full line use --disable-extractors]\n"
+                                                  "....\n[This line is truncated by the loader to view the full line use --disable-extractors]\n"
                                                   "To view a full disassembly use --source-elf")
                 continue
 
