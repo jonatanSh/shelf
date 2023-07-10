@@ -158,6 +158,9 @@ class ShellcodeLoaderGeneric(object):
                     pass
 
         sys.stdout.write(stdout[:self.args.limit_stdout])
+        if self.args.limit_stdout > 0 and self.args.limit_stdout < len(stdout):
+            sys.stdout.write(" ... output truncated\nto disable use --limit-stdout -1\n")
+            sys.stdout.write("\n")
         if stderr:
             sys.stderr.write("\n")
             sys.stderr.write(stderr)
