@@ -1,6 +1,5 @@
 from shelf.lib.ext.dynamic_relocations_base import BaseDynamicRelocations
 from elftools.elf.enums import ENUM_RELOC_TYPE_i386
-from shelf.lib.consts import RelocationAttributes
 
 
 # ELF SPEC
