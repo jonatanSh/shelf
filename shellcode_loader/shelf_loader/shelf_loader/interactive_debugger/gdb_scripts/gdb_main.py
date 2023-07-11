@@ -239,3 +239,11 @@ def _disassm(add):
         print("Disassembly exception: {}".format(e))
         pass
     print(disassembly)
+
+
+def _exit():
+    try:
+        gdb.execute("detach")
+    except:
+        pass
+    gdb.execute("quit")

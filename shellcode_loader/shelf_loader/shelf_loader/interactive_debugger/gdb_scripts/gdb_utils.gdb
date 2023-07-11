@@ -9,8 +9,7 @@ define mni
 end
 
 define exit
-    detach
-    quit
+    python _exit()
 end
 
 define get_stdout
