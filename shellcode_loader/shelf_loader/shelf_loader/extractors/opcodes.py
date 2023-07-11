@@ -90,17 +90,16 @@ class OpcodesExtractor(BaseExtractor):
             extractor_data=extractor_data
         )
         self.memory_dumps = extract_text_between(self.stream, ShellcodeLoader.MemoryDumpStart,
-                                                 ShellcodeLoader.MemoryDumpEnd)
+                                                 ShellcodeLoader.MemoryDumpEnd,
+                                                 allow_end_on_terminated_string=True,
+                                                 return_mapped=True)
 
     @property
     def parsed(self):
         parsed_data = {
             'segfaults': []
         }
-        for memory_dump in self.memory_dumps:
-            dmp_full = "{}{}{}".format(ShellcodeLoader.MemoryDumpStart,
-                                       memory_dump,
-                                       ShellcodeLoader.MemoryDumpEnd)
+        for dmp_full, memory_dump in self.memory_dumps.items():
             if not self.args.source_elf:
                 logging.critical("Critical information can't be parsed because --source-elf is missing")
                 self.stream = self.stream.replace(dmp_full, dmp_full[:400] +

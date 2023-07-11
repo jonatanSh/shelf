@@ -3,14 +3,18 @@ from shelf.api import ShelfApi
 
 
 def extract_text_between(stream, start_s, end_s, times=-1,
-                         rindex_start=False):
+                         rindex_start=False,
+                         allow_end_on_terminated_string=False,
+                         return_mapped=False):
     streams = []
+    mapped = {}
     if rindex_start:
         start = stream.rfind(start_s)
     else:
         start = stream.find(start_s)
 
     i = 0
+
     while start >= 0 and i != times:
         start += len(start_s)
         if not end_s:
@@ -19,20 +23,28 @@ def extract_text_between(stream, start_s, end_s, times=-1,
             end = stream[start:].find(end_s)
 
         if end < 0:
-            raise Exception("Infinite loop detected: start_s={}, end_s={}, r_index_start={}".format(
-                start_s,
-                end_s,
-                rindex_start
-            ))
+            if allow_end_on_terminated_string:
+                end = len(stream) - start
+            else:
+                raise Exception("Infinite loop detected: start_s={}, end_s={}, r_index_start={}".format(
+                    start_s,
+                    end_s,
+                    rindex_start
+                ))
         end += start
+        original = stream[start - len(start_s):end - len(end_s)]
         sub = stream[start:end]
         stream = stream[end + len(end_s):]
         streams.append(sub)
+        mapped[original] = sub
         if rindex_start:
             start = stream.rfind(start_s)
         else:
             start = stream.find(start_s)
         i += 1
+    if return_mapped:
+        assert times == -1
+        return mapped
     if not streams:
         return []
     if times == 1:
@@ -41,7 +53,8 @@ def extract_text_between(stream, start_s, end_s, times=-1,
 
 
 def extract_int16(stream, start, end):
-    value = extract_text_between(stream, start, end, times=1)
+    value = extract_text_between(stream, start, end,
+                                 times=1)
     if value and type(value) is str:
         return int(value, 16)
     return
