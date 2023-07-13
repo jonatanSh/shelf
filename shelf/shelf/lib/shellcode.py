@@ -80,6 +80,7 @@ class Shellcode(object):
         self.ptr_fmt = ptr_fmt
         self.ptr_signed_fmt = self.ptr_fmt.lower()
         self.relocation_handlers = []
+        self.shellcode_formatters = []
 
         self.supported_start_methods = supported_start_methods
         if StartFiles.no_start_files not in self.supported_start_methods:
@@ -121,6 +122,16 @@ class Shellcode(object):
         Shelf plugin
         """
         self.memory_dump_plugin = MemoryDumpPlugin(self)
+
+    def add_shellcode_formatter(self, formatter_method):
+        self.shellcode_formatters.append(formatter_method)
+
+    def dispatch_shellcode_formatters(self, shellcode_data):
+        for formatter in self.shellcode_formatters:
+            self.logger.info("Dispatching: {}".format(formatter))
+            shellcode_data = formatter(shellcode_data)
+
+        return shellcode_data
 
     def _get_lief_imports(self, library=False, section_flags=False):
         lib, flags = five.get_lief()
@@ -532,7 +543,10 @@ class Shellcode(object):
         for handler in self.relocation_handlers:
             shellcode_data = handler(shellcode=self,
                                      shellcode_data=shellcode_data)
+
         shellcode_data = self.do_objdump(shellcode_data)
+        shellcode_data = self.dispatch_shellcode_formatters(shellcode_data)
+
         # Calling the do hooks
 
         self.do_hooks()
@@ -624,8 +638,16 @@ class Shellcode(object):
         return address - self.loading_virtual_address
 
     def unpack_ptr(self, stream):
+        assert len(stream) == self.ptr_size, "Error stream size: {}, required: {}".format(
+            len(stream),
+            self.ptr_size
+        )
         return struct.unpack("{}{}".format(self.endian,
                                            self.ptr_fmt), stream[:self.ptr_size])[0]
+
+    @property
+    def opcodes_start_address(self):
+        return self.linker_base_address
 
     def stream_unpack_pointers(self, stream, num_of_ptrs):
         return struct.unpack("{}{}".format(self.endian,

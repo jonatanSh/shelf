@@ -10,7 +10,7 @@ class Disassembler(object):
             DisassemblerConsts.ENDIAN[shellcode.args.arch] | mode
         )
 
-    def _disassemble(self, code, off):
+    def raw_disassemble(self, code, off):
         return self.cs.disasm(code, off)
 
     @staticmethod
@@ -31,7 +31,7 @@ class Disassembler(object):
                     limit=-1,
                     symbol_name="UNKNOWN_SYMBOL",
                     symbol_at_marked=""):
-        _instructions = [instruction for instruction in self._disassemble(
+        _instructions = [instruction for instruction in self.raw_disassemble(
             opcodes,
             address,
         )]

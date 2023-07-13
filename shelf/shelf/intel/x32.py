@@ -4,6 +4,7 @@ from shelf.intel.intel_irelative_relocations import IntelIrelativeRelocs
 from shelf.lib.consts import StartFiles
 from shelf.intel.x32_dynamic_relocations import X32DynamicRelocations
 from shelf.lib.consts import ShellcodeMagics
+from shelf.intel.x32_opcodes_analysis import IntelX32OpcodesAnalyzer
 
 
 def get_glibc_instructions_filter(address):
@@ -45,6 +46,8 @@ class IntelX32Shellcode(Shellcode):
         self.add_relocation_handler(self.irelative.relocation_for_rel_plt_got_plt)
         self.dynamic_handler = X32DynamicRelocations(shellcode=self)
         self.add_relocation_handler(self.dynamic_handler.handle)
+        self.deep_analysis = IntelX32OpcodesAnalyzer(self)
+        self.add_shellcode_formatter(self.deep_analysis.analyze)
 
 
 intel_x32_make_shellcode = create_make_shellcode(IntelX32Shellcode)

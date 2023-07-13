@@ -44,12 +44,20 @@ parser.add_argument("--hooks-configuration", required=False,
                          "for examples look at hook_configurations/simple_hello_hook.py under the project github page",
                     nargs="+", default=[])
 parser.add_argument("--run-profiler",
-                    help="Run with Cprofile to output a profile of this library only for develpomenet", required=False,
+                    help="Run with Cprofile to output a profile of this library only for development", required=False,
                     action="store_true")
 parser.add_argument("--mitigation-bypass", required=False, help="""
     Add mitigation bypass for more read the docs
     to bypass rwx mitigation add --mitigation-bypass rwx
 """, choices=[mitigation.name for mitigation in MitigationBypass], nargs="+")
+parsers_group = parser.add_argument_group("Parsers")
+parsers_group.add_argument("--relocate-opcodes",
+                           help="""This analyzer is often used with binaries that are not fully
+                           Position independent it will replace function calls to libc methods
+                           with relative relocatable addresses
+                           ! Warning this can lead to undefined behaviours, it is probably best to compile 
+                           with -fpic -fPIE 
+                           """, action="store_true", default=False)
 args = parser.parse_args()
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
