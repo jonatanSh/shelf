@@ -7,9 +7,6 @@ from shelf_loader.loader import LOADER_CLS
 
 parser = argparse.ArgumentParser("ShellcodeLoader")
 parser.add_argument('shellcode_path', help='Path to shellcode file to load')
-parser.add_argument("--originating-binary", help="The binary the shellcode was converted from"
-                                                 "This argument is not required but for some features"
-                                                 "Such as disassembly this argument is required")
 parser.add_argument("--verbose", action="store_true", default=False, required=False,
                     help="Verbose logging")
 parser.add_argument("--strace", help="Run strace against the shellcode", required=False,
