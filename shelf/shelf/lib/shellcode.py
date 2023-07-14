@@ -372,6 +372,21 @@ class Shellcode(object):
 
         return new_binary  # TODO check if the elf header is really required
 
+    def in_range_of_shellcode(self, address):
+        segments = self.get_segments_in_memory()
+        if not segments:
+            raise Exception("No segments found")
+        first_segment = segments[0]
+        start = first_segment.v_start
+        end = start
+        for segment in segments:
+            if segment.v_start < start:
+                start = segment.v_start
+            new_end = segment.v_start + segment.vsize_aligned
+            if new_end > end:
+                end = new_end
+        return start <= address <= end
+
     def convert_to_shelf_relative_offset(self, address):
         """
         Take address as input and convert to relative offset inside the shelf output
@@ -481,18 +496,28 @@ class Shellcode(object):
 
     @api_function
     def find_symbols(self, symbol_name=None,
-                     return_relative_address=False):
+                     return_relative_address=False, return_object=False,
+                     symbol_filter=lambda s: True):
+        if return_object:
+            assert not return_relative_address, "Either return object nor return_relative_address is allowed"
         symbols = []
+        objects = []
         symtab = self.elffile.get_section_by_name(".symtab")
         if not symtab:
             return symbols
         for sym in symtab.iter_symbols():
+            if not symbol_filter(sym):
+                continue
             address = sym.entry.st_value
             if return_relative_address:
                 address -= self.loading_virtual_address
             else:
                 address = sym.entry.st_value
             symbols.append((sym.name, address, sym.entry.st_size))
+            objects.append(sym)
+        if return_object:
+            return [s for s in filter(lambda o: o.name == symbol_name if symbol_name else True, objects)]
+
         if not symbols and symbol_name:
             raise Exception("Shelf symbol: {} not found".format(symbol_name))
 
@@ -617,18 +642,17 @@ class Shellcode(object):
         assert loader_symbol_address == self.mini_loader.loader.rfind(
             self.address_utils.pack_pointer(0xdeadbeff)), "Error found more then one " \
                                                           "occurrence"
-        self.logger.info("Setting shellcode base address at: {}".format(
-            hex(segment.virtual_address)
-        ))
+        shellcode_start = segment.virtual_address
         # Offset to where the shellcode starts
-        shellcode_start = self.address_utils.pack_pointer(segment.virtual_address)
-
+        self.logger.info("Setting shellcode base address at: {}->MINI_LOADER:MAIN".format(
+            hex(shellcode_start)
+        ))
         # Offset to the entry point of the loader
         elf_buffer_with_address = elf_buffer[:loader_symbol_address]
 
         # Setting the eshelf entry point to shellcode_start
         # Thats because the start of the shellcode is the relocation table
-        elf_buffer_with_address += shellcode_start
+        elf_buffer_with_address += self.address_utils.pack_pointer(shellcode_start)
         self.logger.info("Setting relocation table address to: {}".format(hex(segment.virtual_address)))
         # Adding the rest of the shellcode into the buffer
         elf_buffer_with_address += elf_buffer[loader_symbol_address + self.ptr_size:]

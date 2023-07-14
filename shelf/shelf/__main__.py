@@ -58,6 +58,7 @@ parsers_group.add_argument("--relocate-opcodes",
                            ! Warning this can lead to undefined behaviours, it is probably best to compile 
                            with -fpic -fPIE 
                            """, action="store_true", default=False)
+parser.add_argument("--force", help="Force making shellcode and disable other checks", required=False, action="store_true")
 args = parser.parse_args()
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)

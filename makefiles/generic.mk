@@ -18,21 +18,22 @@ dir_guard:
 ifeq ($(VERBOSE), 1)
 	SHELF_ADDITIONAL_ARGS=--verbose
 endif
+SHELF_ARGS=--relocate-opcodes
 
 mini_loader_%: dir_guard
 	@if [ -z $(EXCLUDE_LOADER) ]; then\
 		cd $(SELF_DIR)/../mini_loaders && python3 compile.py --action make --arch $(subst mini_loader_,,$@) $(MINI_LOADER_ARGS);\
 	fi
 shellcode: dir_guard
-	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE)$(NAME_ADD).shellcode $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS)
+	python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE)$(NAME_ADD).shellcode $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS)
 	@if [ -z $(EXCLUDE_HELLO_HOOK) ]; then\
-		python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).hooks$(NAME_ADD).shellcode --loader-supports hooks $(SHELF_ADDITIONAL_ARGS) $(SUPPORT) --hooks-configuration ../hook_configurations/simple_hello_hook.py;\
+		python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).hooks$(NAME_ADD).shellcode --loader-supports hooks $(SHELF_ADDITIONAL_ARGS) $(SUPPORT) --hooks-configuration ../hook_configurations/simple_hello_hook.py;\
 	fi
 	@if [ -z $(EXCLUDE_ESHELF) ]; then\
-		python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf$(NAME_ADD).shellcode --output-format eshelf $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS);\
+		python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf$(NAME_ADD).shellcode --output-format eshelf $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS);\
 	fi
 	@if [ -z $(EXCLUDE_DYNAMIC) ]; then\
-		python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).rwx_bypass$(NAME_ADD).shellcode --mitigation-bypass rwx $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS);\
+		python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).rwx_bypass$(NAME_ADD).shellcode --mitigation-bypass rwx $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS);\
 	fi
 
 all_shellcodes:

@@ -21,8 +21,11 @@ class OpcodeAnalyzer(object):
     def is_required(self, shellcode_data):
         if self._is_required(shellcode_data):
             if not self.shelf.args.relocate_opcodes:
+                if self.shelf.args.force:
+                    self.logger.warning("Detected --force flag, this shellcode contain opcode relocations")
+                    return
                 raise Exception("Error source binary require opcode relocations,"
                                 "probably compiled without -fpic or with (-fpic and -static), try (-fpic -staticpie) "
-                                "or use --relocate-opcodes")
+                                "or use --relocate-opcodes or --force")
             return True
         return False
