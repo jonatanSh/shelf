@@ -1,14 +1,21 @@
 import capstone
 from shelf.lib.consts import DisassemblerConsts
-
+from shelf.lib.utils.objdump_disassembler_backend import ObjdumpDisassemblerBackend
 
 class Disassembler(object):
     def __init__(self, shellcode):
-        mode = DisassemblerConsts.BITS[shellcode.args.arch]
-        self.cs = capstone.Cs(
-            DisassemblerConsts.ARCHES[shellcode.args.arch],
-            DisassemblerConsts.ENDIAN[shellcode.args.arch] | mode
-        )
+        if shellcode.args.arch in DisassemblerConsts.ARCHES:
+            mode = DisassemblerConsts.ENDIAN[shellcode.args.arch]
+            if shellcode.args.arch in DisassemblerConsts.BITS:
+                mode |= DisassemblerConsts.BITS[shellcode.args.arch]
+            self.cs = capstone.Cs(
+                DisassemblerConsts.ARCHES[shellcode.args.arch],
+                mode
+            )
+        else:
+            self.cs = ObjdumpDisassemblerBackend(
+                shellcode.args.arch
+            )
 
     def raw_disassemble(self, code, off):
         return self.cs.disasm(code, off)

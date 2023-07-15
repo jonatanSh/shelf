@@ -26,7 +26,6 @@ class SegfaultHandler(object):
                opcodes, dump_address, faulting_address, **shelf_kwargs):
         shellcode_address = other_context['shellcode_address']
         mapped_size = other_context['mapped_memory_size']
-
         shellcode_binary = Binary(binary_path=shellcode_elf,
                                   loading_address=shellcode_address, **shelf_kwargs)
         if address_in_region(address=faulting_address,
@@ -36,7 +35,11 @@ class SegfaultHandler(object):
             relative_dump_address = elf.translate_to_relative_off(dump_address)
 
         else:
-            raise NotImplemented()
+            raise NotImplementedError("Address: {} <= {} <= {} not within".format(
+                hex(shellcode_address),
+                hex(faulting_address),
+                hex(shellcode_address + mapped_size)
+            ))
 
         return cls(
             elf=elf,

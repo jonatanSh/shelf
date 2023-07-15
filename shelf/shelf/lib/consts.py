@@ -131,6 +131,7 @@ class DisassemblerConsts(object):
         Arches.intel_x64.value: capstone.CS_MODE_LITTLE_ENDIAN,
         Arches.aarch64.value: capstone.CS_MODE_LITTLE_ENDIAN,
         Arches.arm32.value: capstone.CS_MODE_LITTLE_ENDIAN,
+
     }
 
     BITS = {
@@ -139,6 +140,14 @@ class DisassemblerConsts(object):
         Arches.intel_x64.value: capstone.CS_MODE_64,
         Arches.aarch64.value: capstone.CS_MODE_ARM,
         Arches.arm32.value: capstone.CS_MODE_ARM,
+
+    }
+
+    OBJDUMP_BACKENDS = {
+        Arches.riscv64.value: 'riscv64-linux-gnu-objdump'
+    }
+    OBJDUMP_ARCHES = {
+        Arches.riscv64.value: "RISCV"
     }
 
 
@@ -159,3 +168,7 @@ class ShelfFeatures(enum.Enum):
 class ShellcodeMagics(enum.Enum):
     arch32 = 0xaabbccdd
     arch64 = 0x8899aabbccddeeff
+
+
+class Process(object):
+    timeout = 3
