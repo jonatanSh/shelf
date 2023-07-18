@@ -7,243 +7,328 @@ from shelf_loader.interactive_debugger.gdb_scripts.shelf_debug_flow import Debug
 HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
 
-shelf = None
-shelf_dump = None
-symbols = None
-
 debug_flow_manager = DebugFlowManager()
 
 
-def debug_flow_manager_generate_flow():
-    debug_flow_manager.run()
+class GdbGeneralCommandsApi(object):
+    def __init__(self):
+        self._symbols = None
+        self.source_elf_path = None
+        self._shelf_api = None
+        self._dump = None
+        self._shellcode_address = None
+        self._shellcode_mapped_size = None
+        self._shellcode_memory = None
 
+    def construct(self, source_elf_path):
+        """
+        Called within the initialization script
+        :param source_elf_path:
+        :return:
+        """
+        self.source_elf_path = source_elf_path
+        shelf_kwargs = {'loader_supports': []}
+        self._shelf_api = ShelfApi(binary_path=source_elf_path, **shelf_kwargs)
 
-def create_shelf(source_elf_path):
-    global shelf
-    shelf_kwargs = {'loader_supports': []}
-    shelf = ShelfApi(binary_path=source_elf_path, **shelf_kwargs)
+    @staticmethod
+    def debug_flow_manager_generate_flow():
+        debug_flow_manager.run()
 
+    @property
+    def shelf(self):
+        return self._shelf_api.shelf
 
-def get_dump():
-    global shelf_dump
+    @property
+    def found_shellcode_address(self):
+        try:
+            return self.shellcode_address is not None
+        except:
+            return False
 
-    if not shelf_dump:
-        address = get_shellcode_address()
-        memory_dump = get_memory_dump_for_shellcode()
+    @property
+    def shellcode_address(self):
+        """
+        Parse the shellcode address from the loader stdout
+        :return: Shellcode address
+        """
+        if not self._shellcode_address:
+            stdout = self.get_stdout(should_print=False)
 
-        if not shelf or not address or not memory_dump:
-            return
-        shelf_dump = shelf.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
-            memory_dump=memory_dump,
-            dump_address=address,
-            loading_address=address
-        )
+            if consts.ShellcodeLoader.JumpingToShellcode in stdout:
+                self._shellcode_address = extract_int16(
+                    stdout,
+                    consts.ShellcodeLoader.JumpingToShellcode,
+                    '\n'
+                )
+            raise Exception("Shellcode not loaded yet !")
+        return self._shellcode_address
 
-    return shelf_dump
+    @property
+    def shellcode_mapped_size(self):
+        """
+        Parse and return the shellcode size
+        :return: shellcode size
+        """
+        if not self._shellcode_mapped_size:
+            stdout = self.get_stdout(should_print=False)
+            if consts.ShellcodeLoader.JumpingToShellcode in stdout:
+                return extract_int10(
+                    stdout,
+                    "Mapping new memory, size = ",
+                    '\n',
+                )
+            raise Exception("Shellcode not loaded yet !")
+        return self._shellcode_mapped_size
 
+    @property
+    def shellcode_memory(self):
+        """
+        Extract and return shellcode memory
+        :return:
+        """
+        if not self._shellcode_memory:
+            # Read the memory
+            memory_data = gdb.selected_inferior().read_memory(self.shellcode_address,
+                                                              self.shellcode_mapped_size)
+            # Convert the memory data to a byte string
+            memory_bytes = memory_data.tobytes()
+            self._shellcode_memory = memory_bytes
+        return self._shellcode_memory
 
-# Define a Python function as a GDB macro
-def get_stdout():
-    with open(consts.debugger_stdout, 'r') as fp:
-        data = fp.read()
-    print(data)
+    @property
+    def dump(self):
+        """
+        Create shelf dump object
+        :return: shelf dump
+        """
+        if not self._dump:
+            self._dump = self.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
+                memory_dump=self.shellcode_memory,
+                dump_address=self.shellcode_address,
+                loading_address=self.shellcode_address
+            )
 
+        return self._dump
 
-def get_shellcode_address():
-    with open(consts.debugger_stdout, 'r') as fp:
-        data = fp.read()
-
-    if consts.ShellcodeLoader.JumpingToShellcode in data:
-        return extract_int16(
-            data,
-            consts.ShellcodeLoader.JumpingToShellcode,
-            '\n'
-        )
-    return None
-
-
-def get_shellcode_mapped_size():
-    with open(consts.debugger_stdout, 'r') as fp:
-        data = fp.read()
-
-    if consts.ShellcodeLoader.JumpingToShellcode in data:
-        return extract_int10(
-            data,
-            "Mapping new memory, size = ",
-            '\n',
-        )
-    return None
-
-
-def get_memory_dump_for_shellcode():
-    shellcode_address = get_shellcode_address()
-    shellcode_size = get_shellcode_mapped_size()
-    if not shellcode_address or not shellcode_size:
-        return
-    # Read the memory
-    memory_data = gdb.selected_inferior().read_memory(shellcode_address, shellcode_size)
-    # Convert the memory data to a byte string
-    memory_bytes = memory_data.tobytes()
-    print("Extracted memory dump, size: {}".format(hex(len(memory_bytes))))
-    return memory_bytes
-
-
-def execute_shellcode():
-    address = get_shellcode_address()
-    if not address:
-        gdb.execute("b *execute_shellcode")
-        gdb.execute("mc")
-        last_ms = gdb.execute("mni", to_string=True)
-        while last_ms != gdb.execute("mni", to_string=True):
-            address = get_shellcode_address()
-            if address:
-                break
+    def execute_shellcode(self):
+        """
+        Step instructions in the mini loader until shellcode is found
+        :return: None
+        """
+        if not self.found_shellcode_address:
+            gdb.execute("b *execute_shellcode")
+            gdb.execute("mc")
             last_ms = gdb.execute("mni", to_string=True)
+            while last_ms != gdb.execute("mni", to_string=True):
+                if self.found_shellcode_address:
+                    break
+                last_ms = gdb.execute("mni", to_string=True)
 
-    if address:
-        print("Shellcode loaded to: {}".format(hex(address)))
-        gdb.execute("b *{}".format(address))
-        gdb.execute("mc")
-        print("Shellcode loaded displaying stdout")
-        get_stdout()
-    else:
-        print("Address not found, probably crashed before ?")
-
-
-def display_shellcode_symbols(name=None, only_return_address=False):
-    syms = get_symbols()
-    if not syms:
-        print("Shellcode not executed yet !")
-        return
-
-    for symbol_object in syms:
-        symbol_name, symbol_address, symbol_size = symbol_object
-        if name and name != symbol_name:
-            continue
-        if only_return_address:
-            return symbol_address
-        print("{}-{}: {}".format(
-            hex(symbol_address),
-            hex(symbol_address + symbol_size),
-            symbol_name
-        ))
-
-
-def get_symbols():
-    global symbols
-    dump = get_dump()
-    if not dump:
-        return
-
-    if not symbols:
-        symbols = dump.get_symbol_by_name()
-    return symbols
-
-
-def find_symbol_at_address(address, **kwargs):
-    dump = get_dump()
-    if not dump:
-        return
-    return dump.find_symbol_at_address(address=address, **kwargs)
-
-
-def add_sym_address_to_line(line, address, with_symbol=False):
-    address = int(address, 16)
-    original_name, symbol_name = find_symbol_at_address(address, with_original=True)
-    symbol_end = line.find(":")
-    symbol_start = line[:symbol_end].rfind(' ') + 1
-    potential_symbol_part = line[symbol_start:symbol_end]
-    if potential_symbol_part.startswith("<") and potential_symbol_part.endswith(">"):
-        # Found gdb symbol
-        pass
-    else:
-        sym_add = display_shellcode_symbols(only_return_address=True, name=original_name)
-        if sym_add:
-            off = "+{}".format(hex(address - sym_add))
+        if self.found_shellcode_address:
+            print("Shellcode loaded to: {}".format(hex(self.shellcode_address)))
+            gdb.execute("b *{}".format(self.shellcode_address))
+            gdb.execute("mc")
+            print("Shellcode loaded displaying stdout")
+            self.get_stdout()
         else:
-            off = hex(address)
-        symbol_name = "{} {}".format(symbol_name, off)
-        line = line[:symbol_start] + "<{}>".format(symbol_name) + line[symbol_end:]
-    if with_symbol:
-        line = (line, symbol_name)
-    return line
+            print("Address not found, probably crashed before ?")
 
+    @property
+    def symbols(self):
+        """
+        Return shellcode symbols
+        :return:
+        """
+        if not self._symbols:
+            self._symbols = self.dump.get_symbol_by_name()
+        return self._symbols
 
-def add_symbols_to_disassembly(disassembly, with_symbols=False):
-    lines = []
-    symbols = []
-    for line in disassembly.split("\n"):
-        address_start = line.find(" ") + 1
-        while line[address_start:].startswith(" "):
-            address_start += 1
-        matches = [line[address_start:].find(" "), line[address_start:].find(":")]
-        while -1 in matches:
-            matches.remove(-1)
-        if not matches:
+    def display_shellcode_symbols(self, name=None, only_return_address=False):
+        """
+        Display shellcode symbols
+        :param name: symbol name
+        :param only_return_address: only return symbol address and do not display
+        :return: None
+        """
+        for symbol_object in self.symbols:
+            symbol_name, symbol_address, symbol_size = symbol_object
+            if name and name != symbol_name:
+                continue
+            if only_return_address:
+                return symbol_address
+            print("{}-{}: {}".format(
+                hex(symbol_address),
+                hex(symbol_address + symbol_size),
+                symbol_name
+            ))
+
+    def find_symbol_at_address(self, address, **kwargs):
+        """
+        Locate and find symbol at address
+        :param address:
+        :param kwargs:
+        :return:
+        """
+        return self.dump.find_symbol_at_address(address=address, **kwargs)
+
+    def add_sym_address_to_line(self, line, address, with_symbol=False):
+        """
+        Add to gdb line a symbol representation
+        :param line: Gdb line
+        :param address: gdb address
+        :param with_symbol:
+        :return:
+        """
+        address = int(address, 16)
+        original_name, symbol_name = self.find_symbol_at_address(address, with_original=True)
+        symbol_end = line.find(":")
+        symbol_start = line[:symbol_end].rfind(' ') + 1
+        potential_symbol_part = line[symbol_start:symbol_end]
+        if potential_symbol_part.startswith("<") and potential_symbol_part.endswith(">"):
+            # Found gdb symbol
+            pass
+        else:
+            sym_add = self.display_shellcode_symbols(only_return_address=True, name=original_name)
+            if sym_add:
+                off = "+{}".format(hex(address - sym_add))
+            else:
+                off = hex(address)
+            symbol_name = "{} {}".format(symbol_name, off)
+            line = line[:symbol_start] + "<{}>".format(symbol_name) + line[symbol_end:]
+        if with_symbol:
+            line = (line, symbol_name)
+        return line
+
+    def add_symbols_to_disassembly(self, disassembly, with_symbols=False):
+        """
+        Add symbols to gdb disassembly
+        :param disassembly:
+        :param with_symbols:
+        :return:
+        """
+        lines = []
+        symbols = []
+        for line in disassembly.split("\n"):
+            address_start = line.find(" ") + 1
+            while line[address_start:].startswith(" "):
+                address_start += 1
+            matches = [line[address_start:].find(" "), line[address_start:].find(":")]
+            while -1 in matches:
+                matches.remove(-1)
+            if not matches:
+                lines.append(line)
+                continue
+
+            address_end = min(matches) + address_start
+            address = line[address_start: address_end].strip()
+            if address.startswith(" "):
+                address = address[1:]
+            if not address:
+                continue
+            line = self.add_sym_address_to_line(line, address, with_symbol=with_symbols)
+            if with_symbols:
+                line, symbol = line
+                symbols.append(symbol)
             lines.append(line)
-            continue
 
-        address_end = min(matches) + address_start
-        address = line[address_start: address_end].strip()
-        if address.startswith(" "):
-            address = address[1:]
-        if not address:
-            continue
-        line = add_sym_address_to_line(line, address, with_symbol=with_symbols)
+        out = "\n".join(lines)
         if with_symbols:
-            line, symbol = line
-            symbols.append(symbol)
-        lines.append(line)
+            out = (out, symbols)
+        return out
 
-    out = "\n".join(lines)
-    if with_symbols:
-        out = (out, symbols)
-    return out
+    def break_on_symbol(self, sym_name):
+        """
+        Add a breakpoint on gdb symbol
+        :param sym_name:
+        :return:
+        """
+        address = self.display_shellcode_symbols(only_return_address=True, name=sym_name)
+        if address:
+            gdb.execute("b *{}".format(hex(address)))
+        else:
+            print("Address for symbol: {} not found !".format(sym_name))
+
+    def get_current_symbol(self):
+        """
+        Get symbol at pc
+        :return:
+        """
+        disassembly = gdb.execute("x/1i $pc", to_string=True)
+        data, symbols = self.add_symbols_to_disassembly(disassembly, True)
+        if symbols:
+            return symbols[0]
+
+    def my_continue(self):
+        """
+        Gdb continue wrapper
+        :return:
+        """
+        gdb.execute("c")
+        sym = self.get_current_symbol()
+        if sym:
+            print("----> {}".format(sym))
+
+    def disassm(self):
+        """
+        Disassembly wrapper at pc
+        :return:
+        """
+        return self._disassm("$pc")
+
+    def _disassm(self, add):
+        """
+        Disassemble and display symbols
+        :param add:
+        :return:
+        """
+        try:
+            add = eval(add)
+        except Exception as e:
+            pass
+        disassembly = gdb.execute("x/10i {}".format(add), to_string=True)
+        try:
+            disassembly = self.add_symbols_to_disassembly(disassembly)
+        except Exception as e:
+            print("Disassembly exception: {}".format(e))
+            pass
+        print(disassembly)
+
+    @staticmethod
+    def exit():
+        """
+        Exit and return
+        :return:
+        """
+        try:
+            gdb.execute("detach")
+        except:
+            pass
+        gdb.execute("quit")
+
+    @staticmethod
+    def get_stdout(should_print=True):
+        """
+        :return: Shellcode standard output
+        """
+        with open(consts.debugger_stdout, 'r') as fp:
+            data = fp.read()
+        if should_print:
+            print(data)
+        return data
+
+    def execute(self, instruction, *args, **kwargs):
+        if hasattr(self, instruction):
+            handler = getattr(self, instruction)
+        else:
+            print("No handler for instruction: {} found".format(instruction))
+            return
+
+        try:
+            handler(*args, **kwargs)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print("Error executing: {}, {}, try help user-defined".format(instruction, e))
 
 
-def break_on_symbol(sym_name):
-    address = display_shellcode_symbols(only_return_address=True, name=sym_name)
-    if address:
-        gdb.execute("b *{}".format(hex(address)))
-    else:
-        print("Address for symbol: {} not found !".format(sym_name))
-
-
-def get_current_symbol():
-    disassembly = gdb.execute("x/1i $pc", to_string=True)
-    data, symbols = add_symbols_to_disassembly(disassembly, True)
-    if symbols:
-        return symbols[0]
-
-
-def my_continue():
-    gdb.execute("c")
-    sym = get_current_symbol()
-    if sym:
-        print("----> {}".format(sym))
-
-
-def disassm():
-    return _disassm("$pc")
-
-
-def _disassm(add):
-    try:
-        add = eval(add)
-    except Exception as e:
-        pass
-    disassembly = gdb.execute("x/10i {}".format(add), to_string=True)
-    try:
-        disassembly = add_symbols_to_disassembly(disassembly)
-    except Exception as e:
-        print("Disassembly exception: {}".format(e))
-        pass
-    print(disassembly)
-
-
-def _exit():
-    try:
-        gdb.execute("detach")
-    except:
-        pass
-    gdb.execute("quit")
+api_handler = GdbGeneralCommandsApi()

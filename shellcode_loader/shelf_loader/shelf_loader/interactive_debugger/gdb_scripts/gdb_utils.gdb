@@ -3,42 +3,83 @@ define ms
     si
 end
 
+document ms
+    Disassemble and step instruction
+end
+
 define mni
     disassm $pc
     nexti
 end
 
+document mni
+    Disassemble and next instruction
+end
+
 define exit
-    python _exit()
+    python api_handler.execute("exit")
+end
+
+document exit
+    Terminate the current gdb session gracefully and exit
 end
 
 define get_stdout
-    python get_stdout()
+    python api_handler.execute("get_stdout")
+end
+
+document get_stdout
+    Return shelf loader stdout
 end
 
 define execute_shellcode
-    python execute_shellcode()
+    python api_handler.execute("execute_shellcode")
+end
+
+document execute_shellcode
+    Execute the shellcode and break on mini loader entry point
 end
 
 define display_shellcode_symbols
-    python display_shellcode_symbols()
+    python api_handler.execute("display_shellcode_symbols")
 end
+
+document display_shellcode_symbols
+    Display symbols declared inside the shellcode this only works if executed with --source-elf
+end
+
 
 define break_on_shellcode_main
     execute_shellcode
-    python break_on_symbol('main')
+    python api_handler.execute("break_on_symbol", 'main')
     mc
     disassm $pc
 end
 
+document break_on_shellcode_main
+    Execute the shellcode and break on shellcode main, post relocations
+end
+
 define disassm
-    python _disassm("$arg0")
+    python api_handler.execute("_disassm", "$pc")
+end
+
+document disassm
+    Disassemble relative to $pc
 end
 
 define shelf_trace
-    python debug_flow_manager_generate_flow()
+    python api_handler.execute("debug_flow_manager_generate_flow")
+end
+
+document shelf_trace
+    Execute the shelf trace functions
 end
 
 define mc
-    python my_continue()
+    python api_handler.execute("my_continue")
+end
+
+document mc
+    Continue execution
 end
