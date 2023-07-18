@@ -91,3 +91,20 @@ end
 document enable_verbose_exceptions
     Set verbose exceptions to on
 end
+
+define step_to_end
+    python api_handler.execute("step_to_end")
+end
+
+document step_to_end
+    Step until last instruction == current instruction
+end
+
+define shellcode_debug
+    python api_handler.execute("shellcode_debug")
+end
+
+
+document shellcode_debug
+    Add break point on each function of the shellcode the execute it
+end

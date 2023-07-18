@@ -1,5 +1,5 @@
 import traceback
-
+import copy
 import gdb
 from shelf_loader import consts
 from shelf_loader.extractors.utils import extract_int16, extract_int10
@@ -243,17 +243,22 @@ class GdbGeneralCommandsApi(object):
             out = (out, symbols)
         return out
 
-    def break_on_symbol(self, sym_name):
+    def break_on_symbol(self, sym_name, to_string=False):
         """
         Add a breakpoint on gdb symbol
         :param sym_name:
+        :param to_string:
         :return:
         """
         address = self.display_shellcode_symbols(only_return_address=True, name=sym_name)
         if address:
-            gdb.execute("b *{}".format(hex(address)))
+            return gdb.execute("b *{}".format(hex(address)), to_string=to_string)
         else:
-            print("Address for symbol: {} not found !".format(sym_name))
+
+            message = "Address for symbol: {} not found !".format(sym_name)
+            if not to_string:
+                print(message)
+            return message
 
     def get_current_symbol(self):
         """
@@ -332,6 +337,37 @@ class GdbGeneralCommandsApi(object):
     def enable_verbose_exceptions(self):
         self.verbose_exceptions = True
         print("[*] Verbose exceptions enabled")
+
+    @staticmethod
+    def error_occurred(message):
+        errors = ['Program received signal', 'Program terminated']
+        for error in errors:
+            if error in message:
+                return True
+        return False
+
+    def generic_execute_until_error(self, cmd):
+        try:
+            gdb.execute("set pagination off", to_string=False)
+            last_mni = gdb.execute(cmd, to_string=True)
+            current_mni = gdb.execute(cmd, to_string=True)
+            print(current_mni)
+            while last_mni != current_mni or self.error_occurred(current_mni):
+                last_mni = copy.copy(current_mni)
+                current_mni = gdb.execute(cmd, to_string=True)
+                print(current_mni)
+        finally:
+            gdb.execute("set pagination on", to_string=True)
+
+    def step_to_end(self):
+        self.generic_execute_until_error("mni")
+
+    def shellcode_debug(self):
+        gdb.execute("break_on_shellcode_main")
+        for symbol in self.symbols:
+            sym_name, sym_address, sym_size = symbol
+            self.break_on_symbol(sym_name, to_string=True)
+        self.generic_execute_until_error("mc")
 
     def execute(self, instruction, *args, **kwargs):
         if hasattr(self, instruction):
