@@ -200,6 +200,8 @@ class GdbGeneralCommandsApi(object):
                 off = hex(address)
             symbol_name = "{} {}".format(symbol_name, off)
             line = line[:symbol_start] + "<{}>".format(symbol_name) + line[symbol_end:]
+            if sym_add:
+                line = "{} {}".format(hex(address), line)
         if with_symbol:
             line = (line, symbol_name)
         return line
