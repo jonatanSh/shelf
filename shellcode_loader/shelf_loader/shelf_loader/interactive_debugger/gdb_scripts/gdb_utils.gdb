@@ -83,3 +83,11 @@ end
 document mc
     Continue execution
 end
+
+define enable_verbose_exceptions
+    python api_handler.execute("enable_verbose_exceptions")
+end
+
+document enable_verbose_exceptions
+    Set verbose exceptions to on
+end

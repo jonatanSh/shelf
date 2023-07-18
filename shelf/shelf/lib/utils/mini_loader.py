@@ -11,6 +11,7 @@ from py_elf_structs import load_structs
 
 class MiniLoader(object):
     def __init__(self, shellcode):
+        self._symbols = None
         self._structs = None
         self.shellcode = shellcode
         self.logger = getLogger(self.__class__.__name__)
@@ -136,10 +137,11 @@ class MiniLoader(object):
                                loader_size=len(self.loader))
 
     def iterate_relative_symbols(self):
-        with open(self.relative_symbols_path, 'rb') as fp:
-            symbols = json.load(fp)
-
-        return symbols
+        if not self._symbols:
+            with open(self.relative_symbols_path, 'rb') as fp:
+                self._symbols = json.load(fp)
+    
+        return self._symbols
 
     def get_relative_symbol_at_offset(self, off):
         for symbol in self.iterate_relative_symbols():

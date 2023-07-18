@@ -48,6 +48,7 @@ class Shellcode(object):
                  reloc_types=None,
                  support_dynamic=False,
                  **kwargs):
+        self._symbols = None
         self.shellcode_compiled = False
         self._ptr_size = None
         self._loading_virtual_addr = None
@@ -494,7 +495,15 @@ class Shellcode(object):
 
         return addresses
 
-    @api_function
+    @property
+    def symbols(self):
+        symtab = self.elffile.get_section_by_name(".symtab")
+        if not symtab:
+            return []
+        if not self._symbols:
+            self._symbols = [sym for sym in symtab.iter_symbols()]
+        return self._symbols
+
     def find_symbols(self, symbol_name=None,
                      return_relative_address=False, return_object=False,
                      symbol_filter=lambda s: True):
@@ -505,7 +514,7 @@ class Shellcode(object):
         symtab = self.elffile.get_section_by_name(".symtab")
         if not symtab:
             return symbols
-        for sym in symtab.iter_symbols():
+        for sym in self.symbols:
             if not symbol_filter(sym):
                 continue
             address = sym.entry.st_value

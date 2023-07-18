@@ -1,8 +1,11 @@
+import traceback
+
 import gdb
 from shelf_loader import consts
 from shelf_loader.extractors.utils import extract_int16, extract_int10
 from shelf.api import ShelfApi
 from shelf_loader.interactive_debugger.gdb_scripts.shelf_debug_flow import DebugFlowManager
+import cProfile
 
 HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
@@ -12,6 +15,8 @@ debug_flow_manager = DebugFlowManager()
 
 class GdbGeneralCommandsApi(object):
     def __init__(self):
+        self.verbose_exceptions = None
+        self.profiling_enabled = None
         self._symbols = None
         self.source_elf_path = None
         self._shelf_api = None
@@ -316,6 +321,16 @@ class GdbGeneralCommandsApi(object):
             print(data)
         return data
 
+    def enable_profiling(self):
+        self.profiling_enabled = True
+
+    def disable_profiling(self):
+        self.profiling_enabled = False
+
+    def enable_verbose_exceptions(self):
+        self.verbose_exceptions = True
+        print("[*] Verbose exceptions enabled")
+
     def execute(self, instruction, *args, **kwargs):
         if hasattr(self, instruction):
             handler = getattr(self, instruction)
@@ -324,10 +339,17 @@ class GdbGeneralCommandsApi(object):
             return
 
         try:
+            pr = None
+            if self.profiling_enabled:
+                pr = cProfile.Profile()
+                pr.enable()
             handler(*args, **kwargs)
+            if self.profiling_enabled:
+                pr.disable()
+                pr.print_stats(sort=1)
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            if self.verbose_exceptions:
+                traceback.print_exc()
             print("Error executing: {}, {}, try help user-defined".format(instruction, e))
 
 
