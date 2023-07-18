@@ -25,7 +25,7 @@ class OpcodeAnalyzer(object):
                     self.logger.warning("Detected --force flag, this shellcode contain opcode relocations")
                     return
                 raise Exception("Error source binary require opcode relocations,"
-                                "probably compiled without -fpic or with (-fpic and -static), try (-fpic -staticpie) "
+                                "probably compiled without -fpic or with (-fpic and -static), try (-fpic -static-pie) "
                                 "or use --relocate-opcodes or --force")
             return True
         return False
