@@ -46,7 +46,7 @@ setup(
                      ] + py_specific_req,
     license='MIT License',
     description='Python package to create shellcodes from elfs supported arch '
-                '(mips, arm (32bit), i386 32bit, i386 64bit, aarch64, risc-V rv64)',
+                '(mips, arm (32bit), i386 32bit, i386 64bit, aarch64, RISC-V rv64 P)',
     long_description=README,
     long_description_content_type='text/markdown',
     url='https://github.com/jonatanSh/shelf',
