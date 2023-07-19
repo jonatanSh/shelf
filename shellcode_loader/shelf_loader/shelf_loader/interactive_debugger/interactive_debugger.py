@@ -1,20 +1,11 @@
 import logging
 import os.path
-import readline
 import subprocess
 from shelf_loader import consts
 
 BANNER = """
     Interactive shell, to view all commands use ?
 """
-
-
-def get_auto_complete(options):
-    def complete(text, state):
-        matches = [option for option in options if option.startswith(text)]
-        return matches[state] if state < len(matches) else None
-
-    return complete
 
 
 class InteractiveDebugger(object):
@@ -29,9 +20,6 @@ class InteractiveDebugger(object):
             'exit': self.exit,
             'ipython': self.ipython
         }
-        self.auto_complete = get_auto_complete(self.commands.keys())
-        readline.parse_and_bind("history")
-        readline.set_completer(self.auto_complete)
 
     @staticmethod
     def shell_print(args):

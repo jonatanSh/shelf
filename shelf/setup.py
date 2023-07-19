@@ -18,7 +18,7 @@ py_specific_req_3 = [
 ]
 
 py_specific_req = py_specific_req_2
-
+README = "UNDEFINED"
 if version >= 3:
     py_specific_req = py_specific_req_3
 try:

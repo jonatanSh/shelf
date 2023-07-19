@@ -1,2 +1,2 @@
-recursive-include shelf_loader/shelf_loader/resources/ *.out
+recursive-include shellcode_loader/shelf_loader/resources/ *.out
 global-exclude *.pyc
