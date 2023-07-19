@@ -1,4 +1,4 @@
-from multi_process_job import Job, Supervisor
+from parallel_api.multi_process_job import Job, Supervisor
 from uuid import uuid4
 import os
 

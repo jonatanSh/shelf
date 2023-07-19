@@ -1,6 +1,6 @@
 import socket
 import select
-from consts import CONSTS
+from parallel_api.consts import CONSTS
 import struct
 from uuid import uuid4
 import json

@@ -30,3 +30,28 @@ for symbol_name, symbol_address, symbol_size in api.shelf.find_symbols():
         symbol_size
     ))
 ```
+
+### Plugins:
+
+##### Memory dump plugin
+Shelf provide api to examine memory containing shelf binary.
+if a dump is occurred then you can create a dump object and interact with it
+```python
+from shelf.api import ShelfApi
+api = ShelfApi("/bin/sh")
+dump_data = b'<dump_data>'
+dump = api.shelf.memory_dump_plugin.construct_shelf_from_memory_dump(
+    memory_dump=dump_data,
+    dump_address=0x20,
+    loading_address=0x10
+)
+
+# Provide disassembly of the dump
+dump.dissamble()
+
+# Compute absolute memory addresses
+matching_symbols = api.shelf.find_symbols(symbol_name='main')
+symbol_name, symbol_address, function_size = matching_symbols[0]
+absolute_address = dump.compute_absolute_address(symbol_address)
+compute_absolute_address()
+```

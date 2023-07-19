@@ -13,7 +13,7 @@ Please read the following documentation and view the examples for this project t
 * x86_64 (intel x64)
 * arm (32bit)
 * aarch64 (arm 64 bit)
-* risc-V rv64
+* RISC-V rv64 - partial support
 
 #### Installation:
 ```bash
@@ -95,6 +95,10 @@ to test you shellcodes
 ```bash
 qemu-mips ./shellcode_loader ./myshellcode.out
 ```
+
+#### Using the shelf loader library
+it is advised to use the shelf loader library to tests your shellcode
+here you can read more about it: [Shelf loader documentation](https://github.com/jonatanSh/shelf/tree/master/docs/shelf_loader.md)
 
 ### Output example
 ```bash

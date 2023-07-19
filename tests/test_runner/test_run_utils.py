@@ -1,12 +1,10 @@
 import os
+import select
 import time
 import subprocess
 import itertools
 import logging
-import traceback
-from test_runner.consts import Resolver, CONSTS, TestFeatures, LoaderTypes
-from test_runner.extractor.opcodes import OpcodesExtractor
-from test_runner.extractor.loader_information_extractor import LoaderInformationExtractor
+from test_runner.consts import CONSTS, TestFeatures, LoaderTypes
 
 
 class TestOutput(object):
@@ -21,10 +19,7 @@ class TestOutput(object):
         self.test_file = test_file
         self.loader_file = loader_file
         self.args = args
-        self.extractors = [
-            LoaderInformationExtractor,
-            OpcodesExtractor
-        ]
+
         self._parsed = ""
         self.test_file_elf = test_file[:test_file.find(".out") + len(".out")]
         self.context = {
@@ -33,7 +28,6 @@ class TestOutput(object):
             'elf': self.test_file_elf,
             'loader_file': loader_file if loader_file else self.test_file_elf
         }
-        self.extractor_data = {}
 
     def prepare(self, success, reason, stdout="", stderr=""):
         self.reason = reason
@@ -64,17 +58,6 @@ class TestOutput(object):
     @property
     def stdout(self):
         stdout_extracted = self._stdout
-        for extractor_cls in self.extractors:
-            try:
-                extractor = extractor_cls(stdout_extracted, self.context,
-                                          self.extractor_data)
-
-                stdout_extracted, extractor_context = extractor.parsed
-                self.extractor_data.update(extractor_context)
-            except Exception as e:
-                if self.args.get("is_verbose", False):
-                    logging.info("Exception: {}".format(e))
-                    traceback.print_exc()
         return stdout_extracted
 
     def __str__(self):
@@ -83,34 +66,20 @@ class TestOutput(object):
 
 def get_test_command(test_file, description, loader_type, arch, is_debug, is_strace, is_eshelf, **kwargs):
     loader = None
-    if not is_eshelf:
-        loader = Resolver.get_loader(loader_type, arch)
     test_output = TestOutput(description=description, arch=arch, test_file=test_file,
                              loader_file=loader,
                              args=kwargs)
     assert not all([is_strace, is_debug]), "Only --strace or --debug is available"
-    command = [Resolver.get_qemu(arch)]
-    if is_debug:
-        command.append("-g")
-        command.append(CONSTS.DEBUG_PORT.value)
-
-    if is_strace:
-        command.append("-strace")
-
-    if not is_eshelf:
-        command.append(loader)
-        if not os.path.exists(loader):
-            return None, test_output.prepare(reason="Loader {} not found".format(
-                loader
-            ), success=False)
 
     if not os.path.exists(test_file):
         return None, test_output.prepare(
             reason="File: {} not found".format(test_file),
             success=False
         )
-    command.append(test_file)
-
+    test_elf = test_file[:test_file.find(".out") + len(".out")]
+    command = ["python3", "-m", 'shelf_loader', test_file, '--source-elf', test_elf]
+    if loader_type == LoaderTypes.RX_LOADER:
+        command += ["--no-rwx-memory"]
     if is_eshelf:
         command.append("First_Argument_for_argv")
         command.append("Second argument for argv")
@@ -141,7 +110,8 @@ def is_return_code_ok(stdout):
 def generic_success_method(stdout, parameters):
     success = True
     reason = ""
-    if not is_return_code_ok(stdout):
+    check_rc = parameters.get("check_rc", True)
+    if check_rc and not is_return_code_ok(stdout):
         return False, "RC"
 
     for success_param in parameters['success']:
@@ -165,6 +135,7 @@ def test_find_file(test_fmt, arch, features):
 
 def run_test(key, test_parameters, test_features, description, arch, is_strace, is_debug,
              is_verbose=False,
+             verbose_on_failed=False,
              success_method=generic_success_method):
     test_file = test_find_file(test_parameters['test_file_fmt'], arch, test_features)
     if not test_file:
@@ -192,10 +163,15 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
     if is_verbose:
         print(command)
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    start = time.time()
     timeout_passed = False
-
+    stdout, stderr = b"", b""
+    start = time.time()
     while process.poll() is None:
+        rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
+        if process.stdout in rlist:
+            stdout += process.stdout.read()
+        if process.stderr in rlist:
+            stderr += process.stderr.read(1)
         if (time.time() - start) > CONSTS.execution_timeout_seconds.value:
             if is_debug:
                 continue
@@ -207,8 +183,13 @@ def run_test(key, test_parameters, test_features, description, arch, is_strace, 
             success=False,
             reason="Timed out"
         )
-
-    stdout, stderr = process.communicate()
+    rlist, _, _ = select.select([process.stdout, process.stderr], [], [], 0.0001)
+    if process.stdout in rlist:
+        stdout += process.stdout.read()
+    if process.stderr in rlist:
+        stderr += process.stderr.read()
+    stdout = stdout.decode('utf-8')
+    stderr = stderr.decode('utf-8')
     if 'core dumped' in stderr or 'core dumped' in stdout:
         return test_output.prepare(
             success=False,
@@ -239,9 +220,9 @@ def arch_banner(arch):
     print("\n".join(banner))
 
 
-def display_output(test_output, is_verbose):
+def display_output(test_output, is_verbose, verbose_on_failed):
     print(test_output)
-    if is_verbose:
+    if is_verbose or (verbose_on_failed and not test_output.success):
         print("Stdout:")
         print(test_output.stdout)
         print("Stderr:")

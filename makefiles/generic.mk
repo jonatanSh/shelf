@@ -1,5 +1,9 @@
 CFLAGS+=-fno-stack-protector -fPIE -fpic
 CFLAGS+=-nostartfiles --entry=main
+EXCLUDE_HELLO_HOOK?=
+EXCLUDE_ESHELF?=
+EXCLUDE_DYNAMIC?=
+SHELF_ADDITIONAL_ARGS?=
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 include $(SELF_DIR)/compilers.mk
 
@@ -11,21 +15,32 @@ endif
 dir_guard:
 	mkdir -p $(SELF_DIR)/../outputs
 
-
+ifeq ($(VERBOSE), 1)
+	SHELF_ADDITIONAL_ARGS=--verbose
+endif
+SHELF_ARGS=--relocate-opcodes
 
 mini_loader_%: dir_guard
-	cd $(SELF_DIR)/../mini_loaders && python compile.py --action make --arch $(subst mini_loader_,,$@) $(MINI_LOADER_ARGS)
-
+	@if [ -z $(EXCLUDE_LOADER) ]; then\
+		cd $(SELF_DIR)/../mini_loaders && python3 compile.py --action make --arch $(subst mini_loader_,,$@) $(MINI_LOADER_ARGS);\
+	fi
 shellcode: dir_guard
-	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE)$(NAME_ADD).shellcode $(SUPPORT_ARG)
-	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).hooks$(NAME_ADD).shellcode --loader-supports hooks $(SUPPORT) --hooks-configuration ../hook_configurations/simple_hello_hook.py
-	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf$(NAME_ADD).shellcode --output-format eshelf $(SUPPORT_ARG)
-	python3 -m shelf --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).rwx_bypass$(NAME_ADD).shellcode --mitigation-bypass rwx $(SUPPORT_ARG)
+	python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE)$(NAME_ADD).shellcode $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS)
+	@if [ -z $(EXCLUDE_HELLO_HOOK) ]; then\
+		python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).hooks$(NAME_ADD).shellcode --loader-supports hooks $(SHELF_ADDITIONAL_ARGS) $(SUPPORT) --hooks-configuration ../hook_configurations/simple_hello_hook.py;\
+	fi
+	@if [ -z $(EXCLUDE_ESHELF) ]; then\
+		python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).eshelf$(NAME_ADD).shellcode --output-format eshelf $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS);\
+	fi
+	@if [ -z $(EXCLUDE_DYNAMIC) ]; then\
+		python3 -m shelf $(SHELF_ARGS) --input $(OUTPUT_DIRECTORY)/$(INPUT_FILE) --output $(OUTPUT_DIRECTORY)/$(INPUT_FILE).rwx_bypass$(NAME_ADD).shellcode --mitigation-bypass rwx $(SUPPORT_ARG) $(SHELF_ADDITIONAL_ARGS);\
+	fi
 
 all_shellcodes:
 	$(MAKE) shellcode INPUT_FILE="$(INPUT_FILE)"
-	$(MAKE) shellcode INPUT_FILE="$(INPUT_FILE)" NAME_ADD=".dynamic" SUPPORT_ARG="--loader-supports dynamic" SUPPORT="dynamic"
-
+	@if [ -z $(EXCLUDE_DYNAMIC) ]; then\
+		$(MAKE) shellcode INPUT_FILE="$(INPUT_FILE)" NAME_ADD=".dynamic" SUPPORT_ARG="--loader-supports dynamic" SUPPORT="dynamic";\
+	fi
 geneirc_compile:
 	$(COMPILER) $(COMPILER_FLAGS) $(FILES) -o $(OUTPUT_FILE)
 
@@ -37,8 +52,12 @@ generic_osal_dynamic:
 
 compile_all:
 	$(MAKE) geneirc_compile COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)"
-	$(MAKE) geneirc_compile_eshelf COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)"
-	$(MAKE) generic_osal_dynamic COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)"
+	@if [ -z $(EXCLUDE_ESHELF) ]; then\
+		$(MAKE) geneirc_compile_eshelf COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)";\
+	fi
+	@if [ -z $(EXCLUDE_DYNAMIC) ]; then\
+		$(MAKE) generic_osal_dynamic COMPILER="$(COMPILER)" COMPILER_FLAGS="$(COMPILER_FLAGS) -static" FILES="$(C_FILES) $(FILES)" OUTPUT_FILE="$(OUTPUT_FILE)";\
+	fi
 
 mips_%: mini_loader_mips mini_loader_mipsbe
 	$(MAKE) compile_all COMPILER="$(MIPS_CC)" COMPILER_FLAGS="$(CFLAGS) -BE" FILES="$(subst mips_,,$@).c"  OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"

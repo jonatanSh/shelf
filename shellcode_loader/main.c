@@ -12,11 +12,11 @@
 #include <ucontext.h>
 #include "hal.h"
 
-#define NUMBER_OF_OPCODES_TO_DUMP 48
+static void* start_address = 0;
 
 void memory_dump(size_t address, size_t size) {
     printf("Dumping memory at 0x%lx\n", address);
-    for(int i = 0; i < size; i ++) {
+    for(size_t i = 0; i < size; i ++) {
         printf("0x%02x ", *(unsigned char *)(address+i));
     }
     printf("\nMemDmpEnd\n");
@@ -27,8 +27,13 @@ void segfault_handler(int signal, siginfo_t *info, void *context) {
     size_t rip = UCONTEXT_PC(ucontext->uc_mcontext);
     printf("info->si_addr=%p\n", info->si_addr);
     printf("MemDmpStart Segmentation fault occurred at address: %p\n", rip);
-    memory_dump(rip - ((sizeof(size_t) * (NUMBER_OF_OPCODES_TO_DUMP / 2))), (sizeof(size_t) * NUMBER_OF_OPCODES_TO_DUMP));
+    memory_dump(start_address, ((size_t)rip-(size_t)start_address + 0x100) * sizeof(size_t));
     exit(1);
+}
+
+long long execute_shellcode(int argc, char **argv, char **envp) {
+    return ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
+
 }
 
 int main(int argc, char **argv, char **envp) {
@@ -40,8 +45,9 @@ int main(int argc, char **argv, char **envp) {
     int buff_size;
     int bytes_read = 0;
     int read_chunk = _POSIX_SSIZE_MAX;
-    void *start_address;
     struct sigaction sa;
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stderr, NULL, _IOLBF, 0);
 
     sa.sa_sigaction = segfault_handler;
     sigemptyset(&sa.sa_mask);
@@ -114,7 +120,7 @@ int main(int argc, char **argv, char **envp) {
     mprotect(start_address, buff_size, PROT_EXEC | PROT_READ);
 #endif
     printf("Jumping to shellcode, address = %p \n", start_address);
-    long long value = ((int (*)(int argc, char **argv, char **envp)) start_address)(argc, argv, envp);
+    long long value = execute_shellcode(argc, argv, envp);
     long error_code = (value >> 24);
     long line = (value & ((1<<24) - 1));
     printf("Shellcode returned: %llx\n", value);

@@ -38,6 +38,7 @@ struct loader_function_descriptor {
 };
 struct relocation_table {
     size_t magic;
+    size_t version_and_fatures;
     size_t padding;
     size_t total_size;
     size_t header_size;

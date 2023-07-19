@@ -196,6 +196,8 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
             // Can't use jump tables in loader :(
             size_t attribute_val = 0;
             if(attributes->relocation_type == IRELATIVE) {
+// The lables are for debugging do not remove them
+loader_handle_irelative_relocs:
                 #ifdef DEBUG
                     TRACE("Loader IRELATIVE fix: 0x%llx=0x%llx()", v_offset, v_offset);
                     TRACE_ADDRESS(v_offset, 24);
@@ -210,6 +212,8 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
                 v_offset = attribute_val;
             }
             else if(attributes->relocation_type == RELATIVE_TO_LOADER_BASE) {
+// The lables are for debugging do not remove them
+loader_handle_relative_to_loader_base:
                 attribute_val = (size_t)(entry->v_offset + addresses->loader_base);
                 #ifdef DEBUG
                     TRACE("Loader RELATIVE_TO_LOADER_BASE fix: 0x%llx=0x%llx()", v_offset, attribute_val);

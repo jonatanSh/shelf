@@ -49,3 +49,8 @@ _IO_file_read:
       0x4107a8:	lw	$v0, ($fp)
       0x4107ac:	andi	$v0, $v0, 0x800
 ```
+
+## Disassemblers and backend disassembler api
+If capstone can disassemble this architecture it is preferred but some capstone
+doesn't support some architectures.
+Therefor, the objdump api 

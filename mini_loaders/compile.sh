@@ -1,1 +1,1 @@
-python compile.py --action clean make
+python3 compile.py --action clean make
