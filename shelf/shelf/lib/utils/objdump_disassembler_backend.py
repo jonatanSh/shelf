@@ -49,11 +49,17 @@ class CapstoneInstructionApi(object):
         while len(iparts) < 2:
             iparts.append(None)
 
-        self.op_str = iparts[0]
-        self.mnemonic = iparts[1]
+        self.mnemonic = iparts[0]
+        self.op_str = iparts[1]
         self.bytes = instruction_bytes
         self._base_address = base_address
         self.address = self._base_address + int(address, 16)
+
+    def is_valid(self):
+        if not self.mnemonic or not self.op_str:
+            return False
+
+        return True
 
 
 class ObjdumpDisassemblerBackend(object):
@@ -106,7 +112,7 @@ class ObjdumpDisassemblerBackend(object):
             if None in [address, instruction_bytes, instruction]:
                 self.logger.error("Error parsing: {}".format(line))
                 continue
-            instruction_bytes = binascii.unhexlify(instruction_bytes) # TODO change Its little endian
+            instruction_bytes = binascii.unhexlify(instruction_bytes)  # TODO change Its little endian
 
             instruction = CapstoneInstructionApi(
                 address=address,
@@ -114,7 +120,8 @@ class ObjdumpDisassemblerBackend(object):
                 instruction_str=instruction,
                 base_address=off
             )
-            instructions.append(instruction)
+            if instruction.is_valid():
+                instructions.append(instruction)
 
         return instructions
 

@@ -5,6 +5,7 @@ class OpcodeAnalyzer(object):
     def __init__(self, shelf):
         self.shelf = shelf
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.supported = True
 
     def _analyze(self, shellcode_data):
         raise NotImplementedError()
@@ -20,7 +21,7 @@ class OpcodeAnalyzer(object):
 
     def is_required(self, shellcode_data):
         if self._is_required(shellcode_data):
-            if not self.shelf.args.relocate_opcodes:
+            if not self.shelf.args.relocate_opcodes or not self.supported:
                 if self.shelf.args.force:
                     self.logger.warning("Detected --force flag, this shellcode contain opcode relocations")
                     return
