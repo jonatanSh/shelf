@@ -17,7 +17,6 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
         disassembly_offset = self.shelf.opcodes_start_address
         symbols = self.shelf.find_symbols()
         symbol_addresses = {}
-        sym_offset = self.shelf.loading_virtual_address
         # Packing symbol pointers
         for symbol in symbols:
             symbol_addresses[symbol[1]] = symbol
@@ -26,8 +25,6 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
                 shellcode_data[disassembly_offset:], off=disassembly_offset):
 
             for matcher in self.matchers:
-                if instruction.bytes == b'\x37\x27\x07\x00':
-                    print(self.shelf.disassembler.instruction_repr(instruction))
                 matcher.match(instruction)
 
         candidates = []

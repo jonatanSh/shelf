@@ -190,8 +190,9 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
         /*
             DO NOT USE SWITCH CASE HERE
             it will create a relocatable section
+            Here getting the virtual offset for non generic relative relocation
         */
-        if(attributes->relocation_type != GENERIC_RELOCATE) {
+        if(!(attributes->relocation_type & GENERIC_RELOCATE)) {
             // We have relocation attributes
             // Can't use jump tables in loader :(
             size_t attribute_val = 0;
@@ -237,6 +238,31 @@ loader_handle_relative_to_loader_base:
         // Fixing the entry
 #ifdef SUPPORT_HOOKS
         DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_write_hooks, f_offset, &addresses, _hook_out);
+#endif
+
+        /*
+            Now going to set the offset acordingaly            
+        */
+#ifdef RISCV64
+        /*
+            For more refrence on the riscv isa: https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf
+        */
+        if(attributes->relocation_type & RISCV64_LUI_LD_OPCODE_RELOCATION) {
+
+            /*
+                This relocation
+                37 27 07 00 lui a4, 72h
+                03 38 07 83 ld  a6, -7D0h(a4)
+            */
+            TRACE("Handling RISCV64_LUI_LD_OPCODE_RELOCATION");
+            // reading the lui ld consecutive opcodes
+            size_t lui_ld_opcode = *((size_t*)f_offset);
+            // We and with 32 bit to get the low (first part)
+            // Then we shift by 12 bytes to get rid of the opcode part
+            // Then we shift by 12 to get the actual address
+            size_t lui_offset = (((lui_ld_opcode & 0xffffffff) >> 12) << 12)
+            // Now we are going to decode the relative access offset
+        }
 #endif
         *((size_t*)f_offset) = v_offset;
 
