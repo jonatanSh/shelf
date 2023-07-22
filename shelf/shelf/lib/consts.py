@@ -10,10 +10,10 @@ class HookTypes(enum.Enum):
 
 
 class RelocationAttributes(enum.Enum):
-    generic_relocate = 0
-    call_to_resolve = 1
-    relative_to_loader_base = 2
-    relative = 3
+    generic_relocate = (1 << 0)
+    call_to_resolve = (1 << 1)
+    relative_to_loader_base = (1 << 2)
+    relative = (1 << 3)
 
 
 class RELOC_TYPES(object):
