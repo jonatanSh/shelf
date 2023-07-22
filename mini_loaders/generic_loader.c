@@ -260,8 +260,12 @@ loader_handle_relative_to_loader_base:
             // We and with 32 bit to get the low (first part)
             // Then we shift by 12 bytes to get rid of the opcode part
             // Then we shift by 12 to get the actual address
-            size_t lui_offset = (((lui_ld_opcode & 0xffffffff) >> 12) << 12)
+            size_t lui_value = (((lui_ld_opcode & 0xffffffff) >> 12) << 12)
             // Now we are going to decode the relative access offset
+            int ld_offset =  hex((lui_ld_opcode>>32) >> 20);
+            if(ld_offset & 2048) {
+                // Should invert all bits except the first one and add one. 
+            }
         }
 #endif
         *((size_t*)f_offset) = v_offset;
