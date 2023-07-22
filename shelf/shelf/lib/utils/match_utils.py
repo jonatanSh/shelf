@@ -35,3 +35,8 @@ class ConsecutiveMatcher(object):
 
     def add_matches(self, matches):
         self.matches.append(matches)
+
+    def __str__(self):
+        return "ConsecutiveMatcher({})".format(
+            self.__class__.__name__
+        )

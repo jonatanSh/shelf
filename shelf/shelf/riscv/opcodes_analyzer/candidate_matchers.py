@@ -29,3 +29,4 @@ class ConsecutiveLuiLdMatcher(ConsecutiveMatcher):
         )
         if candidate.is_valid():
             self.matches.append(candidate)
+

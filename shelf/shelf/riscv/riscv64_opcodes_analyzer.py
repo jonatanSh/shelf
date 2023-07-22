@@ -32,7 +32,7 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
 
         candidates = []
         for matcher in self.matchers:
-            logging.info("Getting match for matcher: {}".format(matcher))
+            logging.info("Getting matches for matcher: {}".format(matcher))
             candidates += matcher.get_matches()
         for candidate in candidates:
             if self.shelf.in_range_of_shellcode(candidate.resulting_address):
