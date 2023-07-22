@@ -1,6 +1,5 @@
 from shelf.lib.utils.match_utils import ConsecutiveMatcher
 from shelf.riscv.opcodes_analyzer.relocation_candidates import LuiLdCandidate
-from shelf.riscv.opcodes_analyzer.instructions import LuiInstruction, LdInstruction
 
 
 class ConsecutiveLuiLdMatcher(ConsecutiveMatcher):

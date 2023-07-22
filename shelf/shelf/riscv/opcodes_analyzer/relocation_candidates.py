@@ -20,8 +20,9 @@ class LuiLdCandidate(RelocationCandidate):
         self.lui = LuiInstruction(self._lui)
         self.ld = LdInstruction(self._ld)
 
+    @property
     def resulting_address(self):
-        return 0x0
+        return self.lui.immediate + self.ld.offset
 
     def wrapped(self, shelf):
         return "LuiLdInstructionCandidate(\n{}\n{}\n)".format(

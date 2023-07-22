@@ -11,7 +11,7 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
         self.matchers = [
             ConsecutiveLuiLdMatcher()
         ]
-        self.candidates = []
+        self.relocations = []
 
     def init(self, shellcode_data):
         disassembly_offset = self.shelf.opcodes_start_address
@@ -30,14 +30,18 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
                     print(self.shelf.disassembler.instruction_repr(instruction))
                 matcher.match(instruction)
 
+        candidates = []
         for matcher in self.matchers:
             logging.info("Getting match for matcher: {}".format(matcher))
-            self.candidates += matcher.get_matches()
+            candidates += matcher.get_matches()
+        for candidate in candidates:
+            if self.shelf.in_range_of_shellcode(candidate.resulting_address):
+                self.relocations.append(candidate)
 
     def _is_required(self, shellcode_data):
         self.init(shellcode_data=shellcode_data)
-        for instruction_object in self.candidates:
-            print(instruction_object.wrapped(shelf=self.shelf))
+        if self.relocations:
+            return True
 
     def _analyze(self, shellcode_data):
         pass
