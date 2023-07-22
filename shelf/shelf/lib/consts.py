@@ -147,7 +147,7 @@ class DisassemblerConsts(object):
         Arches.riscv64.value: 'riscv64-linux-gnu-objdump'
     }
     OBJDUMP_ARCHES = {
-        Arches.riscv64.value: "RISCV"
+        Arches.riscv64.value: "riscv:rv64"
     }
 
 

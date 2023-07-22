@@ -127,7 +127,7 @@ class ObjdumpDisassemblerBackend(object):
 
             instruction = CapstoneInstructionApi(
                 address=address,
-                instruction_bytes=instruction_bytes,
+                instruction_bytes=[b for b in reversed(instruction_bytes)],
                 instruction_str=instruction,
                 base_address=off
             )

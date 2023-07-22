@@ -26,6 +26,8 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
                 shellcode_data[disassembly_offset:], off=disassembly_offset):
 
             for matcher in self.matchers:
+                if instruction.bytes == b'\x37\x27\x07\x00':
+                    print(self.shelf.disassembler.instruction_repr(instruction))
                 matcher.match(instruction)
 
         for matcher in self.matchers:
@@ -36,8 +38,6 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
         self.init(shellcode_data=shellcode_data)
         for instruction_object in self.candidates:
             print(instruction_object.wrapped(shelf=self.shelf))
-        import sys
-        sys.exit(1)
 
     def _analyze(self, shellcode_data):
         pass
