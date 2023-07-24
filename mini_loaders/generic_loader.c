@@ -246,6 +246,14 @@ loader_handle_relative_to_loader_base:
 #ifdef RISCV64
         /*
             For more refrence on the riscv isa: https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf
+            The whole purpose of this relocation is to relocate the consecutive
+                lui a4, 72h
+                ld a6, -7D0h(a4)
+            Those instruction resolve and load relative values.
+            Some compilers don't correctly handle riscv64 static elfs, 
+            they generate code which access memory *known address*
+            We are going to disassemble those opcodes and relcoate them
+            based on the relocataion table 
         */
         if(attributes->relocation_type & RISCV64_LUI_LD_OPCODE_RELOCATION) {
 
