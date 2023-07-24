@@ -257,15 +257,30 @@ loader_handle_relative_to_loader_base:
             TRACE("Handling RISCV64_LUI_LD_OPCODE_RELOCATION");
             // reading the lui ld consecutive opcodes
             size_t lui_ld_opcode = *((size_t*)f_offset);
+            size_t rebuilt_opcode = 0x0;
             // We and with 32 bit to get the low (first part)
             // Then we shift by 12 bytes to get rid of the opcode part
             // Then we shift by 12 to get the actual address
-            size_t lui_value = (((lui_ld_opcode & 0xffffffff) >> 12) << 12)
+            size_t lui_value = (((lui_ld_opcode & 0xffffffff) >> 12) << 12);
             // Now we are going to decode the relative access offset
-            int ld_offset =  hex((lui_ld_opcode>>32) >> 20);
+            int ld_offset =  ((lui_ld_opcode>>32) >> 20);
+            // Doing 2 complement for 12 bits
             if(ld_offset & 2048) {
-                // Should invert all bits except the first one and add one. 
+                // This means we got a negative number
+                // Converting the number to the negative value
+                ld_offset = -1 * (((~ld_offset) & ((2048-1)))+1);
             }
+            TRACE("RISCV64_LUI_LD_OPCODE_RELOCATION lui_value=%llx, ld_offset=%llx",
+                lui_value, ld_offset);
+
+            /* Now after all computation rebuilding the opcode */
+            size_t new_offset;
+            size_t new_lui_value;
+            size_t lui_opcode = (lui_ld_opcode & 0xfff);
+            lui_opcode += (new_lui_value << 12);
+            // Should rebuild the ld opcode here
+            lui_opcode += ((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12);
+
         }
 #endif
         *((size_t*)f_offset) = v_offset;
