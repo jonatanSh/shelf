@@ -253,7 +253,9 @@ loader_handle_relative_to_loader_base:
             Some compilers don't correctly handle riscv64 static elfs, 
             they generate code which access memory *known address*
             We are going to disassemble those opcodes and relcoate them
-            based on the relocataion table 
+            based on the relocataion table
+            Due the mini loader for riscv64 will have this relocation, only if
+            --relocate-opcodes is used then it will be relocated. 
         */
         if(attributes->relocation_type & RISCV64_LUI_LD_OPCODE_RELOCATION) {
 
