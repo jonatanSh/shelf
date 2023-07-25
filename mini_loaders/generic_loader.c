@@ -276,7 +276,6 @@ loader_handle_relative_to_loader_base:
                 Here v_offset should point to the real opcode location post relocations
             */
             TRACE("Virtual offset = %llx", v_offset);
-            ASSERT_NO_STATUS(v_offset < 0xffffffff);
             size_t new_offset = (v_offset & (2048-1));
             size_t new_lui_value;
             if(v_offset < new_offset) {
@@ -286,6 +285,10 @@ loader_handle_relative_to_loader_base:
             else {
                new_lui_value = (v_offset - new_offset) >> 12;
             }
+            // We only get 20 bits here
+            // 0x100000 == 2**20
+            ASSERT_NO_STATUS(new_lui_value < 0x100000);
+
             TRACE("L=%llx, b=%llx s=%llx",new_lui_value,new_offset,(((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12) + new_offset) << 32);
 
             size_t new_opcode = (lui_ld_opcode & 0xfff);
