@@ -14,7 +14,7 @@ class RelocationAttributes(enum.Enum):
     call_to_resolve = (1 << 1)
     relative_to_loader_base = (1 << 2)
     relative = (1 << 3)
-
+    riscv64_lui_ld_opcode_relocation = (1 << 4)
 
 class RELOC_TYPES(object):
     JMP_SLOT = "JMP_SLT"

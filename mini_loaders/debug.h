@@ -30,4 +30,11 @@
     }                                                   \
 }                                                       \
 
+#define ASSERT_NO_STATUS(expr) {                        \
+    if(!(expr)) {                                       \
+        TRACE("Asseration failed: %s", #expr);          \
+        goto error;                                     \
+    }                                                   \
+}                                                       \
+
 #endif

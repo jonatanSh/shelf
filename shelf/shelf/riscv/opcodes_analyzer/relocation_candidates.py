@@ -3,6 +3,10 @@ from shelf.riscv.opcodes_analyzer.instructions import LuiInstruction, LdInstruct
 
 class RelocationCandidate(object):
     @property
+    def f_offset(self):
+        raise NotImplementedError()
+
+    @property
     def resulting_address(self):
         raise NotImplementedError()
 
@@ -23,6 +27,10 @@ class LuiLdCandidate(RelocationCandidate):
     @property
     def resulting_address(self):
         return self.lui.immediate + self.ld.offset
+
+    @property
+    def f_offset(self):
+        return self._lui.address
 
     def wrapped(self, shelf):
         return "LuiLdInstructionCandidate(\n{}\n{}\n)".format(

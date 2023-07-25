@@ -228,9 +228,7 @@ loader_handle_relative_to_loader_base:
                 #endif
                 v_offset = attribute_val;
             }
-            else {
-                return INVALID_ATTRIBUTE;
-            }
+
         }
         #ifdef DEBUG
             TRACE("Loader set *((size_t*)0x%llx) = 0x%llx", f_offset, v_offset);
@@ -256,6 +254,11 @@ loader_handle_relative_to_loader_base:
             based on the relocataion table
             Due the mini loader for riscv64 will have this relocation, only if
             --relocate-opcodes is used then it will be relocated. 
+            The opcodes
+            Lui: imm[31:12] rd opcode
+            Ld: imm[11:0] offset[11:0] rs1 base funct3 width rd dest opcode
+            So we get at total: 12 + 20 bits which is 32 bit address space.
+
         */
         if(attributes->relocation_type & RISCV64_LUI_LD_OPCODE_RELOCATION) {
 
@@ -267,29 +270,30 @@ loader_handle_relative_to_loader_base:
             TRACE("Handling RISCV64_LUI_LD_OPCODE_RELOCATION");
             // reading the lui ld consecutive opcodes
             size_t lui_ld_opcode = *((size_t*)f_offset);
-            size_t rebuilt_opcode = 0x0;
-            // We and with 32 bit to get the low (first part)
-            // Then we shift by 12 bytes to get rid of the opcode part
-            // Then we shift by 12 to get the actual address
-            size_t lui_value = (((lui_ld_opcode & 0xffffffff) >> 12) << 12);
-            // Now we are going to decode the relative access offset
-            int ld_offset =  ((lui_ld_opcode>>32) >> 20);
-            // Doing 2 complement for 12 bits
-            if(ld_offset & 2048) {
-                // This means we got a negative number
-                // Converting the number to the negative value
-                ld_offset = -1 * (((~ld_offset) & ((2048-1)))+1);
-            }
-            TRACE("RISCV64_LUI_LD_OPCODE_RELOCATION lui_value=%llx, ld_offset=%llx",
-                lui_value, ld_offset);
-
-            /* Now after all computation rebuilding the opcode */
-            size_t new_offset;
+         
+            /* 
+                Now after all computation rebuilding the opcode 
+                Here v_offset should point to the real opcode location post relocations
+            */
+            TRACE("Virtual offset = %llx", v_offset);
+            ASSERT_NO_STATUS(v_offset < 0xffffffff);
+            size_t new_offset = (v_offset & (2048-1));
             size_t new_lui_value;
-            size_t lui_opcode = (lui_ld_opcode & 0xfff);
-            lui_opcode += (new_lui_value << 12);
+            if(v_offset < new_offset) {
+                // Mitigate negative offsetes
+                new_lui_value = 0x0;
+            }
+            else {
+               new_lui_value = (v_offset - new_offset) >> 12;
+            }
+            TRACE("L=%llx, b=%llx s=%llx",new_lui_value,new_offset,(((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12) + new_offset) << 32);
+
+            size_t new_opcode = (lui_ld_opcode & 0xfff);
+            new_opcode += (new_lui_value << 12);
             // Should rebuild the ld opcode here
-            lui_opcode += ((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12);
+            new_opcode += ((((lui_ld_opcode >> 32) & (0xfffffffff >> 12)) + (new_offset << 20)) << 32);
+            TRACE("Calculated new opcode: %llx, old opcode = %llx", new_opcode, lui_ld_opcode);
+            v_offset = new_opcode;
 
         }
 #endif
