@@ -10,7 +10,6 @@ import cProfile
 HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
 
-debug_flow_manager = DebugFlowManager()
 
 
 def build_execution_hook(func, *args):
@@ -404,3 +403,4 @@ class GdbGeneralCommandsApi(object):
 
 
 api_handler = GdbGeneralCommandsApi()
+debug_flow_manager = DebugFlowManager(api=api_handler)

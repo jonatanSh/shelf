@@ -104,7 +104,7 @@ void loader_main(
     TRACE("Starting to parse table, total size = 0x%llx", total_header_plus_table_size);
     // handling relocation table
     LOADER_DISPATCH(loader_handle_relocation_table, table, &addresses, &shellcode_main_relative, 0x0);
-    ASSERT((_dispatcher_out == 0x0), _out);
+    ASSERT((_dispatcher_out == OK), _dispatcher_out);
     // Dispatcher out is the function return value;
     void * entry_point = (void *)((size_t)shellcode_main_relative + addresses.base_address);
 
@@ -150,6 +150,7 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
     size_t parsed_entries_size = 0;
     size_t entries_for_attribute = 0;
     size_t _hook_out;
+    STATUS status = OK;
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     struct entry_attributes * attributes;
     while(parsed_entries_size < table->total_size) {
@@ -287,7 +288,7 @@ loader_handle_relative_to_loader_base:
             }
             // We only get 20 bits here
             // 0x100000 == 2**20
-            ASSERT_NO_STATUS(new_lui_value < 0x100000);
+            _ASSERT(new_lui_value < 0x100000, RISCV64_RELOCATION_ERROR | RELOCATION_ERROR);
 
             TRACE("L=%llx, b=%llx s=%llx",new_lui_value,new_offset,(((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12) + new_offset) << 32);
 
@@ -311,9 +312,9 @@ loader_handle_relative_to_loader_base:
     TRACE("shellcode main located at relative %llx", *out);
     goto success;
 error:
-    return ERROR;
+    return status;
 success:
-    return 0x0;
+    return status;
 }
 
 #ifdef SUPPORT_DYNAMIC_LOADER
