@@ -288,7 +288,7 @@ loader_handle_relative_to_loader_base:
             }
             // We only get 20 bits here
             // 0x100000 == 2**20
-            _ASSERT(new_lui_value < 0x100000, RISCV64_RELOCATION_ERROR | RELOCATION_ERROR);
+            _ASSERT(new_lui_value < (0xfffff+1), RISCV64_RELOCATION_ERROR | RELOCATION_ERROR);
 
             TRACE("L=%llx, b=%llx s=%llx",new_lui_value,new_offset,(((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12) + new_offset) << 32);
 

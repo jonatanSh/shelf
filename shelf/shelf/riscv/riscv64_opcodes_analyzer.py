@@ -1,3 +1,4 @@
+import binascii
 import logging
 
 from shelf.lib.ext.opcodes_analysis_base import OpcodeAnalyzer
@@ -16,11 +17,6 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
 
     def init(self, shellcode_data):
         disassembly_offset = self.shelf.opcodes_start_address
-        symbols = self.shelf.find_symbols()
-        symbol_addresses = {}
-        # Packing symbol pointers
-        for symbol in symbols:
-            symbol_addresses[symbol[1]] = symbol
         self.logger.info("Finding candidates")
         for instruction in self.shelf.disassembler.raw_disassemble(
                 shellcode_data[disassembly_offset:], off=disassembly_offset):
@@ -46,10 +42,26 @@ class Riscv64OpcodesAnalyzer(OpcodeAnalyzer):
         if self.relocations:
             return True
 
-    def _analyze(self, shellcode_data):
+    def replace_lui_ld_with_auipc(self, shellcode_data):
+        """
+        The lui ld consecutive sequence for accessing memory addresses
+        Can't access the entire 64 bit address range.
+        Therefor, we replace them with opcodes that are PC relative.
+        :return:
+        """
         for f_offset, v_offset in self.relocations.items():
-            self.shelf.add_to_relocation_table(
-                f_offset,
-                [v_offset, RelocationAttributes.riscv64_lui_ld_opcode_relocation]
+            f_offset_relative = f_offset - self.shelf.opcodes_start_address
+            # Now going to construct a relative pc load
+            pc_relative = v_offset - f_offset
+            lui_instruction = self.shelf.address_utils.unpack(
+                "I",
+                shellcode_data[f_offset_relative:f_offset_relative+4]
             )
+            # Lui and auipc differs only in the 6th bit
+            # This mask will convert to instruction to auipc
+            auipc_instruction = lui_instruction & 0xffffffdf
+
         return shellcode_data
+
+    def _analyze(self, shellcode_data):
+        return self.replace_lui_ld_with_auipc(shellcode_data=shellcode_data)

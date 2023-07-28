@@ -57,6 +57,19 @@ class AddressUtils(object):
             logging.error("Pack exception: {} {} {}".format(self.endian, fmt, n))
             raise e
 
+    def unpack(self, fmt, n):
+        """
+        Call struct pack in the endian of the input binary
+        :param fmt: The format to use in struct packet
+        :param n: the value to unpack
+        :return: Packed value
+        """
+        try:
+            return struct.unpack("{}{}".format(self.endian, fmt), n)
+        except Exception as e:
+            logging.error("Pack exception: {} {} {}".format(self.endian, fmt, n))
+            raise e
+
     def pack_pointer(self, n):
         """
         Pack a pointer
