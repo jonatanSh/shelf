@@ -13,7 +13,7 @@ Please read the following documentation and view the examples for this project t
 * x86_64 (intel x64)
 * arm (32bit)
 * aarch64 (arm 64 bit)
-* RISC-V rv64 - partial support
+* RISC-V rv64
 
 #### Installation:
 ```bash
