@@ -12,15 +12,21 @@ Add the following to the command
 # About
 
 Some compilers don't fully support PIC binaries when compiling with libc.
+
 They generate position-dependent code (will be referred as PDC).
-The opcode relocations feature reloctae the PDC stubs
+
+The opcode relocations feature reloctae the PDC stubs.
+
 For the supported architectures the library will try to detect PDC and warn
 the user if a PDC was found.
 
 ### Warning
 The library try to do its best to relocate PDC stubs.
+
 But in some cases a program can full the library to relocate other stubs.
+
 For example if the shellcode use a libc function located at 0x8000000
+
 and the user set some variable to 0x8000000 eg:
 
 ```c
@@ -33,10 +39,15 @@ void main() {
 ```
 
 In the following program the library can accidentally relocate
+
 my_cool_var to point to my_libc_function.
+
 This depends on the architecture, but generally
+
 the library first check if the PDC is within the shellcode virtual range.
+
 Note that the library doesn't know where the shellcode is loaded to.
+
 Therefor, it only checks if this function or variable is declared within the shellcode.
 ### PDC in architectures
 #### PDC in x86
