@@ -23,7 +23,7 @@ the user if a PDC was found.
 ### Warning
 The library try to do its best to relocate PDC stubs.
 
-But in some cases a program can full the library to relocate other stubs.
+But in some cases a program can fool the library to relocate other stubs.
 
 For example if the shellcode use a libc function located at 0x8000000
 
