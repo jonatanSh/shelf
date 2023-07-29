@@ -1,3 +1,4 @@
+import binascii
 import os
 import struct
 import sys
@@ -667,6 +668,13 @@ class Shellcode(object):
         elf_buffer_with_address += elf_buffer[loader_symbol_address + self.ptr_size:]
         return elf_buffer_with_address
 
+    def f_offset_get_matching_virtual_address(self, f_offset):
+        for segment in self.get_segments_in_memory():
+            if segment.f_start <= f_offset <= segment.f_end:
+                distance = f_offset - segment.f_start
+                return segment.v_start + distance
+        raise Exception("f_offset not in binary")
+
     def make_relative(self, address):
         return address - self.loading_virtual_address
 
@@ -680,6 +688,7 @@ class Shellcode(object):
 
     @property
     def opcodes_start_address(self):
+        # Well this is actually the first objdump-ed section f_start
         return self.linker_base_address
 
     def stream_unpack_pointers(self, stream, num_of_ptrs):

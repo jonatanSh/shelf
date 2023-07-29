@@ -20,7 +20,6 @@
 #elif defined(mips) || defined(__mips__) || defined(__mips)
     #include "./mips/mips.h"
 #elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
-    #define RISCV64
     #include "riscv/riscv64.h"
 #elif defined(__sh__)
     #error Not Supported
@@ -58,16 +57,6 @@ enum RELOCATION_ATTRIBUTES {
     IRELATIVE = (1 << 1),
     RELATIVE_TO_LOADER_BASE = (1 << 2),
     RELATIVE = (1 << 3),
-    /*
-        This is a specific risv64 relocation.
-        in riscv the following stub is found on binarys:
-        lui	a4,0x72 
-        ld	a1,-1992(a4)
-        The value in a4 is shiffted 12 bytes
-    */
-    RISCV64_LUI_LD_OPCODE_RELOCATION = (1 << 4),
-
-    
 };
 
 typedef void * (*IRELATIVE_T)();

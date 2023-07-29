@@ -199,6 +199,14 @@ class AddressUtils(object):
             ptr_fmt="Q"
         )
 
+    @staticmethod
+    def twos_complement(num, num_bits):
+        # Calculate the two's complement representation using int() with base conversion
+        two_complement = (num + (1 << num_bits)) % (1 << num_bits)
+
+        # Convert the result to binary representation and return it as a string
+        return int(bin(two_complement)[2:].zfill(num_bits), 2)
+
     def __repr__(self):
         return "AddressUtils(endian={}, format={})".format(
             self.endian,

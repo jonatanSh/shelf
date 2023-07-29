@@ -239,68 +239,7 @@ loader_handle_relative_to_loader_base:
         DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_write_hooks, f_offset, &addresses, _hook_out);
 #endif
 
-        /*
-            Now going to set the offset acordingaly            
-        */
-#ifdef RISCV64
-        /*
-            For more refrence on the riscv isa: https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf
-            The whole purpose of this relocation is to relocate the consecutive
-                lui a4, 72h
-                ld a6, -7D0h(a4)
-            Those instruction resolve and load relative values.
-            Some compilers don't correctly handle riscv64 static elfs, 
-            they generate code which access memory *known address*
-            We are going to disassemble those opcodes and relcoate them
-            based on the relocataion table
-            Due the mini loader for riscv64 will have this relocation, only if
-            --relocate-opcodes is used then it will be relocated. 
-            The opcodes
-            Lui: imm[31:12] rd opcode
-            Ld: imm[11:0] offset[11:0] rs1 base funct3 width rd dest opcode
-            So we get at total: 12 + 20 bits which is 32 bit address space.
 
-        */
-        if(attributes->relocation_type & RISCV64_LUI_LD_OPCODE_RELOCATION) {
-
-            /*
-                This relocation
-                37 27 07 00 lui a4, 72h
-                03 38 07 83 ld  a6, -7D0h(a4)
-            */
-            TRACE("Handling RISCV64_LUI_LD_OPCODE_RELOCATION");
-            // reading the lui ld consecutive opcodes
-            size_t lui_ld_opcode = *((size_t*)f_offset);
-         
-            /* 
-                Now after all computation rebuilding the opcode 
-                Here v_offset should point to the real opcode location post relocations
-            */
-            TRACE("Virtual offset = %llx", v_offset);
-            size_t new_offset = (v_offset & (2048-1));
-            size_t new_lui_value;
-            if(v_offset < new_offset) {
-                // Mitigate negative offsetes
-                new_lui_value = 0x0;
-            }
-            else {
-               new_lui_value = (v_offset - new_offset) >> 12;
-            }
-            // We only get 20 bits here
-            // 0x100000 == 2**20
-            _ASSERT(new_lui_value < (0xfffff+1), RISCV64_RELOCATION_ERROR | RELOCATION_ERROR);
-
-            TRACE("L=%llx, b=%llx s=%llx",new_lui_value,new_offset,(((lui_ld_opcode >> 32) & (0xfffffffff >> 12) << 12) + new_offset) << 32);
-
-            size_t new_opcode = (lui_ld_opcode & 0xfff);
-            new_opcode += (new_lui_value << 12);
-            // Should rebuild the ld opcode here
-            new_opcode += ((((lui_ld_opcode >> 32) & (0xfffffffff >> 12)) + (new_offset << 20)) << 32);
-            TRACE("Calculated new opcode: %llx, old opcode = %llx", new_opcode, lui_ld_opcode);
-            v_offset = new_opcode;
-
-        }
-#endif
         *((size_t*)f_offset) = v_offset;
 
         parsed_entries_size += sizeof(struct table_entry);

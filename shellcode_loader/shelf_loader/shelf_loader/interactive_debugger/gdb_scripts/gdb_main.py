@@ -11,7 +11,6 @@ HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
 
 
-
 def build_execution_hook(func, *args):
     def wrapper():
         return func(*args)

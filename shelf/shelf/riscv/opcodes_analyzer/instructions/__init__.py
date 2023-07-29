@@ -33,6 +33,6 @@ class LdInstruction(RiscvGenericLoadStoreInstruction):
         try:
             pattern = r'[a-z0-9]+,\s*([-+]?\d+)\('
             offset_part = re.findall(pattern,self.capstone_ins.op_str)
-            self.offset = int(offset_part[0], 16)
+            self.offset = int(offset_part[0], 10)
         except Exception as e:
             self.offset = None

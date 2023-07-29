@@ -67,7 +67,6 @@ int get_elf_information(struct relocation_table ** info);
 #define INVALID_MAGIC (1 << 2)
 #define INVALID_ATTRIBUTE (1 << 3)
 #define RELOCATION_ERROR (1<<4)
-#define RISCV64_RELOCATION_ERROR (1<<5)
 
 
 /*
