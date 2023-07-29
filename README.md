@@ -100,18 +100,11 @@ qemu-mips ./shellcode_loader ./myshellcode.out
 it is advised to use the shelf loader library to tests your shellcode
 here you can read more about it: [Shelf loader documentation](https://github.com/jonatanSh/shelf/tree/master/docs/shelf_loader.md)
 
-### Output example
-```bash
-Shellcode size = 66620
-Allocating shellcode buffer, size = 69632
-Mapping new memory, size = 69632
-Jumping to shellcode, address = 0x7f7ee000
-Hello from shellcode !
-```
 
 
 ## Advanced concepts and features
 for following links only work on the github page
+* [Opcode relocations](docs/opcodes_relocation.md)
 * [Compiling with libc](docs/libc.md)
 * [Dynamic shellcode](docs/dynamic.md)
 * [Hooking the mini loader](docs/hooks.md)
