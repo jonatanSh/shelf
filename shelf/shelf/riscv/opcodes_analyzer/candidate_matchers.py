@@ -24,8 +24,8 @@ class ConsecutiveLuiLdMatcher(ConsecutiveMatcher):
 
     def add_matches(self, matches):
         candidate = LuiLdCandidate(
-            matches.pop(),
-            matches.pop()
+            matches[0],
+            matches[1]
         )
         if candidate.is_valid():
             self.matches.append(candidate)
