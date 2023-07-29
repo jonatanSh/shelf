@@ -11,7 +11,7 @@ SEARCH_DIR("=/usr/local/lib/mips-linux-gnu"); SEARCH_DIR("=/lib/mips-linux-gnu")
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
-  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x0400000)); . = SEGMENT_START("text-segment", 0x0400000) + SIZEOF_HEADERS;
+  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x1991238)); . = SEGMENT_START("text-segment", 0x1991238) + SIZEOF_HEADERS;
   .interp         : { *(.interp) }
   .MIPS.abiflags   : { *(.MIPS.abiflags) }
   .reginfo         : { *(.reginfo) }

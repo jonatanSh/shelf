@@ -11,7 +11,7 @@ SEARCH_DIR("=/usr/local/lib/riscv64-linux-gnu"); SEARCH_DIR("=/lib/riscv64-linux
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
-  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0)); . = SEGMENT_START("text-segment", 0) + SIZEOF_HEADERS;
+  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x1991238)); . = SEGMENT_START("text-segment", 0x1991238) + SIZEOF_HEADERS;
   .interp         : { *(.interp) }
   .note.gnu.build-id  : { *(.note.gnu.build-id) }
   .hash           : { *(.hash) }

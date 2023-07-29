@@ -3,7 +3,6 @@
 # compiler flags:
 CFLAGS=-g -Wall -static
 
-
 # the build target executable:
 TARGET = main
 

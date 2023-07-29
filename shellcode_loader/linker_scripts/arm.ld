@@ -11,7 +11,7 @@ SEARCH_DIR("=/usr/local/lib/arm-linux-gnueabi"); SEARCH_DIR("=/lib/arm-linux-gnu
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
-  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x00010000)); . = SEGMENT_START("text-segment", 0x00010000) + SIZEOF_HEADERS;
+  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x1991238)); . = SEGMENT_START("text-segment", 0x1991238) + SIZEOF_HEADERS;
   .interp         : { *(.interp) }
   .note.gnu.build-id  : { *(.note.gnu.build-id) }
   .hash           : { *(.hash) }
