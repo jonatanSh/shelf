@@ -104,7 +104,7 @@ void loader_main(
     TRACE("Starting to parse table, total size = 0x%llx", total_header_plus_table_size);
     // handling relocation table
     LOADER_DISPATCH(loader_handle_relocation_table, table, &addresses, &shellcode_main_relative, 0x0);
-    ASSERT((_dispatcher_out == 0x0), _out);
+    ASSERT((_dispatcher_out == OK), _dispatcher_out);
     // Dispatcher out is the function return value;
     void * entry_point = (void *)((size_t)shellcode_main_relative + addresses.base_address);
 
@@ -150,6 +150,7 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
     size_t parsed_entries_size = 0;
     size_t entries_for_attribute = 0;
     size_t _hook_out;
+    STATUS status = OK;
     void * entry_ptr = (void *)(((size_t)table) + sizeof(struct relocation_table));
     struct entry_attributes * attributes;
     while(parsed_entries_size < table->total_size) {
@@ -190,12 +191,13 @@ STATUS loader_handle_relocation_table(struct relocation_table * table, struct ad
         /*
             DO NOT USE SWITCH CASE HERE
             it will create a relocatable section
+            Here getting the virtual offset for non generic relative relocation
         */
-        if(attributes->relocation_type != GENERIC_RELOCATE) {
+        if(!(attributes->relocation_type & GENERIC_RELOCATE)) {
             // We have relocation attributes
             // Can't use jump tables in loader :(
             size_t attribute_val = 0;
-            if(attributes->relocation_type == IRELATIVE) {
+            if(attributes->relocation_type & IRELATIVE) {
 // The lables are for debugging do not remove them
 loader_handle_irelative_relocs:
                 #ifdef DEBUG
@@ -211,7 +213,7 @@ loader_handle_irelative_relocs:
                 #endif
                 v_offset = attribute_val;
             }
-            else if(attributes->relocation_type == RELATIVE_TO_LOADER_BASE) {
+            else if(attributes->relocation_type & RELATIVE_TO_LOADER_BASE) {
 // The lables are for debugging do not remove them
 loader_handle_relative_to_loader_base:
                 attribute_val = (size_t)(entry->v_offset + addresses->loader_base);
@@ -220,16 +222,14 @@ loader_handle_relative_to_loader_base:
                 #endif
                 v_offset = attribute_val;
             }
-            else if(attributes->relocation_type == RELATIVE) {
+            else if(attributes->relocation_type & RELATIVE) {
                 attribute_val = (size_t)(*((size_t*)f_offset)) + addresses->base_address;
                 #ifdef DEBUG
                     TRACE("Loader RELATIVE fix: 0x%llx=0x%llx()", v_offset, attribute_val);
                 #endif
                 v_offset = attribute_val;
             }
-            else {
-                return INVALID_ATTRIBUTE;
-            }
+
         }
         #ifdef DEBUG
             TRACE("Loader set *((size_t*)0x%llx) = 0x%llx", f_offset, v_offset);
@@ -238,6 +238,8 @@ loader_handle_relative_to_loader_base:
 #ifdef SUPPORT_HOOKS
         DISPATCH_HOOKS(addresses->hooks_base_address, pre_relocate_write_hooks, f_offset, &addresses, _hook_out);
 #endif
+
+
         *((size_t*)f_offset) = v_offset;
 
         parsed_entries_size += sizeof(struct table_entry);
@@ -249,9 +251,9 @@ loader_handle_relative_to_loader_base:
     TRACE("shellcode main located at relative %llx", *out);
     goto success;
 error:
-    return ERROR;
+    return status;
 success:
-    return 0x0;
+    return status;
 }
 
 #ifdef SUPPORT_DYNAMIC_LOADER

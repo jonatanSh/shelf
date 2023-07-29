@@ -46,6 +46,8 @@ class ShelfApi(object):
                                             loader_symbols_path=loader_symbols_path,
                                             loader_path=loader_path,
                                             output_format=output_format,
+                                            relocate_opcodes=True,
+                                            force=False
                                         ))
 
     @staticmethod

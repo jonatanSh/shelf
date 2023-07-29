@@ -10,7 +10,12 @@ import cProfile
 HEADER = "SHELF LOADER GDB INTEGRATION"
 print(HEADER)
 
-debug_flow_manager = DebugFlowManager()
+
+def build_execution_hook(func, *args):
+    def wrapper():
+        return func(*args)
+
+    return wrapper
 
 
 class GdbGeneralCommandsApi(object):
@@ -346,7 +351,7 @@ class GdbGeneralCommandsApi(object):
                 return True
         return False
 
-    def generic_execute_until_error(self, cmd):
+    def generic_execute_until_error(self, cmd, execution_hook=None):
         try:
             gdb.execute("set pagination off", to_string=False)
             last_mni = gdb.execute(cmd, to_string=True)
@@ -355,6 +360,8 @@ class GdbGeneralCommandsApi(object):
             while last_mni != current_mni or self.error_occurred(current_mni):
                 last_mni = copy.copy(current_mni)
                 current_mni = gdb.execute(cmd, to_string=True)
+                if execution_hook:
+                    execution_hook()
                 print(current_mni)
         finally:
             gdb.execute("set pagination on", to_string=True)
@@ -367,7 +374,10 @@ class GdbGeneralCommandsApi(object):
         for symbol in self.symbols:
             sym_name, sym_address, sym_size = symbol
             self.break_on_symbol(sym_name, to_string=True)
-        self.generic_execute_until_error("mc")
+        self.generic_execute_until_error("mc",
+                                         execution_hook=build_execution_hook(
+                                             self._disassm, "$pc-16"
+                                         ))
 
     def execute(self, instruction, *args, **kwargs):
         if hasattr(self, instruction):
@@ -392,3 +402,4 @@ class GdbGeneralCommandsApi(object):
 
 
 api_handler = GdbGeneralCommandsApi()
+debug_flow_manager = DebugFlowManager(api=api_handler)

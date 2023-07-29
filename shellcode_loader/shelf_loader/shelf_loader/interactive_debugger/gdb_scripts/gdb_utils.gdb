@@ -1,6 +1,6 @@
 define ms
-    disassm $pc
     si
+    disassm $pc
 end
 
 document ms
@@ -8,8 +8,8 @@ document ms
 end
 
 define mni
-    disassm $pc
     nexti
+    disassm $pc
 end
 
 document mni
@@ -107,4 +107,12 @@ end
 
 document shellcode_debug
     Add break point on each function of the shellcode the execute it
+end
+
+define mb
+    python api_handler.execute("break_on_symbol", "$arg0")
+end
+
+document mb
+    Break on shellcode symbol
 end

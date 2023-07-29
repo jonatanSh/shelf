@@ -4,6 +4,7 @@ from logging import getLogger
 import subprocess
 import tempfile
 import re
+from distutils.spawn import find_executable
 from shelf.lib.consts import DisassemblerConsts
 from shelf.lib.utils.process import communicate_with_timeout
 
@@ -49,11 +50,17 @@ class CapstoneInstructionApi(object):
         while len(iparts) < 2:
             iparts.append(None)
 
-        self.op_str = iparts[0]
-        self.mnemonic = iparts[1]
+        self.mnemonic = iparts[0]
+        self.op_str = iparts[1]
         self.bytes = instruction_bytes
         self._base_address = base_address
         self.address = self._base_address + int(address, 16)
+
+    def is_valid(self):
+        if not self.mnemonic or not self.op_str:
+            return False
+
+        return True
 
 
 class ObjdumpDisassemblerBackend(object):
@@ -63,7 +70,17 @@ class ObjdumpDisassemblerBackend(object):
         self.objdump_arch = DisassemblerConsts.OBJDUMP_ARCHES[architecture]
         self.logger = getLogger(self.__class__.__name__)
 
+    def does_backend_exists(self):
+        return find_executable(self.backend) is not None
+
     def disassemble_file(self, input_file, offset):
+        if not self.does_backend_exists():
+            raise Exception("A feature you are using uses the objdump backend and "
+                            "requires: {0} to be installed on the system "
+                            "{0} was not found, probably you can bypass this with --force due it is not "
+                            "recommended and the output can result in corrupted shellcode".format(
+                self.backend
+            ))
         assert os.path.exists(input_file)
         command = [
             self.backend,
@@ -106,15 +123,16 @@ class ObjdumpDisassemblerBackend(object):
             if None in [address, instruction_bytes, instruction]:
                 self.logger.error("Error parsing: {}".format(line))
                 continue
-            instruction_bytes = binascii.unhexlify(instruction_bytes) # TODO change Its little endian
+            instruction_bytes = binascii.unhexlify(instruction_bytes)  # TODO change Its little endian
 
             instruction = CapstoneInstructionApi(
                 address=address,
-                instruction_bytes=instruction_bytes,
+                instruction_bytes=[b for b in reversed(instruction_bytes)],
                 instruction_str=instruction,
                 base_address=off
             )
-            instructions.append(instruction)
+            if instruction.is_valid():
+                instructions.append(instruction)
 
         return instructions
 

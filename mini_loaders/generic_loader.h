@@ -53,10 +53,10 @@ struct entry_attributes {
 };
 
 enum RELOCATION_ATTRIBUTES {
-    GENERIC_RELOCATE = 0,
-    IRELATIVE = 1,
-    RELATIVE_TO_LOADER_BASE = 2,
-    RELATIVE = 3,
+    GENERIC_RELOCATE = (1 << 0),
+    IRELATIVE = (1 << 1),
+    RELATIVE_TO_LOADER_BASE = (1 << 2),
+    RELATIVE = (1 << 3),
 };
 
 typedef void * (*IRELATIVE_T)();

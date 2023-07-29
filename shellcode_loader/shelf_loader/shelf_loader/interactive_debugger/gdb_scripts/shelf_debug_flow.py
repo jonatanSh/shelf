@@ -2,7 +2,8 @@ import gdb
 
 
 class DebugFlowManager(object):
-    def __init__(self):
+    def __init__(self, api):
+        self.api = api
         self.breakpoints = [
             'loader_main',
             'loader_handle_relocation_table',
@@ -22,9 +23,8 @@ class DebugFlowManager(object):
         print("Executing")
         self.execute("mc")
 
-    @staticmethod
-    def add_breakpoint_for_symbol(sym_name):
-        gdb.execute('python break_on_symbol("{}")'.format(sym_name))
+    def add_breakpoint_for_symbol(self, sym_name):
+        self.api.break_on_symbol(sym_name)
 
     @staticmethod
     def execute(f):

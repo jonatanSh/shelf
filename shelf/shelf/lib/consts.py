@@ -10,11 +10,11 @@ class HookTypes(enum.Enum):
 
 
 class RelocationAttributes(enum.Enum):
-    generic_relocate = 0
-    call_to_resolve = 1
-    relative_to_loader_base = 2
-    relative = 3
-
+    generic_relocate = (1 << 0)
+    call_to_resolve = (1 << 1)
+    relative_to_loader_base = (1 << 2)
+    relative = (1 << 3)
+    riscv64_lui_ld_opcode_relocation = (1 << 4)
 
 class RELOC_TYPES(object):
     JMP_SLOT = "JMP_SLT"
@@ -147,7 +147,7 @@ class DisassemblerConsts(object):
         Arches.riscv64.value: 'riscv64-linux-gnu-objdump'
     }
     OBJDUMP_ARCHES = {
-        Arches.riscv64.value: "RISCV"
+        Arches.riscv64.value: "riscv:rv64"
     }
 
 

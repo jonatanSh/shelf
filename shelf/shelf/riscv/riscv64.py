@@ -1,6 +1,7 @@
 from shelf.lib.shellcode import Shellcode, create_make_shellcode
 from shelf.riscv.riscv64_dynamic_relocations import Riscv64DynamicRelocations
 from shelf.lib.consts import ShellcodeMagics
+from shelf.riscv.riscv64_opcodes_analyzer import Riscv64OpcodesAnalyzer
 
 
 class Riscv64Shellcode(Shellcode):
@@ -23,6 +24,8 @@ class Riscv64Shellcode(Shellcode):
         )
         self.dynamic_handler = Riscv64DynamicRelocations(shellcode=self)
         self.add_relocation_handler(self.dynamic_handler.handle)
+        self.deep_analysis = Riscv64OpcodesAnalyzer(self)
+        self.add_shellcode_formatter(self.deep_analysis.analyze)
 
 
 riscv64_make_shellcode = create_make_shellcode(Riscv64Shellcode)
