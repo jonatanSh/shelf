@@ -16,7 +16,7 @@ class ArmX32Shellcode(Shellcode):
             ptr_fmt="I",
             sections_to_relocate={
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
-                '.got.plt': {'align_by': 'sh_entsize', 'relocate_all': True},
+                '.got.plt': {'align_by': 'sh_entsize'},
 
             },
             support_dynamic=True,

@@ -314,7 +314,6 @@ class Shellcode(object):
         for section, attributes in self.sections_to_relocate.items():
             self.section_build_relocations_table(
                 section_name=section,
-                relocate_all=attributes.get("relocate_all", False),
                 shellcode_data=shellcode_data
             )
         return shellcode_data
@@ -326,9 +325,8 @@ class Shellcode(object):
         self.patched_symbols_mapping[symbol_name] = [virtual_offset, offset]
         self.add_to_relocation_table(virtual_offset, offset)
 
-    def section_build_relocations_table(self, section_name, relocate_all, shellcode_data):
+    def section_build_relocations_table(self, section_name, shellcode_data):
         data_section = self.elffile.get_section_by_name(section_name)
-        original_symbol_addresses = self.get_original_symbols_addresses()
         if data_section:
             data_section_header = data_section.header
             index = 0
@@ -339,9 +337,6 @@ class Shellcode(object):
                 data_section_value = \
                     struct.unpack("{}{}".format(self.endian, self.ptr_fmt),
                                   shellcode_data[data_section_start:data_section_end])[0]
-                if data_section_value not in original_symbol_addresses and not relocate_all:
-                    self.logger.info("[R_SKIPPED]{}".format(hex(data_section_value)))
-                    continue
                 sym_offset = data_section_value - self.loading_virtual_address
                 if sym_offset < 0:
                     continue
@@ -486,16 +481,6 @@ class Shellcode(object):
 
         return self._linker_base
 
-    def get_original_symbols_addresses(self):
-        symtab = self.elffile.get_section_by_name(".symtab")
-        addresses = []
-        for sym in symtab.iter_symbols():
-            address = sym.entry.st_value
-            if address >= self.loading_virtual_address:
-                addresses.append(address)
-
-        return addresses
-
     @property
     def symbols(self):
         symtab = self.elffile.get_section_by_name(".symtab")
@@ -538,6 +523,8 @@ class Shellcode(object):
     def get_symbol_name_from_address(self, address):
 
         symtab = self.elffile.get_section_by_name(".symtab")
+        if not symtab:
+            return None
         for sym in symtab.iter_symbols():
             sym_address = sym.entry.st_value
             if sym_address == address:
