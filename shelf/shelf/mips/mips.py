@@ -17,7 +17,7 @@ class MipsShellcode(Shellcode):
             shellcode_table_magic=ShellcodeMagics.arch32.value,
             ptr_fmt="I",
             sections_to_relocate={
-                '.got': {'align_by': 'sh_entsize', 'relocate_all': True},
+                '.got': {'align_by': 'sh_entsize'},
                 '.data.rel.ro': {'align_by': 'sh_addralign'},
 
             },
