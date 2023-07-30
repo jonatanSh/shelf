@@ -52,6 +52,7 @@ end
 define break_on_shellcode_main
     execute_shellcode
     python api_handler.execute("break_on_symbol", 'main')
+    python api_handler.execute("break_on_symbol", "__libc_start_main")
     mc
     disassm $pc
 end

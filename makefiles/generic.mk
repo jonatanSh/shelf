@@ -1,5 +1,5 @@
 CFLAGS+=-fno-stack-protector -fPIE -fpic
-CFLAGS+=-nostartfiles --entry=main
+NOSTARTFILES+=-nostartfiles --entry=main
 EXCLUDE_HELLO_HOOK?=
 EXCLUDE_ESHELF?=
 EXCLUDE_DYNAMIC?=
@@ -60,7 +60,7 @@ compile_all:
 	fi
 
 mips_%: mini_loader_mips mini_loader_mipsbe
-	$(MAKE) compile_all COMPILER="$(MIPS_CC)" COMPILER_FLAGS="$(CFLAGS) -BE" STATIC_FLAGS="-static" FILES="$(subst mips_,,$@).c"  OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
+	$(MAKE) compile_all COMPILER="$(MIPS_CC)" COMPILER_FLAGS="$(CFLAGS) $(NOSTARTFILES) -BE" STATIC_FLAGS="-static" FILES="$(subst mips_,,$@).c"  OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
 	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
 
 
@@ -70,18 +70,18 @@ intel_x32_%: mini_loader_x32
 
 
 intel_x64_%: mini_loader_x64
-	$(MAKE) compile_all COMPILER="$(X64_CC)" COMPILER_FLAGS="$(CFLAGS) -masm=intel" STATIC_FLAGS="-static" FILES="$(subst intel_x64_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
+	$(MAKE) compile_all COMPILER="$(X64_CC)" COMPILER_FLAGS="$(CFLAGS) $(NOSTARTFILES) -masm=intel" STATIC_FLAGS="-static" FILES="$(subst intel_x64_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
 	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
 
 arm32_%: mini_loader_arm_x32
-	$(MAKE) compile_all COMPILER="$(ARM_CC)" COMPILER_FLAGS="$(CFLAGS)" STATIC_FLAGS="-static" FILES="$(subst arm32_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
+	$(MAKE) compile_all COMPILER="$(ARM_CC)" COMPILER_FLAGS="$(CFLAGS) $(NOSTARTFILES)" STATIC_FLAGS="-static" FILES="$(subst arm32_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
 	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
 
 aarch64_%: mini_loader_arm_x64
-	$(MAKE) compile_all COMPILER="$(AARCH64_CC)" COMPILER_FLAGS="$(CFLAGS)" STATIC_FLAGS="-static" FILES="$(subst aarch64_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
+	$(MAKE) compile_all COMPILER="$(AARCH64_CC)" COMPILER_FLAGS="$(CFLAGS) $(NOSTARTFILES)" STATIC_FLAGS="-static" FILES="$(subst aarch64_,,$@).c" OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
 	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
 
 riscv64_%: mini_loader_riscv64
-	$(MAKE) compile_all COMPILER="$(RISCV64_CC)" COMPILER_FLAGS="$(CFLAGS)" STATIC_FLAGS="-static" FILES="$(subst riscv64_,,$@).c"  OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
+	$(MAKE) compile_all COMPILER="$(RISCV64_CC)" COMPILER_FLAGS="$(CFLAGS) $(NOSTARTFILES)" STATIC_FLAGS="-static" FILES="$(subst riscv64_,,$@).c"  OUTPUT_FILE="$(OUTPUT_DIRECTORY)$@.out"
 	$(MAKE) all_shellcodes INPUT_FILE="$@.out"
 
