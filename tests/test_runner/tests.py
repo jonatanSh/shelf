@@ -54,7 +54,7 @@ TESTS = {
     'test_framework_tests': {
         "test_file_fmt": "../outputs/{}_test_framework_tests.out.shellcode",
         "supported_arches": all_arches,
-        "success": [""],
+        "success": ["SHELF:my_test_error_function"],
         "features": [],
         'check_rc': False
     },
