@@ -1,8 +1,10 @@
 from setuptools import find_packages, setup
 import os
 import sys
-from shelf.__version__ import FULL
-
+try:
+    from shelf.__version__ import FULL
+except Exception as e:
+    FULL = "0.0.0"
 disable_checks = '--force-disable-py2-check' in sys.argv
 
 version = int(sys.version[0])
